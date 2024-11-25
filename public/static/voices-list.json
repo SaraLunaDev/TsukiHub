@@ -1,0 +1,100 @@
+[
+  {
+    "id": 10,
+    "name": "Martin",
+    "file": "10_Martin.mp3",
+    "api": "elevenlabs",
+    "fullName": "Martin"
+  },
+  {
+    "id": 11,
+    "name": "Tortugo",
+    "file": "11_Tortugo.mp3",
+    "api": "elevenlabs",
+    "fullName": "Tortugo"
+  },
+  {
+    "id": 12,
+    "name": "Vilexis",
+    "file": "12_Vilexis.mp3",
+    "api": "elevenlabs",
+    "fullName": "Vilexis"
+  },
+  {
+    "id": 13,
+    "name": "Knekro",
+    "file": "13_Knekro.mp3",
+    "api": "elevenlabs",
+    "fullName": "Knekro"
+  },
+  {
+    "id": 14,
+    "name": "Sara",
+    "file": "14_Sara.mp3",
+    "api": "elevenlabs",
+    "fullName": "Sara"
+  },
+  {
+    "id": 1,
+    "name": "Aerista",
+    "file": "1_Aerista.mp3",
+    "api": "elevenlabs",
+    "fullName": "Aerista"
+  },
+  {
+    "id": 2,
+    "name": "Alba",
+    "file": "2_Alba.mp3",
+    "api": "google",
+    "fullName": "Alba"
+  },
+  {
+    "id": 3,
+    "name": "Arthur",
+    "file": "3_Arthur.mp3",
+    "api": "elevenlabs",
+    "fullName": "Arthur"
+  },
+  {
+    "id": 4,
+    "name": "Camille",
+    "file": "4_Camille.mp3",
+    "api": "google",
+    "fullName": "Camille"
+  },
+  {
+    "id": 5,
+    "name": "Felipez",
+    "file": "5_Felipez.mp3",
+    "api": "google",
+    "fullName": "Felipez"
+  },
+  {
+    "id": 6,
+    "name": "Gerta",
+    "file": "6_Gerta.mp3",
+    "api": "google",
+    "fullName": "Gerta"
+  },
+  {
+    "id": 7,
+    "name": "Hana",
+    "file": "7_Hana.mp3",
+    "api": "google",
+    "fullName": "Hana"
+  },
+  {
+    "id": 8,
+    "name": "Javier",
+    "file": "8_Javier.mp3",
+    "api": "google",
+    "fullName": "Javier"
+  },
+  {
+    "id": 9,
+    "name": "Lucia",
+    "file": "9_Lucia.mp3",
+    "api": "google",
+    "fullName": "Lucia"
+  }
+]
