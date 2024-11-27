@@ -1,0 +1,19 @@
+.stars {
+    display: flex;
+    justify-content: center;
+    margin-top: 5px;
+  }
+  
+  .star {
+    font-size: 1.5em;
+    margin: 0 2px;
+  }
+  
+  .star.filled {
+    color: #ffcc00; /* Color de estrella llena */
+  }
+  
+  .star.empty {
+    color: #ccc; /* Color de estrella vacía */
+  }
+  

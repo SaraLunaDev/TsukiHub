@@ -3,7 +3,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 15px 30px;
-  background: #333;
+  background: var(--navbar);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
@@ -36,14 +36,14 @@
 
 .navbar-links a {
   text-decoration: none;
-  color: white;
+  color: var(--text);
   font-size: 18px; /* Tamaño del texto */
   font-weight: bold;
   transition: color 0.3s ease;
 }
 
 .navbar-links a:hover {
-  color: #ffaaaa;
+  color: var(--color-mid);
 }
 
 .theme-button {

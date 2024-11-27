@@ -1,3 +1,59 @@
+/* Variables para modo claro */
+:root {
+  --navbar: #333;
+  --dark: #222;
+  --dark-2: #2a2a2a;
+  --mid: #333;
+  --mid-2: #3a3a3a;
+  --clear: #555;
+  --clear-2: #5a5a5a;
+  --text: #fafafa;
+  --text-2: #bababa;
+  --text-3: #eee;
+  --color-dark: #ff5555;
+  --color-mid: #ff8888;
+  --color-clear: #ffaaaa;
+  --background-color-filter-menu: #333;
+  --text-filter-menu: #fafafa;
+  --box-shadow: 0 8px 10px rgba(0, 0, 0, 0.25);
+  --box-shadow-2: 0 8px 10px rgba(0, 0, 0, 0.1);
+  --box-shadow-3: 0 8px 10px rgba(0, 0, 0, 0.1);
+  --box-shadow-up: 0 -4px 6px rgba(0, 0, 0, 0.1);
+  --box-shadow-inset: inset 0 0 10px rgb(0, 0, 0, 0.75);
+  --selected-button-high: #55555548;
+  --edit-text: #333;
+  --edit-text-border: #333;
+  --lupa: url("/public/static/resources/lupa.png");
+}
+
+/* Variables para modo oscuro */
+body.dark-mode {
+  --navbar: #ffffff;
+  --dark: #f8f8f8;
+  --dark-2: #fbfbfb;
+  --mid: #ccc;
+  --mid-2: #cfcfcf;
+  --clear: #fff;
+  --clear-2: #ffffff;
+  --text: #222;
+  --text-2: #bababa;
+  --text-3: #eee;
+  --color-dark: #ff5555;
+  --color-mid: #ff8888;
+  --color-clear: #ffaaaa;
+  --background-color-filter-menu: #f8f8f8;
+  --text-filter-menu: #222;
+  --box-shadow: 0 8px 10px rgba(0, 0, 0, 0.25);
+  --box-shadow-2: 0 0px 5px rgb(0, 0, 0, .5);
+  --box-shadow-3: 0 0px 10px rgb(0, 0, 0, .25);
+  --box-shadow-up: 0 -4px 6px rgba(0, 0, 0, 0.1);
+  --box-shadow-inset: inset 0 0 10px rgb(0, 0, 0, 0.25);
+  --selected-button-high: rgba(85, 85, 85, 0.082);
+  --edit-text: #ffffff;
+  --edit-text-border:  #dfdfdf;
+  --lupa: url("/public/static/resources/lupablack.png");
+}
+
 body {
   font-family: Arial, sans-serif;
   margin: 0;

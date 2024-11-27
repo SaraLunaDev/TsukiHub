@@ -1,25 +1,41 @@
 .inicio-container {
-    text-align: center;
-    padding: 20px;
-  }
-  
-  header {
-    margin-bottom: 20px;
-  }
-  
-  section {
-    margin-top: 20px;
-    padding: 20px;
-    background: var(--background-section, #e6e6e6);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  footer {
-    margin-top: 40px;
-    background: #f4f4f4;
-    padding: 10px;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-  
+  text-align: center;
+  padding: 20px;
+}
+
+header {
+  margin-bottom: 20px;
+}
+
+section {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  background-color: var(--dark-2);
+  box-shadow: var(--box-shadow-inset);
+}
+
+.div-section {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  border-radius: 8px;
+}
+
+footer {
+  margin-top: 40px;
+  background: var(--dark);
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.popup-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.popup-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}

@@ -24,9 +24,6 @@ function Navbar() {
           <li>
             <Link to="/juegos">Juegos</Link>
           </li>
-          <li>
-            <Link to="/tts">TTS</Link>
-          </li>
         </ul>
       </div>
       

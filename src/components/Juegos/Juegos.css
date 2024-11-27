@@ -1,37 +1,473 @@
+/* Contenedor principal */
 .juegos-container {
-    padding: 20px;
-    text-align: left;
-  }
-  
-  section {
-    margin-bottom: 20px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  h2 {
-    color: #4caf50;
-    margin-bottom: 10px;
-  }
-  
-  ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  li {
-    margin-bottom: 10px;
-  }
-  
-  a {
-    margin-left: 10px;
-    color: #2196f3;
-    text-decoration: none;
-  }
-  
-  a:hover {
-    text-decoration: underline;
-  }
-  
+  padding: 20px;
+  text-align: center;
+  max-width: 1800px;
+  min-width: 600px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* Sección general */
+.juegos-container section {
+  margin-bottom: 30px;
+}
+
+.juegos-container section h2,
+.category-header h2 {
+  color: var(--text);
+  font-size: 1.8em;
+  margin-bottom: 10px;
+}
+
+/* Aplicar variables */
+body {
+  background-color: var(--dark);
+  color: var(--text);
+}
+
+.header-pasado {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 100%;
+
+  padding: 20px 0;
+}
+
+.header-pasado h2 {
+  position: absolute;
+}
+
+/* Listas de juegos */
+.juegos-container ul,
+.planeo-jugar-list,
+.category-planeo-jugar .planeo-jugar-list {
+  display: flex;
+  list-style: none;
+  padding: 20px;
+  margin: 0;
+  gap: 20px;
+}
+
+.juegos-container ul {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.juegos-container ul.single-line,
+.planeo-jugar-list {
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.juegos-container ul.single-line li,
+.planeo-jugar-list li {
+  flex: 0 0 auto;
+}
+
+/* Estilo de tarjetas */
+.juegos-container li,
+.planeo-jugar-list li {
+  background-color: var(--clear);
+  border-radius: 10px;
+  box-shadow: var(--box-shadow);
+  padding: 10px;
+  width: 175px;
+  text-align: center;
+}
+
+/* Imagen de portada */
+.juegos-container li img.game-cover,
+.planeo-jugar-list li img.game-cover {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: var(--box-shadow-2);
+}
+
+/* Texto de los juegos */
+.juegos-container li strong,
+.planeo-jugar-list li strong {
+  display: block;
+  font-size: 1.2em;
+  color: var(--text);
+  margin-bottom: 5px;
+  height: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.game-details {
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Alinea verticalmente */
+  gap: 10px; /* Espaciado entre duración y fecha */
+  font-size: 0.9em;
+  color: var(--text-2);
+  margin-top: 10px; /* Espaciado superior */
+}
+
+.game-duration {
+  font-weight: bold;
+  color: var(--highlight); /* Color destacado para la duración */
+}
+
+.game-date {
+  font-weight: bold;
+}
+
+/* Fecha debajo de las estrellas en los juegos pasados */
+.game-date {
+  font-size: 0.9em; /* Tamaño de fuente más pequeño */
+  color: var(--text-2);
+  margin-top: 20px; /* Espaciado entre las estrellas y la fecha */
+  text-align: center; /* Centra la fecha */
+  font-weight: bold;
+}
+
+/* Botones de YouTube y Twitch */
+.game-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0px;
+  margin-top: 10px;
+}
+
+.game-button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.game-button:hover {
+  transform: scale(1.1);
+}
+
+.game-buttons .game-icon {
+  width: 24px;
+  height: 24px;
+  box-shadow: none;
+  object-fit: contain;
+  margin: 0; /* Resetea márgenes */
+  padding: 0; /* Resetea padding */
+}
+
+/* Flechas de navegación */
+.arrow-button {
+  background: none;
+  border: none;
+  font-size: 2em;
+  cursor: pointer;
+  padding: 10px;
+  color: var(--color-mid);
+  transition: color 0.3s ease, transform 0.3s ease;
+  text-shadow: var(--box-shadow);
+}
+
+.arrow-button:hover {
+  color: var(--color-clear);
+  transform: scale(1.2);
+}
+
+.arrow-button:active {
+  transform: scale(1);
+}
+
+.arrow-button:disabled {
+  color: var(--text-2);
+}
+
+/* Contenedores de categorías */
+.categories-row {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+}
+
+.category {
+  flex: 1; /* Cada categoría ocupa espacio igual */
+}
+
+.category-jugando {
+  flex: 0 0 auto;
+  min-width: 300px;
+}
+
+.category-planeo-jugar {
+  flex: 1;
+}
+
+.category-pasado {
+  width: 1400px;
+}
+
+/* Contenedor para el selector de páginas */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  gap: 10px;
+}
+
+.pagination-button {
+  background-color: var(--color-mid);
+  color: var(--text);
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s ease;
+}
+
+.pagination-button:hover {
+  background-color: var(--color-clear);
+}
+
+.pagination-button:disabled {
+  background-color: var(--button-hover);
+  cursor: not-allowed;
+}
+
+/* Contenedor de Planeo Jugar */
+.planeo-jugar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  position: relative;
+  padding-bottom: 20px;
+}
+
+/* Botón de filtro */
+.filter-container {
+  position: relative;
+  display: flex; /* Cambiado a flex para alinear contenido */
+  justify-content: flex-end; /* Alínea el contenido a la derecha */
+  align-items: flex-start;
+  width: 100%; /* Asegura que ocupe todo el ancho disponible */
+}
+
+.filter-button {
+  margin-right: 35px;
+  padding: 10px 15px;
+  font-size: 0.9em;
+  border: none;
+  border-radius: 5px;
+  background-color: var(--color-mid);
+  color: var(--text-3);
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.filter-menu {
+  margin-right: 35px;
+  position: absolute;
+  top: 100%; /* Alinea el menú justo debajo del botón */
+  right: 0; /* Alinea el menú al borde derecho del botón */
+  background: var(--background-color-filter-menu);
+  box-shadow: var(--box-shadow);
+  border-radius: 5px;
+  z-index: 10;
+  padding: 10px;
+}
+
+.filter-menu button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--mid);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.filter-menu button:hover {
+  background-color: var(--button-hover);
+}
+
+.filter-menu button.active-filter {
+  color: var(--color-mid);
+  font-weight: bold;
+}
+
+#game-cover-small {
+  height: 50px;
+}
+
+/* Juegos dentro de las secciones Jugando y Planeo Jugar */
+.category-jugando li,
+.category-planeo-jugar li {
+  pointer-events: none; /* Deshabilita interacciones */
+  transform: none; /* Evita transformaciones */
+  transition: none; /* Sin animaciones */
+}
+
+/* Asegúrate de que los efectos hover no se apliquen */
+.category-jugando li:hover,
+.category-planeo-jugar li:hover {
+  height: auto; /* Mantiene su altura original */
+  overflow: visible;
+}
+
+/* Contenedor del juego */
+.juegos-container li {
+  position: relative;
+  transition: all 0.3s ease; /* Transiciones suaves */
+  overflow: hidden;
+  height: 300px; /* Altura inicial (imagen completa y nombre) */
+}
+
+/* Imagen de portada al hacer hover */
+.juegos-container li:hover .game-cover {
+  height: 130px; /* Reduce la altura de la carátula */
+  transition: height 0.3s ease;
+}
+
+/* Contenido extra, oculto por defecto */
+.juegos-container li .game-extra {
+  display: none; /* Oculta contenido extra inicialmente */
+  position: absolute;
+  bottom: 10px; /* Aparece al final del contenedor */
+  left: 0;
+  right: 0;
+  padding: 0px;
+  background: var(--clear);
+  box-shadow: var(--box-shadow-up);
+  text-align: center;
+  border-radius: 0 0 10px 10px; /* Bordes redondeados solo abajo */
+  opacity: 0;
+  transform: translateY(20px); /* Mueve el contenido hacia abajo */
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Mostrar contenido extra al hacer hover */
+.juegos-container li:hover .game-extra {
+  display: block;
+  opacity: 1;
+  transform: translateY(0); /* Mueve el contenido a su lugar */
+}
+
+/* Estilo del nombre */
+.juegos-container li strong {
+  margin-bottom: 10px;
+}
+
+/* Ajusta la posición de los botones, estrellas y fecha */
+.game-extra .stars-container,
+.game-extra .game-date,
+.game-extra .game-buttons {
+  margin: 5px 0; /* Espaciado entre elementos */
+}
+
+.game-extra .stars-container {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.game-extra .game-buttons a {
+  margin: 0 5px; /* Espaciado entre botones */
+}
+
+.juegos-wrapper {
+  display: flex;
+  align-items: stretch;
+  gap: 20px;
+}
+
+.filtros-section {
+  width: 340px;
+}
+
+.search-input-global {
+  display: flex;
+  width: 100%;
+  box-shadow: var(--box-shadow-3);
+  border-radius: 20px;
+}
+
+/* Cuadro de búsqueda */
+.search-input {
+  padding: 10px;
+  width: 100%;
+  font-size: 1em;
+  border: var(--edit-text-border);
+  border-radius: 0px 20px 20px 0px;
+  background-color: var(--edit-text);
+  color: var(--text);
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--text-2);
+}
+
+.header-filtros {
+  font-size: 1em;
+  color: var(--text-2);
+  font-weight: bold;
+  text-align: left;
+  padding-left: 20px;
+  padding-top: 20px;
+  padding-bottom: 10px;
+}
+
+.lupa-img {
+  background-image: var(--lupa);
+  padding: 10px;
+  height: 25px;
+  width: 25px; /* Usa dimensiones consistentes */
+  border-radius: 20px 0px 0px 20px;
+  background-color: var(--edit-text);
+  color: var(--text);
+}
+
+.filter-buttons {
+  display: flex;
+  flex-direction: column; /* Alinea los botones en una columna */
+  gap: 10px; /* Espaciado vertical entre los botones */
+  margin-top: 10px;
+  align-items: flex-start; /* Alinea los botones al inicio del contenedor */
+}
+
+.filter-buttons button {
+  padding: 15px;
+  padding-left: 30px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-2);
+  font-size: 1em;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.filter-buttons button:hover {
+  color: var(--color-mid);
+}
+
+.filter-buttons button:focus {
+  outline: none;
+}
+
+.filter-buttons button[style*="background-color: var(--selected-button-high)"] {
+  color: var(--color-mid);
+  font-weight: bold;
+}
