@@ -1,13 +1,20 @@
 .navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 30px;
+  padding: 15px 0; /* Solo deja el padding vertical */
   background: var(--navbar);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 1000;
+}
+
+
+.navbar-container {
+  max-width: 1400px; /* Mismo ancho que .juegos-container */
+  min-width: 600px; /* Mismo ancho mínimo que .juegos-container */
+  margin: 0 auto; /* Centra el contenido */
+  display: flex;
+  justify-content: space-between; /* Mantén la estructura de la barra */
+  align-items: center;
 }
 
 .navbar-left {
@@ -17,7 +24,7 @@
 }
 
 .navbar-logo img {
-  height: 50px;
+  height: 40px;
   width: auto;
   cursor: pointer;
 }

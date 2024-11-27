@@ -70,7 +70,7 @@ function Juegos() {
   const calculateVisibleGames = () => {
     if (containerRef.current) {
       const containerWidth = containerRef.current.offsetWidth; // Ancho del contenedor
-      const gameWidth = 275; // Ancho estimado de cada tarjeta (ajusta según diseño)
+      const gameWidth = 210; // Ancho estimado de cada tarjeta (ajusta según diseño)
       const maxVisible = Math.floor(containerWidth / gameWidth); // Máximo número de juegos visibles
       setVisibleGames(
         planeoJugar.slice(startIndex, startIndex + maxVisible) // Ajusta los juegos visibles

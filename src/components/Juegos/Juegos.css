@@ -1,8 +1,8 @@
 /* Contenedor principal */
 .juegos-container {
-  padding: 20px;
+  padding: 10px;
   text-align: center;
-  max-width: 1800px;
+  max-width: 1400px;
   min-width: 600px;
   margin: 0 auto;
   overflow: hidden;
@@ -16,7 +16,7 @@
 .juegos-container section h2,
 .category-header h2 {
   color: var(--text);
-  font-size: 1.8em;
+  font-size: 1.4em;
   margin-bottom: 10px;
 }
 
@@ -24,16 +24,6 @@
 body {
   background-color: var(--dark);
   color: var(--text);
-}
-
-.header-pasado {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  width: 100%;
-
-  padding: 20px 0;
 }
 
 .header-pasado h2 {
@@ -46,20 +36,14 @@ body {
 .category-planeo-jugar .planeo-jugar-list {
   display: flex;
   list-style: none;
-  padding: 20px;
+  padding: 0px;
   margin: 0;
-  gap: 20px;
+  gap: 16px;
 }
 
 .juegos-container ul {
   flex-wrap: wrap;
   justify-content: center;
-}
-
-.juegos-container ul.single-line,
-.planeo-jugar-list {
-  flex-wrap: nowrap;
-  overflow: hidden;
 }
 
 .juegos-container ul.single-line li,
@@ -73,8 +57,8 @@ body {
   background-color: var(--clear);
   border-radius: 10px;
   box-shadow: var(--box-shadow);
-  padding: 10px;
-  width: 175px;
+  padding: 6px;
+  width: 140px;
   text-align: center;
 }
 
@@ -82,7 +66,7 @@ body {
 .juegos-container li img.game-cover,
 .planeo-jugar-list li img.game-cover {
   width: 100%;
-  height: 240px;
+  height: 190px;
   object-fit: cover;
   object-position: center;
   border-radius: 8px;
@@ -90,24 +74,25 @@ body {
   box-shadow: var(--box-shadow-2);
 }
 
-/* Texto de los juegos */
 .juegos-container li strong,
 .planeo-jugar-list li strong {
-  display: block;
-  font-size: 1.2em;
-  color: var(--text);
-  margin-bottom: 5px;
-  height: 40px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: -webkit-box; /* Define un contenedor flexible */
+  line-clamp: 2; /* Limita a dos líneas visibles */
+  -webkit-box-orient: vertical; /* Establece la orientación vertical */
+  overflow: hidden; /* Oculta el contenido excedente */
+  text-overflow: ellipsis; /* Agrega "..." al texto truncado */
+  white-space: normal; /* Permite el uso de varias líneas */
+  line-height: 1.2em; /* Ajusta la altura de las líneas */
+  max-height: 2.4em; /* Limita la altura total (2 líneas * line-height) */
 }
+
 
 .game-details {
   display: flex;
   justify-content: center;
   align-items: center; /* Alinea verticalmente */
   gap: 10px; /* Espaciado entre duración y fecha */
-  font-size: 0.9em;
+  font-size: 0.8em;
   color: var(--text-2);
   margin-top: 10px; /* Espaciado superior */
 }
@@ -138,17 +123,6 @@ body {
   margin-top: 10px;
 }
 
-.game-button {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 5px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
 .game-button:hover {
   transform: scale(1.1);
 }
@@ -166,9 +140,9 @@ body {
 .arrow-button {
   background: none;
   border: none;
-  font-size: 2em;
+  font-size: 1.2em;
   cursor: pointer;
-  padding: 10px;
+  padding: 0px;
   color: var(--color-mid);
   transition: color 0.3s ease, transform 0.3s ease;
   text-shadow: var(--box-shadow);
@@ -200,15 +174,11 @@ body {
 
 .category-jugando {
   flex: 0 0 auto;
-  min-width: 300px;
+  min-width: 240px;
 }
 
 .category-planeo-jugar {
   flex: 1;
-}
-
-.category-pasado {
-  width: 1400px;
 }
 
 /* Contenedor para el selector de páginas */
@@ -245,7 +215,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  overflow: hidden;
   position: relative;
   padding-bottom: 20px;
 }
@@ -257,52 +226,6 @@ body {
   justify-content: flex-end; /* Alínea el contenido a la derecha */
   align-items: flex-start;
   width: 100%; /* Asegura que ocupe todo el ancho disponible */
-}
-
-.filter-button {
-  margin-right: 35px;
-  padding: 10px 15px;
-  font-size: 0.9em;
-  border: none;
-  border-radius: 5px;
-  background-color: var(--color-mid);
-  color: var(--text-3);
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.filter-menu {
-  margin-right: 35px;
-  position: absolute;
-  top: 100%; /* Alinea el menú justo debajo del botón */
-  right: 0; /* Alinea el menú al borde derecho del botón */
-  background: var(--background-color-filter-menu);
-  box-shadow: var(--box-shadow);
-  border-radius: 5px;
-  z-index: 10;
-  padding: 10px;
-}
-
-.filter-menu button {
-  display: block;
-  width: 100%;
-  padding: 8px 12px;
-  background: none;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  color: var(--mid);
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.filter-menu button:hover {
-  background-color: var(--button-hover);
-}
-
-.filter-menu button.active-filter {
-  color: var(--color-mid);
-  font-weight: bold;
 }
 
 #game-cover-small {
@@ -329,7 +252,7 @@ body {
   position: relative;
   transition: all 0.3s ease; /* Transiciones suaves */
   overflow: hidden;
-  height: 300px; /* Altura inicial (imagen completa y nombre) */
+  height: 250px; /* Altura inicial (imagen completa y nombre) */
 }
 
 /* Imagen de portada al hacer hover */
@@ -365,6 +288,7 @@ body {
 /* Estilo del nombre */
 .juegos-container li strong {
   margin-bottom: 10px;
+  font-size: 1em;
 }
 
 /* Ajusta la posición de los botones, estrellas y fecha */
@@ -391,7 +315,7 @@ body {
 }
 
 .filtros-section {
-  width: 340px;
+  width: 280px;
 }
 
 .search-input-global {
@@ -405,7 +329,7 @@ body {
 .search-input {
   padding: 10px;
   width: 100%;
-  font-size: 1em;
+  font-size: 0.9em;
   border: var(--edit-text-border);
   border-radius: 0px 20px 20px 0px;
   background-color: var(--edit-text);
@@ -438,6 +362,8 @@ body {
 }
 
 .filter-buttons {
+  font-weight: bold;
+  font-size: 0.9em;
   display: flex;
   flex-direction: column; /* Alinea los botones en una columna */
   gap: 10px; /* Espaciado vertical entre los botones */

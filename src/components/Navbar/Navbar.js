@@ -12,31 +12,33 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      <div className="navbar-left">
-        <Link to="/" className="navbar-logo">
-          <img src="/static/resources/logo.png" alt="Logo" />
-        </Link>
+      <div class="navbar-container">
+        <div className="navbar-left">
+          <Link to="/" className="navbar-logo">
+            <img src="/static/resources/logo.png" alt="Logo" />
+          </Link>
 
-        <ul className="navbar-links">
-          <li>
-            <Link to="/">Inicio</Link>
-          </li>
-          <li>
-            <Link to="/juegos">Juegos</Link>
-          </li>
-        </ul>
+          <ul className="navbar-links">
+            <li>
+              <Link to="/">Inicio</Link>
+            </li>
+            <li>
+              <Link to="/juegos">Juegos</Link>
+            </li>
+          </ul>
+        </div>
+
+        <button className="theme-button" onClick={toggleDarkMode}>
+          <img
+            src={
+              darkMode
+                ? "/static/resources/sun.png"
+                : "/static/resources/moon.png"
+            }
+            alt="Toggle Dark Mode"
+          />
+        </button>
       </div>
-      
-      <button className="theme-button" onClick={toggleDarkMode}>
-        <img
-          src={
-            darkMode
-              ? "/static/resources/sun.png"
-              : "/static/resources/moon.png"
-          }
-          alt="Toggle Dark Mode"
-        />
-      </button>
     </nav>
   );
 }
