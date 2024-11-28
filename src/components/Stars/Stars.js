@@ -3,7 +3,7 @@ import "./Stars.css";
 
 function Stars({ rating }) {
   const totalStars = 5;
-  const filledStars = Math.min(Math.max(rating, 0), totalStars);
+  const filledStars = Math.min(Math.max(Number(rating) || 0, 0), totalStars);
   const emptyStars = totalStars - filledStars;
 
   return (

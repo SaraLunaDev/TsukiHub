@@ -1,0 +1,206 @@
+/* Contenedor principal de Pokedex */
+.pokedex-container {
+  max-width: 1400px;
+  min-width: 600px;
+  margin: 0 auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--dark-2);
+  margin-top: 30px;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow-inset);
+  padding-bottom: 20px;
+  box-sizing: border-box; /* Asegura que el padding no se sume al ancho total */
+  margin-bottom: 40px;
+}
+
+.generation-section {
+  margin-bottom: 30px;
+}
+
+.generation-section h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.pokemon-grid {
+  display: grid;
+  grid-template-columns: repeat(16, 50px); /* 16 columnas con tamaño fijo */
+  gap: 0; /* Sin espacio entre los huecos */
+  margin: 0 auto; /* Centrar la tabla horizontalmente */
+}
+
+.pokemon-card img {
+  width: 90%; /* Ajusta el tamaño de la imagen dentro del hueco */
+  height: 90%; /* Mantén la proporción de la imagen */
+  object-fit: contain;
+}
+
+.empty-slot {
+  width: 100%;
+  height: 100%;
+  background-color: var(--mid); /* Color para los huecos vacíos */
+  box-shadow: var(--box-shadow-inset-2);
+}
+
+.pokemon-grid {
+  display: grid;
+  grid-template-columns: repeat(16, 70px); /* 16 columnas compactas */
+  gap: 10px;
+  margin: 0 auto;
+}
+
+.pokemon-card {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--clear);
+  border-radius: 4px;
+  box-shadow: var(--box-shadow-inset-2);
+}
+
+.pokemon-card img {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+}
+
+.generation-button {
+  padding: 10px 20px; /* Espaciado dentro del botón */
+  background-color: var(--transparent);
+  color: var(--text);
+  border: 0px solid var(--text-2);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+  font-size: 1em;
+  width: 84px; /* Ancho fijo para cada botón */
+  line-height: 1.5; /* Ajusta la altura de la línea para centrar el texto verticalmente */
+  text-align: center; /* Centra el texto horizontalmente */
+  display: flex; /* Usamos flexbox para alinear el contenido */
+  align-items: center; /* Centra el contenido verticalmente */
+  justify-content: center; /* Asegura que el texto esté centrado horizontalmente */
+}
+
+.generation-button.active {
+  background-color: var(--clear);
+  border-radius: 8px;
+  color: var(--text);
+  font-weight: bold;
+}
+
+.generation-button:hover {
+  background-color: var(--color-mid);
+  color: var(--text);
+}
+
+.generation-buttons-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--text-2); /* Color de la línea */
+}
+
+.user-search {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.user-search input {
+  padding: 10px;
+  width: 300px;
+  border: 1px solid var(--text-2);
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.user-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px auto;
+  max-width: 300px;
+  text-align: left;
+}
+
+.user-list li {
+  padding: 10px;
+  cursor: pointer;
+  border: 1px solid var(--text-2);
+  border-radius: 5px;
+  margin-bottom: 5px;
+}
+
+.user-list li.active {
+  background-color: var(--highlight);
+  color: var(--text);
+  font-weight: bold;
+}
+
+.user-list li:hover {
+  background-color: var(--color-mid);
+  color: var(--text);
+}
+
+.filters-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Distribuye espacio entre el cuadro de texto y los botones */
+  margin-bottom: 10px; /* Espaciado inferior */
+  gap: 40px; /* Espacio entre el cuadro de texto y los botones */
+  max-width: 1400px; /* Limita el ancho */
+  margin: 0 auto; /* Centra el contenedor horizontalmente */
+  margin-bottom: 20px;
+}
+
+.user-selector {
+  flex: 1; /* Deja que el cuadro de texto ocupe más espacio */
+}
+
+.generation-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* Espaciado entre los botones */
+}
+
+.search-input-global {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-shadow: var(--box-shadow-3);
+  border-radius: 20px;
+  background-color: var(--edit-text);
+}
+
+.lupa-img {
+  background-image: var(--lupa);
+  padding: 10px;
+  height: 25px;
+  width: 25px; /* Usa dimensiones consistentes */
+  border-radius: 20px 0px 0px 20px;
+  background-color: var(--edit-text);
+  color: var(--text);
+}
+
+.search-input {
+  padding: 10px;
+  width: 250px;
+  font-size: 0.9em;
+  border: none;
+  border-radius: 0px 20px 20px 0px;
+  background-color: var(--edit-text);
+  color: var(--text);
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: var(--text-2);
+}

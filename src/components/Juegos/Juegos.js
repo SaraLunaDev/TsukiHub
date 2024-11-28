@@ -108,7 +108,7 @@ function Juegos() {
   };
 
   // URL del Google Sheet en formato CSV
-  const sheetUrl = process.env.REACT_APP_SHEET_URL;
+  const sheetUrl = process.env.REACT_APP_JUEGOS_SHEET_URL;
 
   useEffect(() => {
     if (!sheetUrl) {
@@ -367,7 +367,7 @@ function Juegos() {
                 className="search-input"
               ></input>
             </div>
-            <h1 className="header-filtros">Filtros</h1>
+            <h1 className="header-filtros">Filtros Generales</h1>
             <div className="filter-buttons">
               <button
                 onClick={() => handleFilterToggle("name")}
@@ -520,9 +520,7 @@ function Juegos() {
                   {/* Primera columna */}
                   <div className="game-details-column">
                     {selectedGame.estado && (
-                      <p>
-                        {selectedGame.estado.toUpperCase()}
-                      </p>
+                      <p>{selectedGame.estado.toUpperCase()}</p>
                     )}
                     {selectedGame.youtube && (
                       <p>
@@ -553,7 +551,8 @@ function Juegos() {
                     )}
                     {selectedGame.horas && (
                       <p>
-                        <strong>⌛ </strong> {selectedGame.horas}{" h"}
+                        <strong>⌛ </strong> {selectedGame.horas}
+                        {" h"}
                       </p>
                     )}
                     {selectedGame.fecha && (

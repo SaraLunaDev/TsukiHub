@@ -25,6 +25,9 @@ function Navbar() {
             <li>
               <Link to="/juegos">Juegos</Link>
             </li>
+            <li>
+              <Link to="/pokedex">Pokedex</Link>
+            </li>
           </ul>
         </div>
 
