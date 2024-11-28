@@ -260,6 +260,11 @@ body {
   height: 250px; /* Altura inicial (imagen completa y nombre) */
 }
 
+.category-pasado{
+  width: 100%;
+  height: 100%;
+}
+
 /* Imagen de portada al hacer hover en "Juegos Jugados" */
 .category-pasado li:hover .game-cover {
   height: 130px; /* Reduce la altura de la carátula */
