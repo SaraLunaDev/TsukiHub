@@ -46,6 +46,11 @@ body {
   justify-content: center;
 }
 
+.juegos-container ul.single-line,
+.planeo-jugar-list {
+  flex-wrap: nowrap;
+}
+
 .juegos-container ul.single-line li,
 .planeo-jugar-list li {
   flex: 0 0 auto;
@@ -85,7 +90,6 @@ body {
   line-height: 1.2em; /* Ajusta la altura de las líneas */
   max-height: 2.4em; /* Limita la altura total (2 líneas * line-height) */
 }
-
 
 .game-details {
   display: flex;
@@ -140,7 +144,7 @@ body {
 .arrow-button {
   background: none;
   border: none;
-  font-size: 1.2em;
+  font-size: 1.5em;
   cursor: pointer;
   padding: 0px;
   color: var(--color-mid);
@@ -235,16 +239,17 @@ body {
 /* Juegos dentro de las secciones Jugando y Planeo Jugar */
 .category-jugando li,
 .category-planeo-jugar li {
-  pointer-events: none; /* Deshabilita interacciones */
-  transform: none; /* Evita transformaciones */
-  transition: none; /* Sin animaciones */
+  pointer-events: auto; /* Habilita interacciones */
+  transform: initial; /* Permite transformaciones */
+  transition: all 0.3s ease; /* Suaviza animaciones */
 }
 
-/* Asegúrate de que los efectos hover no se apliquen */
+/* Efecto hover para todas las cartas */
+.juegos-container li:hover,
+.planeo-jugar-list li:hover,
 .category-jugando li:hover,
 .category-planeo-jugar li:hover {
-  height: auto; /* Mantiene su altura original */
-  overflow: visible;
+  transform: scale(1.05); /* Aumenta ligeramente el tamaño */
 }
 
 /* Contenedor del juego */
@@ -255,10 +260,10 @@ body {
   height: 250px; /* Altura inicial (imagen completa y nombre) */
 }
 
-/* Imagen de portada al hacer hover */
-.juegos-container li:hover .game-cover {
+/* Imagen de portada al hacer hover en "Juegos Jugados" */
+.category-pasado li:hover .game-cover {
   height: 130px; /* Reduce la altura de la carátula */
-  transition: height 0.3s ease;
+  transition: height 0.15s ease; /* Transición suave */
 }
 
 /* Contenido extra, oculto por defecto */
@@ -396,4 +401,196 @@ body {
 .filter-buttons button[style*="background-color: var(--selected-button-high)"] {
   color: var(--color-mid);
   font-weight: bold;
+}
+
+/* Oscurecer el fondo */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8); /* Oscurecimiento */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards; /* Animación de entrada */
+}
+
+/* Contenido del popup */
+.popup-content {
+  background-color: var(--clear);
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 1000px;
+  text-align: center;
+  box-shadow: var(--box-shadow);
+  position: relative;
+  transform: scale(0.9); /* Tamaño inicial más pequeño */
+  opacity: 0; /* Inicialmente invisible */
+  animation: popupIn 0.3s forwards; /* Animación de entrada */
+}
+
+/* Botón de cerrar */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  color: var(--text);
+  transition: color 0.3s ease;
+}
+
+.close-button:hover {
+  color: var(--color-clear);
+}
+
+/* Animación de entrada del overlay */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Animación de entrada del popup */
+@keyframes popupIn {
+  from {
+    transform: scale(0.9); /* Empieza un poco más pequeño */
+    opacity: 0;
+  }
+  to {
+    transform: scale(1); /* Tamaño normal */
+    opacity: 1;
+  }
+}
+
+/* Cuerpo del popup */
+.popup-body {
+  display: flex;
+  align-items: stretch;
+  gap: 20px;
+  height: 100%; /* Asegúrate de que ocupe el alto completo */
+}
+
+/* Imagen del popup */
+.popup-image img {
+  max-height: 600px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* Encabezado del popup */
+.popup-info h2 {
+  margin-top: 0;
+  color: var(--highlight);
+  font-size: 1.5em;
+}
+
+/* Enlaces de YouTube y Twitch */
+.popup-info a {
+  color: var(--color-clear);
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.popup-info a:hover {
+  color: var(--color-mid)
+}
+
+/* Información general */
+.popup-info p {
+  margin: 5px 0;
+  line-height: 1.4;
+}
+
+.popup-body {
+  display: flex;
+  gap: 20px;
+}
+
+.popup-image img {
+  max-height: 540px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.popup-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.popup-columns {
+  display: flex;
+  gap: 10px;
+}
+
+.game-details-column,
+.game-meta-column {
+  height: 300px;
+  text-align: left;
+  flex: 1;
+  padding: 10px;
+  background-color: var(--clear);
+  border-radius: 8px;
+  box-shadow: var(--box-shadow-inset);
+}
+
+.game-details-column p,
+.game-meta-column p {
+  margin: 5px 0;
+  line-height: 1.5;
+  font-size: 0.9em;
+}
+
+.game-summary {
+  height: 120px;
+  text-align: left;
+  padding: 15px;
+  background-color: var(--clear);
+  border-radius: 8px; /* Solo redondear abajo para unificar con las columnas */
+  box-shadow: var(--box-shadow-inset);
+  font-size: 0.9em;
+}
+
+.game-summary h3 {
+  margin-bottom: 10px;
+  font-size: 1.2em;
+  color: var(--text);
+}
+
+.game-summary p {
+  margin: 0;
+  font-size: 0.9em;
+  color: var(--text-2);
+}
+
+.game-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px; /* Espaciado entre columnas */
+}
+
+.game-meta-column {
+  overflow: hidden;
+  flex: 1;
+}
+
+.game-meta-column strong {
+  color: inherit; /* Conserva el color actual del encabezado */
+  font-weight: bold;
+}
+
+.game-meta-column span {
+  color: var(--text-2); /* Aplica el color específico al contenido */
+  font-size: 0.9em;
 }

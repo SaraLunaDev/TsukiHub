@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 
 import "./Juegos.css";
 import Stars from "../Stars/Stars";
+import StarsLeft from "../Stars Left/Stars";
 
 function Juegos() {
   const [games, setGames] = useState([]);
@@ -23,6 +24,15 @@ function Juegos() {
   const containerRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
   const gamesPerPage = 18; // Número máximo de juegos por página
+  const [selectedGame, setSelectedGame] = useState(null);
+
+  const handleGameClick = (game) => {
+    setSelectedGame(game); // Guarda el juego seleccionado y muestra el popup
+  };
+
+  const closePopup = () => {
+    setSelectedGame(null); // Cierra el popup
+  };
 
   const normalizeString = (str) => {
     return str
@@ -111,35 +121,43 @@ function Juegos() {
       .then((response) => response.text())
       .then((data) => {
         const rows = data.split("\n");
-        const parsedData = rows
-          .slice(1)
-          .map((row) => {
-            const [
-              nombre,
-              estado,
-              youtube,
-              twitch,
-              nota,
-              horas,
-              fecha,
-              caratula,
-            ] = row.split(",");
-            return {
-              nombre: nombre?.trim(),
-              estado: estado?.trim().toLowerCase(),
-              youtube: youtube?.trim(),
-              twitch: twitch?.trim(),
-              nota: nota?.trim(),
-              horas: horas?.trim(),
-              fecha: fecha?.trim(),
-              caratula: caratula?.trim(),
-            };
-          })
-          .filter((game) =>
-            ["jugando", "planeo jugar", "pasado"].includes(game.estado)
-          );
+        const parsedData = rows.slice(1).map((row) => {
+          const [
+            nombre,
+            estado,
+            youtube,
+            twitch,
+            nota,
+            horas,
+            fecha,
+            caratula,
+            fechaLanzamiento,
+            géneros,
+            plataformas,
+            resumen,
+            desarrolladores,
+            publicadores,
+          ] = row.split(",");
+          return {
+            nombre: nombre?.trim(),
+            estado: estado?.trim().toLowerCase(),
+            youtube: youtube?.trim(),
+            twitch: twitch?.trim(),
+            nota: nota?.trim(),
+            horas: horas?.trim(),
+            fecha: fecha?.trim(),
+            caratula: caratula?.trim(),
+            "Fecha de Lanzamiento": fechaLanzamiento?.trim(),
+            géneros: géneros?.trim(),
+            plataformas: plataformas?.trim(),
+            resumen: resumen?.trim(),
+            desarrolladores: desarrolladores?.trim(),
+            publicadores: publicadores?.trim(),
+          };
+        });
         setGames(parsedData);
       })
+
       .catch((error) => console.error("Error al cargar los datos:", error));
   }, [sheetUrl]);
 
@@ -214,10 +232,6 @@ function Juegos() {
     });
   };
 
-  const toggleFilter = (category) => {
-    setFilterVisible((prev) => (prev === category ? null : category));
-  };
-
   const handleFilter = (filterType, category) => {
     let sortedList;
 
@@ -286,7 +300,7 @@ function Juegos() {
           <h2>Jugando</h2>
           <ul>
             {jugando.map((game, index) => (
-              <li key={index}>
+              <li key={index} onClick={() => handleGameClick(game)}>
                 {game.caratula && (
                   <img
                     src={game.caratula}
@@ -313,7 +327,7 @@ function Juegos() {
             </button>
             <ul className="planeo-jugar-list">
               {visibleGames.map((game, index) => (
-                <li key={index}>
+                <li key={index} onClick={() => handleGameClick(game)}>
                   {game.caratula && (
                     <img
                       src={game.caratula}
@@ -363,7 +377,10 @@ function Juegos() {
                     : "inherit",
                 }}
               >
-                Nombre {activeFilters.pasado === "name-asc" ? "ascendente" : "descendente"}
+                Nombre{" "}
+                {activeFilters.pasado === "name-asc"
+                  ? "ascendente"
+                  : "descendente"}
               </button>
               <button
                 onClick={() => handleFilterToggle("date")}
@@ -373,7 +390,10 @@ function Juegos() {
                     : "inherit",
                 }}
               >
-                Fecha {activeFilters.pasado === "date-asc" ? "ascendente" : "descendente"}
+                Fecha{" "}
+                {activeFilters.pasado === "date-asc"
+                  ? "ascendente"
+                  : "descendente"}
               </button>
               <button
                 onClick={() => handleFilterToggle("rating")}
@@ -383,7 +403,10 @@ function Juegos() {
                     : "inherit",
                 }}
               >
-                Nota {activeFilters.pasado === "rating-asc" ? "ascendente" : "descendente"}
+                Nota{" "}
+                {activeFilters.pasado === "rating-asc"
+                  ? "ascendente"
+                  : "descendente"}
               </button>
               <button
                 onClick={() => handleFilterToggle("duration")}
@@ -393,7 +416,10 @@ function Juegos() {
                     : "inherit",
                 }}
               >
-                Duración {activeFilters.pasado === "duration-asc" ? "ascendente" : "descendente"}
+                Duración{" "}
+                {activeFilters.pasado === "duration-asc"
+                  ? "ascendente"
+                  : "descendente"}
               </button>
             </div>
           </div>
@@ -403,7 +429,7 @@ function Juegos() {
           <h2>Juegos Jugados</h2>
           <ul>
             {paginatedGames.map((game, index) => (
-              <li key={index}>
+              <li key={index} onClick={() => handleGameClick(game)}>
                 {game.caratula && (
                   <img
                     src={game.caratula}
@@ -475,6 +501,136 @@ function Juegos() {
           </div>
         </section>
       </div>
+      {selectedGame && (
+        <div className="popup-overlay" onClick={closePopup}>
+          <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+            <button className="close-button" onClick={closePopup}>
+              ✖
+            </button>
+            <div className="popup-body">
+              <div className="popup-image">
+                <img
+                  src={selectedGame.caratula}
+                  alt={`Carátula de ${selectedGame.nombre}`}
+                />
+              </div>
+              <div className="popup-info">
+                <h2>{selectedGame.nombre}</h2>
+                <div className="popup-columns">
+                  {/* Primera columna */}
+                  <div className="game-details-column">
+                    {selectedGame.estado && (
+                      <p>
+                        {selectedGame.estado.toUpperCase()}
+                      </p>
+                    )}
+                    {selectedGame.youtube && (
+                      <p>
+                        <a
+                          href={selectedGame.youtube}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          YouTube
+                        </a>
+                      </p>
+                    )}
+                    {selectedGame.twitch && (
+                      <p>
+                        <a
+                          href={selectedGame.twitch}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Twitch
+                        </a>
+                      </p>
+                    )}
+                    {selectedGame.nota && (
+                      <p className="stars-popup">
+                        <StarsLeft rating={parseInt(selectedGame.nota, 10)} />
+                      </p>
+                    )}
+                    {selectedGame.horas && (
+                      <p>
+                        <strong>⌛ </strong> {selectedGame.horas}{" h"}
+                      </p>
+                    )}
+                    {selectedGame.fecha && (
+                      <p>
+                        <strong>📅 </strong> {selectedGame.fecha}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Segunda columna */}
+                  <div className="game-meta-column">
+                    {selectedGame.desarrolladores && (
+                      <p>
+                        <strong>Desarrolladores:</strong>{" "}
+                        <span>{selectedGame.desarrolladores}</span>
+                      </p>
+                    )}
+                    {selectedGame.publicadores && (
+                      <p>
+                        <strong>Publicadores:</strong>{" "}
+                        <span>{selectedGame.publicadores}</span>
+                      </p>
+                    )}
+                    {selectedGame["Fecha de Lanzamiento"] && (
+                      <p>
+                        <strong>Lanzamiento:</strong>{" "}
+                        <span>{selectedGame["Fecha de Lanzamiento"]}</span>
+                      </p>
+                    )}
+                    <div className="game-meta-row">
+                      <div className="game-meta-column-2">
+                        {selectedGame.géneros && (
+                          <p>
+                            <strong>Géneros:</strong>
+                            <br />
+                            {selectedGame.géneros
+                              .split("-%-")
+                              .map((genero, index) => (
+                                <span key={index}>
+                                  {genero}
+                                  <br />
+                                </span>
+                              ))}
+                          </p>
+                        )}
+                      </div>
+                      <div className="game-meta-column-2">
+                        {selectedGame.plataformas && (
+                          <p>
+                            <strong>Plataformas:</strong>
+                            <br />
+                            {selectedGame.plataformas
+                              .split("-%-")
+                              .map((plataforma, index) => (
+                                <span key={index}>
+                                  {plataforma}
+                                  <br />
+                                </span>
+                              ))}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Resumen justo debajo de las columnas */}
+                {selectedGame.resumen && (
+                  <div className="game-summary">
+                    <p>{selectedGame.resumen}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
