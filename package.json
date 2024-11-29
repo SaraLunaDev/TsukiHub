@@ -16,22 +16,14 @@
     "react-helmet": "^6.1.0",
     "react-router-dom": "^7.0.1",
     "react-scripts": "5.0.1",
-    "react-snap": "^1.23.0",
     "string-similarity": "^4.0.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build && react-snap",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
-  },
-  "reactSnap": {
-    "inlineCss": true,
-    "puppeteerArgs": [
-      "--no-sandbox"
-    ],
-    "minifyHtml": true
   },
   "eslintConfig": {
     "extends": [
