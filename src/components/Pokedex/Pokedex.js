@@ -6,7 +6,19 @@ function Pokedex() {
   const [users, setUsers] = useState([]);
   const [activeGeneration, setActiveGeneration] = useState(1);
   const [userInput, setUserInput] = useState("");
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
   const sheetUrl = process.env.REACT_APP_POKEDEX_SHEET_URL;
+
+  const getUserStats = () => {
+    const userStats = users.map(([userId, userName]) => {
+      const pokemonCount = pokemonList.filter(
+        (pokemon) => pokemon.Usuario === userId
+      ).length;
+      return { userId, userName, pokemonCount };
+    });
+
+    return userStats.sort((a, b) => b.pokemonCount - a.pokemonCount); // Orden descendente por cantidad de Pokémon
+  };
 
   const getGeneration = (generation) => {
     const generationData = {
@@ -168,6 +180,20 @@ function Pokedex() {
       getGeneration(activeGeneration).end
     );
 
+  const togglePopup = () => {
+    setIsPopupOpen((prev) => !prev);
+  };
+
+  // Manejar clic en un usuario
+  const handleUserClick = (userName) => {
+    setUserInput(userName); // Cambia el usuario actual
+    localStorage.setItem(
+      "selectedUser",
+      users.find(([, name]) => name === userName)?.[0]
+    ); // Guarda el ID en localStorage
+    setIsPopupOpen(false); // Cierra el popup
+  };
+
   return (
     <div className="pokedex-container">
       <div className="pokedex-header">
@@ -175,9 +201,11 @@ function Pokedex() {
           <h1>
             {icons[activeGeneration - 1]} Pokedex{" "}
             {regions[activeGeneration - 1]} de{" "}
-            {users.find(([, name]) =>
-              name.toLowerCase().includes(userInput.toLowerCase())
-            )?.[1] || "Usuario"}
+            <span className="user-name-pokedex" onClick={togglePopup}>
+              {users.find(([, name]) =>
+                name.toLowerCase().includes(userInput.toLowerCase())
+              )?.[1] || "Usuario"}
+            </span>
           </h1>
         </div>
         <div className="header-right">
@@ -191,6 +219,35 @@ function Pokedex() {
           <p>Shiny: {shinyCount}</p>
         </div>
       </div>
+
+      {isPopupOpen && (
+        <div className="popup-overlay" onClick={togglePopup}>
+          <div
+            className="popup-content"
+            onClick={(e) => e.stopPropagation()} // Evita que el popup se cierre al hacer clic en su contenido
+          >
+            <h2>Usuarios con Pokémon</h2>
+            <div className="user-list-scroll">
+              {getUserStats().map((user, index) => (
+                <div
+                  key={user.userId}
+                  className="user-row"
+                  onClick={() => handleUserClick(user.userName)} // Maneja el clic
+                >
+                  <span className="user-position">{index + 1}</span>
+                  <span className="user-name-popup">{user.userName}</span>
+                  <span className="user-pokemon-count">
+                    {user.pokemonCount} Pokémon
+                  </span>
+                </div>
+              ))}
+            </div>
+            <button className="close-button" onClick={togglePopup}>
+              ✖
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Selector de usuario */}
       <div className="filters-container">

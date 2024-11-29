@@ -240,3 +240,113 @@
   font-weight: bold;
   color: var(--text);
 }
+
+/* Estilo para el overlay del popup */
+.popup-overlay-pokedex {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7); /* Oscurece la pantalla */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Contenedor del contenido del popup */
+.popup-content-pokedex {
+  background-color: var(--dark-2);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+  text-align: center;
+  color: var(--text);
+  position: relative;
+  min-width: 300px;
+  max-width: 500px;
+}
+
+/* Estilo para el nombre del usuario clicable */
+.user-name-pokedex {
+  cursor: pointer;
+}
+
+.user-name-pokedex:hover {
+  color: var(--color-mid);
+}
+
+.close-button-pokedex {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  color: var(--text);
+  transition: color 0.3s ease;
+}
+
+.close-button-pokedex:hover {
+  color: var(--color-mid);
+  background-color: var(--transparent);
+}
+
+/* Contenedor para el listado de usuarios con scroll */
+.user-list-scroll {
+  max-height: 400px; /* Altura máxima del contenedor */
+  width: 400px;
+  overflow-y: auto; /* Habilita el scroll vertical si hay demasiados usuarios */
+  scrollbar-width: none;
+  margin: 10px 0;
+}
+
+/* Cada fila de usuario */
+.user-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: var(--mid);
+  border-radius: 5px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+/* Número de posición del usuario */
+.user-position {
+  font-weight: bold;
+  color: var(--text-2 );
+  width: 20px; /* Asegura un ancho consistente */
+  text-align: right;
+}
+
+/* Nombre del usuario */
+.user-name-popup {
+  flex: 1; /* Ocupa el espacio restante */
+  padding-left: 10px;
+  color: var(--text);
+  font-weight: bold;
+}
+
+/* Cantidad de Pokémon */
+.user-pokemon-count {
+  font-weight: bold;
+  color: var(--text-2);
+}
+
+/* Asegura que el contenido del popup sea desplazable si hay demasiados usuarios */
+.popup-content {
+  max-height: 90vh; /* Altura máxima del popup */
+  overflow-y: auto; /* Habilita el scroll vertical si es necesario */
+}
+
+.user-name-popup:hover {
+  cursor: pointer;
+  color: var(--color-mid); /* Resalta el texto al pasar el mouse */
+}
+
+.popup-content h2{
+  margin-bottom: 30px;
+}
