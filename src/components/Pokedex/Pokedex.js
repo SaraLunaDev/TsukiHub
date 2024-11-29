@@ -85,7 +85,7 @@ function Pokedex() {
           const pokemon = columns[3]?.trim();
           const tipo1 = columns[4]?.trim();
           const tipo2 = columns[5]?.trim();
-          const shiny = columns[18]?.trim();
+          const shiny = columns[17]?.trim();
 
           parsedData.push({
             id,
