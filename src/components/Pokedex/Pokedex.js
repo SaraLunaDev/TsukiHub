@@ -124,52 +124,49 @@ function Pokedex() {
   }, [sheetUrl]);
 
   const getPokemonsForGeneration = (generation, start, end) => {
-    let capturedCount = 0;
-    let shinyCount = 0;
+    const totalSlots = 160; // Total de huecos por generación
+    const generationSize = end - start + 1; // Total de Pokémon reales en la generación
+    const emptySlots = totalSlots - generationSize; // Huecos vacíos necesarios al final
 
-    const pokemonsInGeneration = Array.from({ length: 160 }, (_, index) => {
-      const id = start + index;
-      const matchedPokemon = filteredPokemons.find(
-        (pokemon) => parseInt(pokemon.id, 10) === id
-      );
+    const pokemonsInGeneration = Array.from(
+      { length: totalSlots },
+      (_, index) => {
+        const id = start + index; // Calcula el ID del Pokémon en esta posición
 
-      if (matchedPokemon) {
-        capturedCount++;
-        if (matchedPokemon.Shiny?.toLowerCase() === "si") {
-          shinyCount++;
+        // Si el ID está fuera del rango de la generación, deja el hueco vacío
+        if (index >= generationSize) {
+          return { id: null, captured: false, shiny: false };
         }
+
+        const matchedPokemon = filteredPokemons.find(
+          (pokemon) => parseInt(pokemon.id, 10) === id
+        );
+
+        return {
+          id: id.toString(),
+          captured: Boolean(matchedPokemon),
+          shiny: matchedPokemon?.Shiny?.toLowerCase() === "si",
+        };
       }
+    );
 
-      return id <= end
-        ? {
-            id: id.toString(),
-            captured: Boolean(matchedPokemon),
-            shiny: matchedPokemon?.Shiny?.toLowerCase() === "si",
-          }
-        : null;
-    });
-
-    // Aquí ajustamos para que la cantidad máxima de Pokémon sea el total de la región, no 160
-    const totalPokemonsInGeneration = end - start + 1;
+    const capturedCount = pokemonsInGeneration.filter((p) => p.captured).length;
+    const shinyCount = pokemonsInGeneration.filter((p) => p.shiny).length;
 
     return {
       pokemonsInGeneration,
       capturedCount,
       shinyCount,
-      totalPokemonsInGeneration,
+      totalPokemonsInGeneration: totalSlots,
     };
   };
 
-  const {
-    pokemonsInGeneration,
-    capturedCount,
-    shinyCount,
-    totalPokemonsInGeneration,
-  } = getPokemonsForGeneration(
-    activeGeneration,
-    getGeneration(activeGeneration).start,
-    getGeneration(activeGeneration).end
-  );
+  const { pokemonsInGeneration, capturedCount, shinyCount } =
+    getPokemonsForGeneration(
+      activeGeneration,
+      getGeneration(activeGeneration).start,
+      getGeneration(activeGeneration).end
+    );
 
   return (
     <div className="pokedex-container">
@@ -185,9 +182,13 @@ function Pokedex() {
         </div>
         <div className="header-right">
           <p>
-            Capturados: {capturedCount} / {totalPokemonsInGeneration}
+            Capturados: {capturedCount} /{" "}
+            {getGeneration(activeGeneration).end -
+              getGeneration(activeGeneration).start +
+              1}
           </p>
-          ;<p>Shiny: {shinyCount}</p>
+
+          <p>Shiny: {shinyCount}</p>
         </div>
       </div>
 
@@ -241,30 +242,30 @@ function Pokedex() {
         return (
           <div key={genIndex} className="generation-section">
             <div className="pokemon-grid">
-              {pokemons.map((pokemon, index) =>
-                pokemon ? (
-                  <div
-                    key={index}
-                    className={`pokemon-card ${
-                      pokemon.shiny
+              {pokemons.map((pokemon, index) => (
+                <div
+                  key={index}
+                  className={`pokemon-card ${
+                    pokemon.id
+                      ? pokemon.shiny
                         ? "shiny"
                         : pokemon.captured
                         ? "captured"
                         : "default"
-                    }`}
-                  >
+                      : "empty-slot" // Clase para los huecos vacíos
+                  }`}
+                >
+                  {pokemon.id && (
                     <img
                       src={`https://resource.pokemon-home.com/battledata/img/pokei128/icon${formatPokemonId(
                         pokemon.id
                       )}_f00_s0.png`}
                       alt={`Pokemon ${pokemon.id}`}
                     />
-                    {pokemon.shiny && <span className="shiny-icon">✨</span>}
-                  </div>
-                ) : (
-                  <div key={index} className="pokemon-card empty-slot"></div>
-                )
-              )}
+                  )}
+                  {pokemon.shiny && <span className="shiny-icon">✨</span>}
+                </div>
+              ))}
             </div>
           </div>
         );
