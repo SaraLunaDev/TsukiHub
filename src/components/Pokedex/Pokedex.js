@@ -20,6 +20,22 @@ function Pokedex() {
     return userStats.sort((a, b) => b.pokemonCount - a.pokemonCount); // Orden descendente por cantidad de Pokémon
   };
 
+  // Calcula el top 3
+  const getTopThree = () => {
+    const userStats = users.map(([userId, userName]) => {
+      const pokemonCount = pokemonList.filter(
+        (pokemon) => pokemon.Usuario === userId
+      ).length;
+      return { userId, userName, pokemonCount };
+    });
+
+    return userStats
+      .sort((a, b) => b.pokemonCount - a.pokemonCount)
+      .slice(0, 3); // Obtiene el top 3
+  };
+
+  const topThree = getTopThree();
+
   const getGeneration = (generation) => {
     const generationData = {
       1: { start: 1, end: 151 },
@@ -196,6 +212,11 @@ function Pokedex() {
 
   return (
     <div className="pokedex-container">
+      <MetaTags
+        title="Pokedex Top 3 - TsukiSoft"
+        description={`Top 3 Usuarios:\n1. ${topThree[0]?.userName} (${topThree[0]?.pokemonCount} Pokémon)\n2. ${topThree[1]?.userName} (${topThree[1]?.pokemonCount} Pokémon)\n3. ${topThree[2]?.userName} (${topThree[2]?.pokemonCount} Pokémon)`}
+        image="/static/resources/logo.png" // Cambia por tu imagen personalizada
+      />
       <div className="pokedex-header">
         <div className="header-left">
           <h1>
