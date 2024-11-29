@@ -149,21 +149,27 @@ function Pokedex() {
         : null;
     });
 
-    // Filtra solo los Pokémon válidos para la generación seleccionada
-    const validPokemons = pokemonsInGeneration.filter(
-      (pokemon) => pokemon && pokemon.captured
-    );
-    shinyCount = validPokemons.filter((pokemon) => pokemon.shiny).length;
+    // Aquí ajustamos para que la cantidad máxima de Pokémon sea el total de la región, no 160
+    const totalPokemonsInGeneration = end - start + 1;
 
-    return { pokemonsInGeneration, capturedCount, shinyCount };
+    return {
+      pokemonsInGeneration,
+      capturedCount,
+      shinyCount,
+      totalPokemonsInGeneration,
+    };
   };
 
-  const { pokemonsInGeneration, capturedCount, shinyCount } =
-    getPokemonsForGeneration(
-      activeGeneration,
-      getGeneration(activeGeneration).start,
-      getGeneration(activeGeneration).end
-    );
+  const {
+    pokemonsInGeneration,
+    capturedCount,
+    shinyCount,
+    totalPokemonsInGeneration,
+  } = getPokemonsForGeneration(
+    activeGeneration,
+    getGeneration(activeGeneration).start,
+    getGeneration(activeGeneration).end
+  );
 
   return (
     <div className="pokedex-container">
@@ -179,13 +185,9 @@ function Pokedex() {
         </div>
         <div className="header-right">
           <p>
-            Capturados: {capturedCount} /{" "}
-            {getGeneration(activeGeneration).end -
-              getGeneration(activeGeneration).start +
-              1}
+            Capturados: {capturedCount} / {totalPokemonsInGeneration}
           </p>
-
-          <p>Shiny: {shinyCount}</p>
+          ;<p>Shiny: {shinyCount}</p>
         </div>
       </div>
 
