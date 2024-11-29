@@ -26,19 +26,6 @@
   color: var(--text);
 }
 
-.pokemon-grid {
-  display: grid;
-  grid-template-columns: repeat(16, 50px); /* 16 columnas con tamaño fijo */
-  gap: 0; /* Sin espacio entre los huecos */
-  margin: 0 auto; /* Centrar la tabla horizontalmente */
-}
-
-.pokemon-card img {
-  width: 90%; /* Ajusta el tamaño de la imagen dentro del hueco */
-  height: 90%; /* Mantén la proporción de la imagen */
-  object-fit: contain;
-}
-
 .empty-slot {
   width: 100%;
   height: 100%;
@@ -203,4 +190,49 @@
 
 .search-input::placeholder {
   color: var(--text-2);
+}
+
+.pokemon-card .shiny-icon {
+  position: absolute;
+  top: 5px; /* Ajusta según sea necesario */
+  right: 5px; /* Ajusta según sea necesario */
+  font-size: 14px; /* Tamaño del ícono */
+  color: gold; /* Color del ícono */
+  text-shadow: var(--box-shadow-inset-glow);
+}
+
+.pokemon-card.shiny {
+  box-shadow: var(--box-shadow-inset-glow);
+}
+
+.pokemon-card.default img {
+  filter: grayscale(100%);
+  opacity: 0.25;
+}
+
+.pokedex-header {
+  display: flex;
+  justify-content: space-between; /* Espaciado entre izquierda y derecha */
+  width: 100%; /* Asegura que ocupe todo el ancho del contenedor */
+  margin: 20px;
+}
+
+.header-left h1,
+.header-left h2 {
+  margin-left: 60px;
+  margin-top: 20px;
+  padding: 0;
+  color: var(--text);
+}
+
+.header-right {
+  text-align: right; /* Alinea el texto a la derecha */
+}
+
+.header-right p {
+  margin-right: 60px;
+  margin-top: 20px;
+  padding: 0;
+  font-weight: bold;
+  color: var(--text);
 }

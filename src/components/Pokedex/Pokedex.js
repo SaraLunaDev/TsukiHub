@@ -8,35 +8,30 @@ function Pokedex() {
   const [userInput, setUserInput] = useState("");
   const sheetUrl = process.env.REACT_APP_POKEDEX_SHEET_URL;
 
-  const getGeneration = (id) => {
-    const numericId = parseInt(id, 10);
-    if (numericId >= 1 && numericId <= 151)
-      return { generation: 1, start: 1, end: 151 };
-    if (numericId >= 152 && numericId <= 251)
-      return { generation: 2, start: 152, end: 251 };
-    if (numericId >= 252 && numericId <= 386)
-      return { generation: 3, start: 252, end: 386 };
-    if (numericId >= 387 && numericId <= 493)
-      return { generation: 4, start: 387, end: 493 };
-    if (numericId >= 494 && numericId <= 649)
-      return { generation: 5, start: 494, end: 649 };
-    if (numericId >= 650 && numericId <= 721)
-      return { generation: 6, start: 650, end: 721 };
-    if (numericId >= 722 && numericId <= 809)
-      return { generation: 7, start: 722, end: 809 };
-    if (numericId >= 810 && numericId <= 898)
-      return { generation: 8, start: 810, end: 898 };
-    if (numericId >= 899 && numericId <= 1010)
-      return { generation: 9, start: 899, end: 1010 };
-    return { generation: "Desconocida", start: 0, end: 0 };
+  const getGeneration = (generation) => {
+    const generationData = {
+      1: { start: 1, end: 151 },
+      2: { start: 152, end: 251 },
+      3: { start: 252, end: 386 },
+      4: { start: 387, end: 493 },
+      5: { start: 494, end: 649 },
+      6: { start: 650, end: 721 },
+      7: { start: 722, end: 809 },
+      8: { start: 810, end: 905 },
+      9: { start: 906, end: 1025 },
+    };
+
+    return generationData[generation] || { start: 0, end: 0 };
   };
+
+  const icons = ["🌸 ", "🏯 ", "🌊 ", "🗻 ", "🏢 ", "🗼 ", "🌴 ", "🏰 ", "🥘 "];
 
   const regions = [
     "Kanto",
     "Johto",
     "Hoenn",
     "Sinnoh",
-    "Unova",
+    "Teselia",
     "Kalos",
     "Alola",
     "Galar",
@@ -76,54 +71,39 @@ function Pokedex() {
     fetch(sheetUrl)
       .then((response) => response.text())
       .then((data) => {
-        const rows = data.split("\n").slice(1);
+        const rows = data.split("\n").slice(1); // Omite los headers
         const parsedData = [];
         const userMap = new Map();
 
         rows.forEach((row) => {
-          const [
-            id,
-            Nombre,
-            Usuario,
-            Pokemon,
-            Tipo1,
-            Tipo2,
-            Movimiento1,
-            Movimiento2,
-            Movimiento3,
-            Movimiento4,
-            HP,
-            Ataque,
-            Defensa,
-            AtaqueEsp,
-            DefensaEsp,
-            Velocidad,
-            XP,
-            Shiny,
-            ivHP,
-            ivAtaque,
-            ivDefensa,
-            ivAtaqueEsp,
-            ivDefensaEsp,
-            ivVelocidad,
-            Peso,
-          ] = row.split(",");
+          const columns = row.split(",");
+
+          // Usa índices para acceder a los datos
+          const id = columns[0]?.trim();
+          const nombre = columns[1]?.trim();
+          const usuario = columns[2]?.trim();
+          const pokemon = columns[3]?.trim();
+          const tipo1 = columns[4]?.trim();
+          const tipo2 = columns[5]?.trim();
+          const shiny = columns[18]?.trim();
 
           parsedData.push({
-            id: id?.trim(),
-            Nombre: Nombre?.trim(),
-            Usuario: Usuario?.trim(),
-            Pokemon: Pokemon?.trim(),
-            Tipo1: Tipo1?.trim(),
-            Tipo2: Tipo2?.trim(),
+            id,
+            Nombre: nombre,
+            Usuario: usuario,
+            Pokemon: pokemon,
+            Tipo1: tipo1,
+            Tipo2: tipo2,
+            Shiny: shiny,
           });
 
-          if (Usuario?.trim() && Nombre?.trim()) {
-            userMap.set(Usuario.trim(), Nombre.trim());
+          if (usuario && nombre) {
+            userMap.set(usuario, nombre); // Guarda el último nombre por usuario
           }
         });
 
         setPokemonList(parsedData);
+        console.log(parsedData.map((p) => ({ id: p.id, Shiny: p.Shiny })));
 
         const uniqueUsers = Array.from(userMap.entries());
         setUsers(uniqueUsers);
@@ -144,28 +124,70 @@ function Pokedex() {
   }, [sheetUrl]);
 
   const getPokemonsForGeneration = (generation, start, end) => {
+    let capturedCount = 0;
+    let shinyCount = 0;
+
     const pokemonsInGeneration = Array.from({ length: 160 }, (_, index) => {
       const id = start + index;
+      const matchedPokemon = filteredPokemons.find(
+        (pokemon) => parseInt(pokemon.id, 10) === id
+      );
+
+      if (matchedPokemon) {
+        capturedCount++;
+        if (matchedPokemon.Shiny?.toLowerCase() === "si") {
+          shinyCount++;
+        }
+      }
+
       return id <= end
         ? {
             id: id.toString(),
-            captured: filteredPokemons.some(
-              (pokemon) => parseInt(pokemon.id, 10) === id
-            ),
+            captured: Boolean(matchedPokemon),
+            shiny: matchedPokemon?.Shiny?.toLowerCase() === "si",
           }
         : null;
     });
-    return pokemonsInGeneration;
+
+    // Filtra solo los Pokémon válidos para la generación seleccionada
+    const validPokemons = pokemonsInGeneration.filter(
+      (pokemon) => pokemon && pokemon.captured
+    );
+    shinyCount = validPokemons.filter((pokemon) => pokemon.shiny).length;
+
+    return { pokemonsInGeneration, capturedCount, shinyCount };
   };
+
+  const { pokemonsInGeneration, capturedCount, shinyCount } =
+    getPokemonsForGeneration(
+      activeGeneration,
+      getGeneration(activeGeneration).start,
+      getGeneration(activeGeneration).end
+    );
 
   return (
     <div className="pokedex-container">
-      <h1>
-        Pokedex de{" "}
-        {users.find(([, name]) =>
-          name.toLowerCase().includes(userInput.toLowerCase())
-        )?.[1] || "Usuario"}
-      </h1>
+      <div className="pokedex-header">
+        <div className="header-left">
+          <h1>
+            {icons[activeGeneration - 1]} Pokedex{" "}
+            {regions[activeGeneration - 1]} de{" "}
+            {users.find(([, name]) =>
+              name.toLowerCase().includes(userInput.toLowerCase())
+            )?.[1] || "Usuario"}
+          </h1>
+        </div>
+        <div className="header-right">
+          <p>
+            Capturados: {capturedCount} /{" "}
+            {getGeneration(activeGeneration).end -
+              getGeneration(activeGeneration).start +
+              1}
+          </p>
+
+          <p>Shiny: {shinyCount}</p>
+        </div>
+      </div>
 
       {/* Selector de usuario */}
       <div className="filters-container">
@@ -206,8 +228,13 @@ function Pokedex() {
       {/* Pokémon divididos por generación */}
       {[...Array(9)].map((_, genIndex) => {
         if (genIndex + 1 !== activeGeneration) return null;
-        const { start, end } = getGeneration((genIndex + 1) * 100);
-        const pokemons = getPokemonsForGeneration(genIndex + 1, start, end);
+        const { start, end } = getGeneration(genIndex + 1);
+
+        const { pokemonsInGeneration: pokemons } = getPokemonsForGeneration(
+          genIndex + 1,
+          start,
+          end
+        );
 
         return (
           <div key={genIndex} className="generation-section">
@@ -216,20 +243,21 @@ function Pokedex() {
                 pokemon ? (
                   <div
                     key={index}
-                    className="pokemon-card"
-                    style={{
-                      filter: pokemon.captured ? "none" : "grayscale(100%)",
-                    }}
+                    className={`pokemon-card ${
+                      pokemon.shiny
+                        ? "shiny"
+                        : pokemon.captured
+                        ? "captured"
+                        : "default"
+                    }`}
                   >
                     <img
                       src={`https://resource.pokemon-home.com/battledata/img/pokei128/icon${formatPokemonId(
                         pokemon.id
                       )}_f00_s0.png`}
                       alt={`Pokemon ${pokemon.id}`}
-                      style={{
-                        opacity: pokemon.captured ? "1" : "0.25",
-                      }}
                     />
+                    {pokemon.shiny && <span className="shiny-icon">✨</span>}
                   </div>
                 ) : (
                   <div key={index} className="pokemon-card empty-slot"></div>

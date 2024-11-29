@@ -20,7 +20,8 @@
   --box-shadow-3: 0 8px 10px rgba(0, 0, 0, 0.1);
   --box-shadow-up: 0 -4px 6px rgba(0, 0, 0, 0.1);
   --box-shadow-inset: inset 0 0 10px rgb(0, 0, 0, 0.75);
-  --box-shadow-inset-2: inset 0 0 5px rgba(255, 255, 255, 0.534);
+  --box-shadow-inset-2: inset 0 0 5px 2px rgb(0, 0, 0, .75);
+  --box-shadow-inset-glow: inset 0 0 5px 1px rgb(255, 208, 0, 1);
   --selected-button-high: #55555548;
   --edit-text: #333;
   --edit-text-border: #333;
@@ -50,7 +51,8 @@ body.dark-mode {
   --box-shadow-3: 0 0px 10px rgb(0, 0, 0, 0.25);
   --box-shadow-up: 0 -4px 6px rgba(0, 0, 0, 0.1);
   --box-shadow-inset: inset 0 0 10px rgb(0, 0, 0, 0.25);
-  --box-shadow-inset-2: inset 0 0 8px rgb(0, 0, 0, 0.5);
+  --box-shadow-inset-2: inset 0 0 8px 1px rgb(0, 0, 0, 0.5);
+  --box-shadow-inset-glow: inset 0 0 8px 1px rgba(255, 208, 0, 1);
   --selected-button-high: rgba(85, 85, 85, 0.082);
   --edit-text: #ffffff;
   --edit-text-border: #dfdfdf;
