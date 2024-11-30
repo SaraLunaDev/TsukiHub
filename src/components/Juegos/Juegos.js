@@ -622,7 +622,7 @@ function Juegos() {
                 {/* Resumen justo debajo de las columnas */}
                 {selectedGame.resumen && (
                   <div className="game-summary">
-                    <p>{selectedGame.resumen}</p>
+                    <p>{selectedGame.resumen.replace(/-%-/g, ", ")}</p>
                   </div>
                 )}
               </div>

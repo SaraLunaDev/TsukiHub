@@ -5,7 +5,6 @@
   max-width: 1400px;
   min-width: 600px;
   margin: 0 auto;
-  overflow: hidden;
 }
 
 /* Sección general */
@@ -542,6 +541,7 @@ body {
 .game-details-column,
 .game-meta-column {
   height: 300px;
+  overflow-y: auto;
   text-align: left;
   flex: 1;
   padding: 10px;
@@ -564,7 +564,14 @@ body {
   background-color: var(--clear);
   border-radius: 8px; /* Solo redondear abajo para unificar con las columnas */
   box-shadow: var(--box-shadow-inset);
+  overflow-y: auto;
   font-size: 0.9em;
+}
+
+/* Ocultar la barra de scroll */
+.game-summary::-webkit-scrollbar {
+  width: 0; /* Elimina la barra de desplazamiento */
+  background: transparent;
 }
 
 .game-summary h3 {
