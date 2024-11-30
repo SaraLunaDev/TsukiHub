@@ -1,4 +1,3 @@
-/* Variables para modo claro */
 :root {
   --navbar: #333;
   --dark: #222;
@@ -21,16 +20,24 @@
   --box-shadow-up: 0 -4px 6px rgba(0, 0, 0, 0.1);
   --box-shadow-inset: inset 0 0 10px rgb(0, 0, 0, 0.75);
   --box-shadow-inset-2: inset 0 0 5px 2px rgb(0, 0, 0, 0.75);
-  --box-shadow-inset-glow: inset 0 0 5px 1px rgb(255, 208, 0, .5);
+  --box-shadow-inset-glow: inset 0 0 5px 1px rgb(255, 208, 0, 0.5);
   --img-shadow-glow: drop-shadow(0 0 1px gold);
   --selected-button-high: #55555548;
   --edit-text: #333;
   --edit-text-border: #333;
   --lupa: url("/public/static/resources/lupa.png");
   --transparent: rgba(0, 0, 0, 0);
+  --progressbar-color: #ff8888;
+  --progressbar-back: #222;
+  --edittext: #3a3a3a;
+  --voices: #ff8888;
+  --sounds: #88c5ff;
+  --button-color: #444;
+  --button-color-clear: #666;
+  --button-color-dark: #111;
+  --textshadow: 1px 1px 2px #000000;
 }
 
-/* Variables para modo oscuro */
 body.dark-mode {
   --navbar: #ffffff;
   --dark: #f8f8f8;
@@ -60,10 +67,19 @@ body.dark-mode {
   --edit-text-border: #dfdfdf;
   --lupa: url("/public/static/resources/lupablack.png");
   --transparent: rgba(0, 0, 0, 0);
+  --progressbar-color: #ff8888;
+  --progressbar-back: #bababa;
+  --edittext: #f8f8f8;
+  --voices: #ff8888;
+  --sounds: #88c5ff;
+  --button-color: #fff;
+  --button-color-clear: #ffffff;
+  --button-color-dark: #ccc;
+  --textshadow: 1px 1px 1px #ffffff00;
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: "JetBrains Mono", monospace;
   margin: 0;
   padding: 0;
 }

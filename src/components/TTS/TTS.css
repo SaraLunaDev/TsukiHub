@@ -1,0 +1,231 @@
+.container-tts {
+  max-width: 1400px;
+  min-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  margin-bottom: 40px;
+}
+
+#contentArea-tts {
+  width: 100%;
+  height: 100%;
+}
+
+#textEditor {
+  width: 100%;
+  min-height: 80px;
+  border: 0px solid #ccc;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 16px;
+  font-family: "JetBrains Mono", monospace;
+  box-shadow: var(--box-shadow-inset);
+  overflow-y: auto;
+  outline: none;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  background-color: var(--edittext);
+}
+
+#progressBarContainer {
+  width: 100%;
+  height: 10px;
+  background-color: var(--progressbar-back);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+#textEditorProgress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+#progressBar {
+  height: 100%;
+  background-color: var(--progressbar-color);
+  transition: width 0.3s ease;
+}
+
+.copyButton {
+  height: 20px;
+  background-color: var(--color-mid);
+  border: 2px solid var(--dark);
+  border-radius: 30px;
+  box-shadow: var(--dark) 4px 4px 0 0;
+  color: var(--dark);
+  cursor: pointer;
+  display: inline-block;
+  font-weight: 600;
+  font-size: 18px;
+  padding: 0 18px;
+  line-height: 50px;
+  text-align: center;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.copyButton:hover {
+  background-color: var(--color-clear);
+}
+
+.copyButton:active {
+  box-shadow: var(--dark) 2px 2px 0 0;
+  transform: translate(2px, 2px);
+}
+
+@media (min-width: 768px) {
+  .copyButton {
+    min-width: 60px;
+    padding: 0 25px;
+  }
+}
+
+.button-30 {
+  font-size: 0.9em;
+  font-weight: bold;
+  width: 172px;
+  margin: 10px;
+  align-items: center;
+  appearance: none;
+  background-color: var(--button-color);
+  border-radius: 6px;
+  border-width: 0;
+  box-shadow: var(--button-color-dark) 0 2px 4px,
+    var(--button-color-dark) 0 7px 13px -3px,
+    var(--button-color-dark) 0 -3px 0 inset;
+  box-sizing: border-box;
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "JetBrains Mono", monospace;
+  height: 50px;
+  line-height: 1.4;
+  list-style: none;
+  overflow: hidden;
+  position: relative;
+  text-align: left;
+  text-decoration: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  white-space: nowrap;
+  will-change: box-shadow, transform;
+}
+
+.button-30:hover {
+  box-shadow: var(--button-color-dark) 0 4px 8px,
+    var(--button-color-dark) 0 7px 13px -3px,
+    var(--button-color-dark) 0 -3px 0 inset;
+  transform: translateY(-2px);
+}
+
+.button-30:active {
+  box-shadow: var(--button-color-dark) 0 3px 7px inset;
+  transform: translateY(2px);
+}
+
+.button-id {
+  margin-left: 2px;
+  min-width: 25px;
+  height: 20px;
+  font-weight: bold;
+  padding: 4px;
+  padding-right: 6px;
+  padding-left: 6px;
+  border-radius: 4px;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.voice-id {
+  background-color: var(--voices);
+  text-shadow: var(--textshadow);
+}
+.sound-id {
+  background-color: var(--sounds);
+  text-shadow: var(--textshadow);
+}
+
+.button-text {
+  margin-left: 10px;
+  font-family: "JetBrains Mono", monospace;
+  font-weight: bold;
+  flex-grow: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Contenedor principal dividido en dos columnas */
+.tts-main-layout {
+  display: flex;
+  gap: 20px; /* Espaciado entre las columnas */
+  margin-top: 20px;
+}
+
+/* Columna izquierda (Voces y Sonidos) */
+.tts-left-column {
+  flex: 3; /* Ocupa más espacio */
+}
+
+/* Columna derecha (Tutorial) */
+.tts-right-column {
+  flex: 1;
+}
+
+/* Ajustar el texto del tutorial */
+.tutorial-tts h2 {
+  margin-top: 0;
+  color: #444;
+}
+
+.tutorial-tts p {
+  margin: 10px 0;
+}
+
+#ejemplo {
+  padding: 20px;
+  margin: 10px 0;
+  background-color: var(--dark);
+  border-radius: 5px;
+  box-shadow: var(--box-shadow-inset);
+  line-height: 1.2em;
+}
+
+.rosa {
+  color: #ff8888;
+  font-weight: bold;
+}
+
+.azul {
+  color: #88c5ff;
+  font-weight: bold;
+}
+
+#soundContainer {
+  max-height: 1000px; /* Limita el alto del contenedor */
+  overflow-y: auto; /* Habilita el desplazamiento vertical */
+}
+
+/* Ocultar la barra de scroll */
+#soundContainer::-webkit-scrollbar {
+  width: 0; /* Elimina la barra de desplazamiento */
+  background: transparent;
+}
+
+#soundContainer {
+  scrollbar-width: none; /* Oculta la barra en Firefox */
+}

@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar/Navbar";
 import Inicio from "./components/Inicio/Inicio";
 import Juegos from "./components/Juegos/Juegos";
 import Pokedex from "./components/Pokedex/Pokedex";
+import TTS from "./components/TTS/TTS";
 import "./App.css";
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Route path="/" element={<Inicio />} />
         <Route path="/juegos" element={<Juegos />} />
         <Route path="/pokedex" element={<Pokedex />} />
+        <Route path="/TTS" element={<TTS />} />
       </Routes>
     </Router>
   );
