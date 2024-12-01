@@ -8,18 +8,18 @@ function Inicio() {
         <div className="social-and-bio">
           <div className="social-links">
             <a
-              href="https://www.twitch.tv/tsukisoft"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img src="/static/resources/redes/twitch.png" alt="Twitch" />
-            </a>
-            <a
               href="https://www.youtube.com/@TsukiSoftRsb/videos"
               target="_blank"
               rel="noopener noreferrer"
             >
               <img src="/static/resources/redes/youtube.png" alt="YouTube" />
+            </a>
+            <a
+              href="https://www.twitch.tv/tsukisoft"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img src="/static/resources/redes/twitch.png" alt="Twitch" />
             </a>
             <a
               href="https://discord.gg/ed4ZPAqrXe"
@@ -58,8 +58,8 @@ function Inicio() {
             </p>
             <p>
               Suelo programar muchas cositas interactivas para vosotros y los
-              streams, así que esta web nos va a servir para recopilar todas esas
-              cositas en un sitio 🥰.
+              streams, así que esta web nos va a servir para recopilar todas
+              esas cositas en un sitio 🥰.
             </p>
           </div>
         </div>
