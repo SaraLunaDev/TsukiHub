@@ -20,9 +20,6 @@ function Navbar() {
 
           <ul className="navbar-links">
             <li>
-              <Link to="/">Inicio</Link>
-            </li>
-            <li>
               <Link to="/juegos">Juegos</Link>
             </li>
             <li>
