@@ -1,6 +1,5 @@
 /* Contenedor principal */
 .juegos-container {
-  padding: 10px;
   text-align: center;
   max-width: 1400px;
   min-width: 600px;
@@ -9,7 +8,7 @@
 
 /* Sección general */
 .juegos-container section {
-  margin-bottom: 30px;
+  margin-bottom: 25px;
 }
 
 .juegos-container section h2,
@@ -178,6 +177,7 @@ body {
 .category-jugando {
   flex: 0 0 auto;
   min-width: 240px;
+  min-height: 340px;
 }
 
 .category-planeo-jugar {
@@ -262,6 +262,7 @@ body {
 .category-pasado{
   width: 100%;
   height: 100%;
+  min-height: 340px;
 }
 
 /* Imagen de portada al hacer hover en "Juegos Jugados" */

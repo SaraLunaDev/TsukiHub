@@ -2,10 +2,8 @@
   max-width: 1400px;
   min-width: 600px;
   margin: 0 auto;
-  display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 10px;
   border-radius: 8px;
   box-sizing: border-box;
   margin-bottom: 40px;
@@ -135,6 +133,10 @@
   transform: translateY(2px);
 }
 
+#voices {
+  margin-bottom: 20px;
+}
+
 .button-id {
   margin-left: 2px;
   min-width: 25px;
@@ -173,7 +175,10 @@
 .tts-main-layout {
   display: flex;
   gap: 20px; /* Espaciado entre las columnas */
-  margin-top: 20px;
+}
+
+#intro-tts {
+  margin-bottom: 20px;
 }
 
 /* Columna izquierda (Voces y Sonidos) */
