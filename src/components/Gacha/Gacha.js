@@ -114,14 +114,43 @@ function Gacha() {
         const uniqueUsers = Array.from(userMap.entries());
         setUsers(uniqueUsers);
 
-        // Establecer el usuario almacenado como input o seleccionar el primero
+        // Calcular el usuario con más cartas
+        const userStats = uniqueUsers.map(([userId, userName]) => {
+          const userCards = parsedData.find((data) => data.id === userId);
+          if (!userCards) return { userId, userName, totalCards: 0 };
+
+          const totalCards = Object.keys(bannerFolders).reduce(
+            (acc, banner) => {
+              stars.forEach((starLevel) => {
+                const column = `${bannerFolders[banner]}${starLevel.charAt(0)}`;
+                const cards = (userCards[column] || "")
+                  .split("/-/")
+                  .filter((card) => card.trim());
+                acc += cards.length;
+              });
+              return acc;
+            },
+            0
+          );
+
+          return { userId, userName, totalCards };
+        });
+
+        const topUser = userStats.sort(
+          (a, b) => b.totalCards - a.totalCards
+        )[0]; // Usuario con más cartas
+
+        // Establecer usuario predeterminado
         if (storedUser) {
           const storedUserName = uniqueUsers.find(
             ([id]) => id.toLowerCase() === storedUser.toLowerCase()
           )?.[1];
           setUserInput(storedUserName || "");
+        } else if (topUser) {
+          localStorage.setItem("selectedUser", topUser.userId); // Guardar usuario con más cartas en memoria
+          setUserInput(topUser.userName); // Establecer como predeterminado
         } else {
-          setUserInput(uniqueUsers[0]?.[1] || "");
+          setUserInput(uniqueUsers[0]?.[1] || ""); // Si no hay usuarios, seleccionar el primero disponible
         }
       })
       .catch((error) => console.error("Error al cargar los datos:", error));
