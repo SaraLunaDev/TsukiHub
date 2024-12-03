@@ -5,6 +5,7 @@ import Inicio from "./components/Inicio/Inicio";
 import Juegos from "./components/Juegos/Juegos";
 import Pokedex from "./components/Pokedex/Pokedex";
 import TTS from "./components/TTS/TTS";
+import Gacha from "./components/Gacha/Gacha";
 import "./App.css";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
         <Route path="/juegos" element={<Juegos />} />
         <Route path="/pokedex" element={<Pokedex />} />
         <Route path="/TTS" element={<TTS />} />
+        <Route path="/Gacha" element={<Gacha />} />
       </Routes>
     </Router>
   );

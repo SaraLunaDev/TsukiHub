@@ -1,0 +1,251 @@
+.gacha-container {
+  max-width: 1400px;
+  min-width: 600px;
+  margin: 0 auto;
+  padding: 60px;
+  padding-top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--dark-2);
+  margin-top: 30px;
+  border-radius: 8px;
+  box-shadow: var(--box-shadow-inset);
+  padding-bottom: 20px;
+  box-sizing: border-box;
+  margin-bottom: 40px;
+}
+
+.gacha-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.banner-buttons {
+  width: 1000px;
+  display: flex;
+  gap: 20px;
+}
+
+.banner-button.active {
+  font-weight: bold;
+  color: #fff;
+}
+
+.card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.card {
+  text-align: center;
+  width: 100px;
+}
+
+.card span {
+  white-space: nowrap; /* Evita saltos de línea */
+  overflow: hidden; /* Oculta el texto que no cabe */
+  text-overflow: ellipsis; /* Muestra "..." si el texto es demasiado largo */
+  display: block; /* Asegura que el texto sea un bloque separado */
+  max-width: 80px; /* Asegura que no exceda el ancho de la imagen */
+  margin: 5px auto 0; /* Centra el texto debajo de la imagen */
+  text-align: center; /* Alinea el texto en el centro */
+  font-size: 0.9em; /* Ajusta el tamaño del texto */
+  color: var(--text); /* Usa el color definido para el texto */
+}
+
+.user-name-gacha:hover {
+  color: var(--color-mid);
+  cursor: pointer;
+}
+
+.card img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  filter: grayscale(100%);
+  opacity: 0.25;
+  transition: transform 0.3s ease, filter 0.3s ease, opacity 0.3s ease;
+}
+
+.card img:hover {
+  transform: scale(1.1); /* Agranda la imagen */
+  opacity: 0.5; /* Incrementa la opacidad */
+}
+
+.star-section {
+  padding: 20px;
+  padding-left: 40px;
+  padding-bottom: 40px;
+  background-color: var(--mid);
+  border-radius: 8px;
+  box-shadow: var(--box-shadow-inset);
+  margin-bottom: 20px;
+}
+
+.card img.colored {
+  filter: grayscale(0%);
+  opacity: 1;
+}
+
+.card-unowned span {
+  color: gray;
+}
+
+.user-selector-gacha {
+  padding: 10px;
+  width: 250px;
+  font-size: 0.9em;
+  border: none;
+  border-radius: 0px 20px 20px 0px;
+  background-color: var(--edit-text);
+  color: var(--text);
+  outline: none;
+  margin: 0; /* Elimina márgenes externos */
+}
+
+.banner-button {
+  padding: 10px; /* Espaciado dentro del botón */
+  background-color: var(--transparent);
+  color: var(--text);
+  border: 0px solid var(--text-2);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+  font-size: 1em;
+  width: 140px; /* Ancho fijo para cada botón */
+  line-height: 1.5; /* Ajusta la altura de la línea para centrar el texto verticalmente */
+  text-align: center; /* Centra el texto horizontalmente */
+  display: flex; /* Usamos flexbox para alinear el contenido */
+  align-items: center; /* Centra el contenido verticalmente */
+  justify-content: center; /* Asegura que el texto esté centrado horizontalmente */
+}
+
+.banner-button.active {
+  background-color: var(--clear);
+  border-radius: 5px;
+  color: var(--text);
+  font-weight: bold;
+}
+
+.banner-button:hover {
+  background-color: var(--color-mid);
+  color: var(--text);
+}
+
+.filters-container-gacha {
+  display: flex;
+  align-items: center; /* Alinea el contenido verticalmente */
+  justify-content: flex-start; /* Alinea el contenido a la izquierda */
+  gap: 40px; /* Espacio entre el cuadro de texto y los botones */
+  width: 100%; /* Usa todo el ancho disponible */
+  margin-bottom: 40px; /* Espaciado inferior */
+}
+
+.image-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8); /* Fondo semitransparente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Overlay para el fondo */
+.image-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.8); /* Fondo semitransparente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0;
+  animation: fadeIn 0.3s forwards; /* Animación para el overlay */
+}
+
+/* Contenedor del popup */
+.image-popup-content {
+  position: relative;
+  background: var(--dark);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  transform: scale(0.9);
+  opacity: 0;
+}
+
+/* Animación para el contenedor */
+.popup-animate {
+  animation: popupFadeIn 0.3s forwards;
+}
+
+/* Imagen en el popup */
+.popup-image {
+  max-width: 90vw;
+  max-height: 90vh;
+}
+
+/* Botón de cierre */
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: black;
+  font-size: 1.5em;
+  cursor: pointer;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes popupFadeIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.star-header {
+  display: flex;
+  justify-content: space-between; /* Espacia estrellas y conteo */
+  align-items: center; /* Centra verticalmente */
+  margin-bottom: 10px; /* Espaciado inferior */
+  margin-right: 20px;
+}
+
+.star-count {
+  font-size: 1.2em;
+  color: var(--text);
+  font-weight: bold;
+}
+
+.stars-large .star {
+  font-size: 2em; /* Tamaño más grande para esta categoría */
+  margin-bottom: 10px;
+  margin-top: 10px;
+}
