@@ -139,7 +139,7 @@
 
 .filters-container-gacha {
   display: flex;
-  align-items: center; /* Alinea el contenido verticalmente */
+  align-items: center; 
   justify-content: flex-start; /* Alinea el contenido a la izquierda */
   gap: 40px; /* Espacio entre el cuadro de texto y los botones */
   width: 100%; /* Usa todo el ancho disponible */
