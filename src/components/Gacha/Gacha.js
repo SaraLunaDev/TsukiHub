@@ -363,7 +363,7 @@ function Gacha() {
                     }`}
                   >
                     <img
-                      src={`/static/resources/gacha/${bannerFolders[activeBanner]}/${card.id}.png`}
+                      src={`${process.env.PUBLIC_URL}/static/resources/gacha/${bannerFolders[activeBanner]}/low/${card.id}_low.webp`}
                       alt={card.name}
                       className={
                         userCards.some(
@@ -375,10 +375,11 @@ function Gacha() {
                       }
                       onClick={() =>
                         handleImageClick(
-                          `/static/resources/gacha/${bannerFolders[activeBanner]}/${card.id}.png`
+                          `/static/resources/gacha/${bannerFolders[activeBanner]}/high/${card.id}_high.webp`
                         )
                       }
                     />
+
                     <span>{card.name}</span>
                   </div>
                 ))}
