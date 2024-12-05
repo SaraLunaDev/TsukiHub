@@ -27,6 +27,57 @@ const TTS = () => {
       .catch((error) => console.error("Error cargando datos:", error));
   }, []);
 
+  const insertTextAtCursor = (textToInsert) => {
+    const editor = document.getElementById("textEditor");
+
+    // Asegura que el editor reciba el foco
+    editor.focus();
+
+    const selection = window.getSelection();
+    const range =
+      selection.rangeCount > 0
+        ? selection.getRangeAt(0)
+        : document.createRange();
+
+    // Si no hay rango o está vacío, coloca el cursor al final del editor
+    if (selection.rangeCount === 0) {
+      range.selectNodeContents(editor);
+      range.collapse(false);
+    }
+
+    // Inserta el texto en la posición actual del cursor
+    const textNode = document.createTextNode(textToInsert);
+    range.deleteContents();
+    range.insertNode(textNode);
+
+    // Ajusta el rango para que el cursor quede al final del texto insertado
+    range.setStartAfter(textNode);
+    range.setEndAfter(textNode);
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    // Actualiza el contenido del editor y valida el texto
+    const newText = editor.innerText;
+    const styledText = validateText(newText);
+    updateEditorWithStyledText(editor, styledText, newText.length);
+    setText(newText);
+  };
+
+  const handleTextChange = (e) => {
+    const editor = e.target;
+    let newText = editor.innerText;
+
+    if (newText.length > characterLimit) {
+      newText = newText.substring(0, characterLimit);
+      editor.innerText = newText;
+    }
+
+    const cursorPosition = saveCursorPosition(editor);
+    const styledText = validateText(newText);
+    updateEditorWithStyledText(editor, styledText, cursorPosition);
+    setText(newText);
+  };
+
   const validateText = (text) => {
     const formattedText = text.replace(
       /\(([^():]+):\)|\(([^():]+)\)/g,
@@ -52,21 +103,6 @@ const TTS = () => {
       }
     );
     return formattedText;
-  };
-
-  const handleTextChange = (e) => {
-    const editor = e.target;
-    let newText = editor.innerText;
-
-    if (newText.length > characterLimit) {
-      newText = newText.substring(0, characterLimit);
-      editor.innerText = newText;
-    }
-
-    const cursorPosition = saveCursorPosition(editor);
-    const styledText = validateText(newText);
-    updateEditorWithStyledText(editor, styledText, cursorPosition);
-    setText(newText);
   };
 
   const saveCursorPosition = (element) => {
@@ -177,8 +213,10 @@ const TTS = () => {
                       key={voice.id}
                       className="button-30"
                       onClick={() => {
+                        const textToCopy = `(${voice.id}:)`;
+                        navigator.clipboard.writeText(textToCopy);
+                        insertTextAtCursor(textToCopy);
                         playAudio(voicesDirectory, voice.file);
-                        navigator.clipboard.writeText(`(${voice.id}:)`);
                       }}
                     >
                       <span className="button-id voice-id">{voice.id}</span>
@@ -200,8 +238,10 @@ const TTS = () => {
                       key={sound.id}
                       className="button-30"
                       onClick={() => {
+                        const textToCopy = `(${sound.id})`;
+                        navigator.clipboard.writeText(textToCopy);
+                        insertTextAtCursor(textToCopy);
                         playAudio(soundsDirectory, sound.file);
-                        navigator.clipboard.writeText(`(${sound.id})`);
                       }}
                     >
                       <span className="button-id sound-id">{sound.id}</span>
