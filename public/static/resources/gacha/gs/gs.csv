@@ -1,8 +1,8 @@
 id,nombre,estrellas
 61,Alhaitham,5
 80,Arlecchino,5
-65,Baizhu,5
-4,Bennett,5
+65,Baizhu,4
+4,Bennett,3
 74,Furina,5
 33,Kazuha,5
 40,Kokomi,5
@@ -12,7 +12,7 @@ id,nombre,estrellas
 48,Yelan,4
 25,Zhongli,4
 19,Xiangling,4
-20,Xingqiu,4
+20,Xingqiu,3
 29,Hu Tao,5
 34,Ayaka,4
 42,Itto,4

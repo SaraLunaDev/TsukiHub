@@ -71,24 +71,24 @@
   opacity: 0.25;
 }
 
+/*
 .card-unowned img {
   filter: grayscale(100%) contrast(500) brightness(25%) blur(1px);
   opacity: 0.25;
 }
+*/
 
 .card img:hover {
   transform: scale(1.1);
   opacity: 0.5;
 }
 
-.card-unowned span {
-
-}
-
+/*
 .card-unowned img:hover {
   transform: none;
   opacity: 0.25;
 }
+*/
 
 .star-section {
   padding: 20px;
