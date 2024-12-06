@@ -13,7 +13,7 @@ id,nombre,estrellas
 25,Zhongli,4
 19,Xiangling,4
 20,Xingqiu,4
-29,Hu Tao,4
+29,Hu Tao,5
 34,Ayaka,4
 42,Itto,4
 23,Childe,4
@@ -45,7 +45,7 @@ id,nombre,estrellas
 70,Freminet,3
 30,Rosaria,3
 64,Mika,3
-38,Sara,3
+38,Sara,5
 11,Lisa,3
 50,Heizou,3
 85,Kachina,3
@@ -56,6 +56,6 @@ id,nombre,estrellas
 87,Kinich,3
 69,Lyney,3
 68,Lynette,3
-72,Wriothesley,3
+72,Wriothesley,4
 78,Xilonen,3
 83,Sigewinne,3
