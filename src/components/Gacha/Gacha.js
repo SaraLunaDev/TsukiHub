@@ -11,11 +11,12 @@ function Gacha() {
   const [cardsByStars, setCardsByStars] = useState({});
   const sheetUrl = process.env.REACT_APP_GACHA_SHEET_URL;
   const [selectedImage, setSelectedImage] = useState(null); // Almacena la imagen seleccionada
-  const banners = ["Dragon Ball", "Monster Hunter", "Genshin"];
+  const banners = ["Dragon Ball", "Monster Hunter", "Genshin", "One Piece"];
   const bannerIcons = {
-    "Dragon Ball": "🐲", // Ejemplo de emoji
+    "Dragon Ball": "🐲",
     "Monster Hunter": "🦖",
     Genshin: "🍙",
+    "One Piece": "🌊",
   };
 
   const handleImageClick = (imageSrc) => {
@@ -65,6 +66,7 @@ function Gacha() {
     "Dragon Ball": "db",
     "Monster Hunter": "mh",
     Genshin: "gs",
+    "One Piece": "op",
   };
 
   const stars = ["3 estrellas", "4 estrellas", "5 estrellas"];
@@ -101,6 +103,9 @@ function Gacha() {
             gs3: columns[8]?.trim(),
             gs4: columns[9]?.trim(),
             gs5: columns[10]?.trim(),
+            op3: columns[11]?.trim(),
+            op4: columns[12]?.trim(),
+            op5: columns[13]?.trim(),
           };
 
           parsedData.push(userCards);
@@ -350,39 +355,37 @@ function Gacha() {
                 </span>
               </div>
               <div className="card-grid">
-                {cardsInCategory.map((card) => (
-                  <div
-                    key={card.id}
-                    className={`card ${
-                      userCards.some(
-                        (userCard) =>
-                          userCard.toLowerCase() === card.name.toLowerCase()
-                      )
-                        ? "card-owned"
-                        : "card-unowned"
-                    }`}
-                  >
-                    <img
-                      src={`${process.env.PUBLIC_URL}/static/resources/gacha/${bannerFolders[activeBanner]}/low/${card.id}_low.webp`}
-                      alt={card.name}
-                      className={
-                        userCards.some(
-                          (userCard) =>
-                            userCard.toLowerCase() === card.name.toLowerCase()
-                        )
-                          ? "colored"
-                          : "grayscale"
-                      }
-                      onClick={() =>
-                        handleImageClick(
-                          `/static/resources/gacha/${bannerFolders[activeBanner]}/high/${card.id}_high.webp`
-                        )
-                      }
-                    />
+                {cardsInCategory.map((card) => {
+                  const isCardOwned = userCards.some(
+                    (userCard) =>
+                      userCard.toLowerCase() === card.name.toLowerCase()
+                  );
 
-                    <span>{card.name}</span>
-                  </div>
-                ))}
+                  return (
+                    <div
+                      key={card.id}
+                      className={`card ${
+                        isCardOwned ? "card-owned" : "card-unowned"
+                      }`}
+                    >
+                      <img
+                        src={`${process.env.PUBLIC_URL}/static/resources/gacha/${bannerFolders[activeBanner]}/low/${card.id}_low.webp`}
+                        alt={card.name}
+                        className={isCardOwned ? "colored" : "grayscale"}
+                        onClick={
+                          isCardOwned
+                            ? () =>
+                                handleImageClick(
+                                  `/static/resources/gacha/${bannerFolders[activeBanner]}/high/${card.id}_high.webp`
+                                )
+                            : null // No hace nada si la carta no está poseída
+                        }
+                      />
+                      <span>{isCardOwned ? card.name : "???"}</span>{" "}
+                      {/* Modificado aquí */}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
