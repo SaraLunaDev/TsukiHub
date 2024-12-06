@@ -69,7 +69,7 @@ function Gacha() {
     "One Piece": "op",
   };
 
-  const stars = ["3 estrellas", "4 estrellas", "5 estrellas"];
+  const stars = ["5 estrellas", "4 estrellas", "3 estrellas"];
 
   useEffect(() => {
     if (!sheetUrl) {
