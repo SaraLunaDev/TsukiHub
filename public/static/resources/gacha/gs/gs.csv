@@ -1,3 +1,4 @@
+id,nombre,estrellas
 61,Alhaitham,5
 80,Arlecchino,5
 65,Baizhu,5
@@ -8,8 +9,8 @@
 57,Nahida,5
 71,Neuvillette,5
 39,Raiden Shogun,5
-48,Yelan,5
-25,Zhongli,5
+48,Yelan,4
+25,Zhongli,4
 19,Xiangling,4
 20,Xingqiu,4
 29,Hu Tao,4
@@ -28,7 +29,7 @@
 26,Albedo,4
 28,Xiao,4
 12,Mona,4
-3,Beidou,4
+3,Beidou,3
 17,Sucrose,3
 7,Fischl,3
 31,Yanfei,3
