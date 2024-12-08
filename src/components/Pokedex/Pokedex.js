@@ -7,6 +7,7 @@ function Pokedex() {
   const [activeGeneration, setActiveGeneration] = useState(1);
   const [userInput, setUserInput] = useState("");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isGifVisible, setIsGifVisible] = useState(false);
   const sheetUrl = process.env.REACT_APP_POKEDEX_SHEET_URL;
 
   const getUserStats = () => {
@@ -72,6 +73,12 @@ function Pokedex() {
         : pokemon.Usuario === "173916175" // Muestra los Pokémon del usuario con ID predeterminado
   );
 
+  const getPokemonGifUrl = (pokemonId, shiny = false) => {
+    return shiny
+      ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/shiny/${pokemonId}.gif`
+      : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/showdown/${pokemonId}.gif`;
+  };
+
   useEffect(() => {
     if (!sheetUrl) {
       console.error("La URL del Google Sheet no está configurada en .env");
@@ -134,6 +141,13 @@ function Pokedex() {
       })
       .catch((error) => console.error("Error al cargar los datos:", error));
   }, [sheetUrl]);
+
+  const handleImageError = (e) => {
+    // Si la imagen no se carga, revertimos a la imagen estática
+    e.target.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
+      e.target.dataset.shiny === "true" ? "shiny/" : ""
+    }${e.target.dataset.pokemonId}.png`;
+  };
 
   const getPokemonsForGeneration = (generation, start, end) => {
     const totalSlots = 160; // Total de huecos por generación
@@ -314,10 +328,29 @@ function Pokedex() {
                 >
                   {pokemon.id && (
                     <img
-                      src={`https://resource.pokemon-home.com/battledata/img/pokei128/icon${formatPokemonId(
-                        pokemon.id
-                      )}_f00_s0.png`}
+                      src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
+                        pokemon.shiny ? `shiny/${pokemon.id}` : pokemon.id
+                      }.png`}
                       alt={`Pokemon ${pokemon.id}`}
+                      data-pokemon-id={pokemon.id}
+                      data-shiny={pokemon.shiny === "si"}
+                      className={`pokemon-img ${isGifVisible ? "gif" : ""}`} // Agrega la clase "gif" solo cuando es necesario
+                      onError={handleImageError}
+                      onMouseEnter={(e) => {
+                        e.target.timer = setTimeout(() => {
+                          const isShiny =
+                            pokemon.shiny === "si" || pokemon.shiny === true;
+                          e.target.src = getPokemonGifUrl(pokemon.id, isShiny);
+                          e.target.classList.add("gif"); // Aplica la clase "gif" para el tamaño adecuado
+                        }, 1000);
+                      }}
+                      onMouseLeave={(e) => {
+                        clearTimeout(e.target.timer);
+                        e.target.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
+                          pokemon.shiny ? `shiny/${pokemon.id}` : pokemon.id
+                        }.png`;
+                        e.target.classList.remove("gif"); // Remueve la clase "gif" cuando vuelve a la imagen estática
+                      }}
                     />
                   )}
                   {pokemon.shiny && <span className="shiny-icon">✨</span>}
