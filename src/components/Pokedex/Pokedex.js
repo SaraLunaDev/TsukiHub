@@ -149,6 +149,38 @@ function Pokedex() {
     }${e.target.dataset.pokemonId}.png`;
   };
 
+  const handleMouseEnter = (e, pokemon) => {
+    // Buscar la imagen dentro de la tarjeta del Pokémon
+    const img = e.currentTarget.querySelector("img");
+
+    // Verificar que la imagen existe
+    if (img) {
+      // Si el Pokémon es shiny, mostrar el GIF shiny, si no, mostrar el GIF normal
+      if (pokemon.shiny === "si" || pokemon.shiny === true) {
+        img.src = getPokemonGifUrl(pokemon.id, true); // GIF shiny
+      } else {
+        img.src = getPokemonGifUrl(pokemon.id, false); // GIF normal
+      }
+      img.classList.add("gif"); // Aplica la clase "gif" si es necesario
+    }
+  };
+
+  const handleMouseLeave = (e, pokemon) => {
+    // Buscar la imagen dentro de la tarjeta del Pokémon
+    const img = e.currentTarget.querySelector("img");
+
+    // Verificar que la imagen existe
+    if (img) {
+      // Revertir al PNG correspondiente cuando se sale del mouse
+      if (pokemon.shiny === "si" || pokemon.shiny === true) {
+        img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${pokemon.id}.png`; // PNG shiny
+      } else {
+        img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`; // PNG normal
+      }
+      img.classList.remove("gif");
+    }
+  };
+
   const getPokemonsForGeneration = (generation, start, end) => {
     const totalSlots = 160; // Total de huecos por generación
     const generationSize = end - start + 1; // Total de Pokémon reales en la generación
@@ -206,6 +238,16 @@ function Pokedex() {
       users.find(([, name]) => name === userName)?.[0]
     ); // Guarda el ID en localStorage
     setIsPopupOpen(false); // Cierra el popup
+  };
+
+  // Función para obtener el tamaño de la imagen GIF
+  const handleGifLoad = (e) => {
+    const img = new Image();
+    img.src = e.target.src;
+    img.onload = () => {
+      e.target.style.width = `${img.width * 0.65}px`; // Ajusta el tamaño del GIF
+      e.target.style.height = `${img.height * 0.65}px`;
+    };
   };
 
   return (
@@ -323,34 +365,22 @@ function Pokedex() {
                         : pokemon.captured
                         ? "captured"
                         : "default"
-                      : "empty-slot" // Clase para los huecos vacíos
+                      : "empty-slot"
                   }`}
+                  onMouseEnter={(e) => handleMouseEnter(e, pokemon)} // Mover el mouse sobre la tarjeta
+                  onMouseLeave={(e) => handleMouseLeave(e, pokemon)} // Mover el mouse fuera de la tarjeta
                 >
                   {pokemon.id && (
                     <img
                       src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
                         pokemon.shiny ? `shiny/${pokemon.id}` : pokemon.id
-                      }.png`}
+                      }.png`} // PNG por defecto
                       alt={`Pokemon ${pokemon.id}`}
                       data-pokemon-id={pokemon.id}
                       data-shiny={pokemon.shiny === "si"}
-                      className={`pokemon-img ${isGifVisible ? "gif" : ""}`} // Agrega la clase "gif" solo cuando es necesario
+                      className={`pokemon-img ${isGifVisible ? "gif" : ""}`}
                       onError={handleImageError}
-                      onMouseEnter={(e) => {
-                        e.target.timer = setTimeout(() => {
-                          const isShiny =
-                            pokemon.shiny === "si" || pokemon.shiny === true;
-                          e.target.src = getPokemonGifUrl(pokemon.id, isShiny);
-                          e.target.classList.add("gif"); // Aplica la clase "gif" para el tamaño adecuado
-                        }, 1000);
-                      }}
-                      onMouseLeave={(e) => {
-                        clearTimeout(e.target.timer);
-                        e.target.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
-                          pokemon.shiny ? `shiny/${pokemon.id}` : pokemon.id
-                        }.png`;
-                        e.target.classList.remove("gif"); // Remueve la clase "gif" cuando vuelve a la imagen estática
-                      }}
+                      onLoad={handleGifLoad} // Ajuste de tamaño del GIF si es necesario
                     />
                   )}
                   {pokemon.shiny && <span className="shiny-icon">✨</span>}

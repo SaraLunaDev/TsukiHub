@@ -63,7 +63,7 @@
   height: 95%;
   object-fit: contain;
   filter: var(--img-border);
-  transition: opacity 0.1s ease;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .pokemon-card img.gif {
@@ -71,6 +71,7 @@
   width: 75%;
   height: 75%;
 }
+
 
 .generation-button {
   padding: 10px 20px; /* Espaciado dentro del botón */
@@ -391,3 +392,4 @@
 .pokemon-gif {
   width: 40%;
 }
+
