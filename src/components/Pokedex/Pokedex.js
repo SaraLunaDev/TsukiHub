@@ -150,34 +150,44 @@ function Pokedex() {
   };
 
   const handleMouseEnter = (e, pokemon) => {
-    // Buscar la imagen dentro de la tarjeta del Pokémon
     const img = e.currentTarget.querySelector("img");
 
-    // Verificar que la imagen existe
     if (img) {
-      // Si el Pokémon es shiny, mostrar el GIF shiny, si no, mostrar el GIF normal
-      if (pokemon.shiny === "si" || pokemon.shiny === true) {
-        img.src = getPokemonGifUrl(pokemon.id, true); // GIF shiny
-      } else {
-        img.src = getPokemonGifUrl(pokemon.id, false); // GIF normal
-      }
-      img.classList.add("gif"); // Aplica la clase "gif" si es necesario
+      // Desvanecemos la imagen para la transición
+      img.style.opacity = 0;
+
+      // Cambiar la fuente después de que la imagen haya desaparecido
+      setTimeout(() => {
+        if (pokemon.shiny === "si" || pokemon.shiny === true) {
+          img.src = getPokemonGifUrl(pokemon.id, true); // GIF shiny
+        } else {
+          img.src = getPokemonGifUrl(pokemon.id, false); // GIF normal
+        }
+
+        // Hacer que la imagen vuelva a ser visible
+        img.style.opacity = 1;
+      }, 0); // Tiempo igual al de la transición CSS
     }
   };
 
   const handleMouseLeave = (e, pokemon) => {
-    // Buscar la imagen dentro de la tarjeta del Pokémon
     const img = e.currentTarget.querySelector("img");
 
-    // Verificar que la imagen existe
     if (img) {
-      // Revertir al PNG correspondiente cuando se sale del mouse
-      if (pokemon.shiny === "si" || pokemon.shiny === true) {
-        img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${pokemon.id}.png`; // PNG shiny
-      } else {
-        img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`; // PNG normal
-      }
-      img.classList.remove("gif");
+      // Desvanecemos la imagen para la transición
+      img.style.opacity = 0;
+
+      // Cambiar la fuente después de que la imagen haya desaparecido
+      setTimeout(() => {
+        if (pokemon.shiny === "si" || pokemon.shiny === true) {
+          img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${pokemon.id}.png`; // PNG shiny
+        } else {
+          img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`; // PNG normal
+        }
+
+        // Hacer que la imagen vuelva a ser visible
+        img.style.opacity = 1;
+      }, 0); // Tiempo igual al de la transición CSS
     }
   };
 

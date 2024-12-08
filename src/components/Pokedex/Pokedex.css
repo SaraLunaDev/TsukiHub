@@ -54,7 +54,7 @@
 
 .pokemon-card:hover {
   transform: scale(
-    1.05
+    1.1
   ); /* Aumenta el tamaño al 120% cuando se pasa el ratón */
 }
 
