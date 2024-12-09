@@ -19,6 +19,8 @@ function App() {
         <Route path="/pokedex/:region" element={<Pokedex />} />
         <Route path="/TTS" element={<TTS />} />
         <Route path="/Gacha" element={<Gacha />} />
+        <Route path="/gacha/:banner" element={<Gacha />} />
+        <Route path="/" element={<Gacha />} /> {/* Ruta por defecto */}
       </Routes>
     </Router>
   );

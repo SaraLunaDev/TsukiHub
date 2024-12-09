@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Stars from "../Stars Left/Stars";
+import { useParams, useNavigate } from "react-router-dom";
 import "./Gacha.css";
 
 function Gacha() {
@@ -11,6 +12,8 @@ function Gacha() {
   const [cardsByStars, setCardsByStars] = useState({});
   const sheetUrl = process.env.REACT_APP_GACHA_SHEET_URL;
   const [selectedImage, setSelectedImage] = useState(null); // Almacena la imagen seleccionada
+  const [loading, setLoading] = useState(true); // Estado para controlar la carga inicial
+
   const banners = ["Dragon Ball", "Monster Hunter", "Genshin", "One Piece"];
   const bannerIcons = {
     "Dragon Ball": "🐲",
@@ -47,6 +50,18 @@ function Gacha() {
     // Ordenar usuarios por número total de cartas en orden descendente
     return userStats.sort((a, b) => b.totalCards - a.totalCards);
   };
+
+  const { banner: starsLevel } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!starsLevel) {
+      navigate(`/gacha/Dragon-Ball`); // Redirige al banner predeterminado si no hay banner en la URL
+    } else {
+      setActiveBanner(starsLevel.replace("-", " ")); // Actualiza el banner según la URL
+    }
+    setLoading(false); // Indica que la carga ha terminado
+  }, [starsLevel, navigate]);
 
   const handleUserInputChange = (e) => {
     const input = e.target.value;
@@ -327,7 +342,13 @@ function Gacha() {
               className={`banner-button ${
                 activeBanner === banner ? "active" : ""
               }`}
-              onClick={() => setActiveBanner(banner)}
+              onClick={() => {
+                // Primero, actualizamos el estado de activeBanner
+                setActiveBanner(banner);
+
+                // Luego, actualizamos la URL
+                navigate(`/gacha/${banner.replace(" ", "-")}`);
+              }}
             >
               {banner}
             </button>

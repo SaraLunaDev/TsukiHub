@@ -26,7 +26,7 @@ function Navbar() {
               <Link to="/pokedex/kanto">Pokedex</Link>
             </li>
             <li>
-              <Link to="/Gacha">Gacha</Link>
+              <Link to="/Gacha/Dragon-Ball">Gacha</Link>
             </li>
             <li>
               <Link to="/TTS">TTS</Link>
