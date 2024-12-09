@@ -1,0 +1,113 @@
+name,type,damage,deff,accuracy,power,priority,minhits,maxhits,crit
+al ataque,bug,Fisico,Fisico,100,90,0,1,1,12.5
+megacuerno,bug,Fisico,Fisico,85,120,0,1,1,4.17
+pin misil,bug,Fisico,Fisico,95,25,0,2,5,4.17
+tijera x,bug,Fisico,Fisico,100,80,0,1,1,4.17
+finta,dark,Fisico,Fisico,100,60,0,1,1,4.17
+giro vil,dark,Fisico,Fisico,100,60,0,1,1,4.17
+irreverencia,dark,Fisico,Fisico,100,80,0,1,1,4.17
+genufendiente,dark,Fisico,Fisico,100,85,0,1,1,4.17
+tajo umbrio,dark,Fisico,Fisico,100,70,0,1,1,12.5
+golpe oscuro,dark,Fisico,Fisico,100,75,0,1,1,100
+garra dragon,dragon,Fisico,Fisico,100,80,0,1,1,4.17
+pulso dragon,dragon,Especial,Especial,100,85,0,1,1,4.17
+dracoflechas,dragon,Fisico,Fisico,100,50,0,2,2,4.17
+corte vacio,dragon,Especial,Especial,95,100,0,1,1,12.5
+martillo dragon,dragon,Fisico,Fisico,100,90,0,1,1,4.17
+onda voltio,electric,Especial,Especial,100,60,0,1,1,4.17
+pikaturbo,electric,Fisico,Fisico,100,50,2,1,1,100
+amplificador,electric,Especial,Especial,100,80,0,1,1,4.17
+brillo magico,fairy,Especial,Especial,100,80,0,1,1,4.17
+voz cautivadora,fairy,Especial,Especial,100,40,0,1,1,4.17
+viento feerico,fairy,Especial,Especial,100,40,0,1,1,4.17
+empujon,fighting,Fisico,Fisico,100,15,0,2,5,4.17
+esfera aural,fighting,Especial,Especial,100,80,0,1,1,4.17
+ultrapuño,fighting,Fisico,Fisico,100,40,1,1,1,4.17
+tajo cruzado,fighting,Fisico,Fisico,80,100,0,1,1,12.5
+doble patada,fighting,Fisico,Fisico,100,30,0,2,2,4.17
+ultrapuño,fighting,Fisico,Fisico,100,40,1,1,1,4.17
+sable mistico,fighting,Especial,Fisico,100,85,0,1,1,4.17
+llave corse,fighting,Fisico,Fisico,100,60,0,1,1,100
+onda vacio,fighting,Especial,Especial,100,40,1,1,1,4.17
+tiro vital,fighting,Fisico,Fisico,100,70,-1,1,1,4.17
+pirotecnia,fire,Especial,Especial,100,70,0,1,1,4.17
+aerochorro,flying,Especial,Especial,95,100,0,1,1,12.5
+ataque ala,flying,Fisico,Fisico,100,60,0,1,1,4.17
+pico taladro,flying,Fisico,Fisico,100,80,0,1,1,4.17
+picotazo,flying,Fisico,Fisico,100,35,0,1,1,4.17
+golpe aereo,flying,Fisico,Fisico,100,60,0,1,1,4.17
+aire afilado,flying,Especial,Especial,95,60,0,1,1,12.5
+ala bis,flying,Fisico,Fisico,90,40,0,2,2,4.17
+tornado,flying,Especial,Especial,100,40,0,1,1,4.17
+garra umbria,ghost,Fisico,Fisico,100,70,0,1,1,12.5
+orbes espectro,ghost,Especial,Especial,100,120,0,1,1,4.17
+rayo umbrio,ghost,Especial,Especial,100,100,0,1,1,4.17
+puño sombra,ghost,Fisico,Fisico,100,60,0,1,1,4.17
+sombra vil,ghost,Fisico,Fisico,100,40,1,1,1,4.17
+hoja magica,grass,Especial,Especial,100,60,0,1,1,4.17
+latigo cepa,grass,Fisico,Fisico,100,45,0,1,1,4.17
+punzada rama,grass,Fisico,Fisico,100,40,0,1,1,4.17
+semilladora,grass,Fisico,Fisico,100,25,0,2,5,4.17
+hoja aguda,grass,Fisico,Fisico,100,90,0,1,1,12.5
+follaje,grass,Fisico,Fisico,100,40,0,1,1,4.17
+tormenta floral,grass,Fisico,Fisico,100,90,0,1,1,4.17
+latigazo,grass,Fisico,Fisico,85,120,0,1,1,4.17
+hoja afilada,grass,Fisico,Fisico,95,55,0,1,1,12.5
+bomba germen,grass,Fisico,Fisico,100,80,0,1,1,4.17
+fisura,ground,Fisico,Fisico,30,999999,0,1,1,4.17
+terremoto,ground,Fisico,Fisico,100,100,0,1,1,4.17
+ataque oseo,ground,Fisico,Fisico,90,25,0,2,5,4.17
+huesomerang,ground,Fisico,Fisico,90,50,0,2,2,4.17
+taladradora,ground,Fisico,Fisico,95,80,0,1,1,12.5
+terremoto,ground,Fisico,Fisico,100,100,0,1,1,4.17
+fuerza equina,ground,Fisico,Fisico,95,95,0,1,1,4.17
+fuerza telurica,ground,Fisico,Fisico,100,90,0,1,1,4.17
+filo del abismo,ground,Fisico,Fisico,85,120,0,1,1,4.17
+carambano,ice,Fisico,Fisico,100,25,0,2,5,4.17
+vaho gelido,ice,Especial,Especial,90,60,0,1,1,100
+lanza glacial,ice,Fisico,Fisico,100,130,0,1,1,4.17
+canto helado,ice,Fisico,Fisico,100,40,1,1,1,4.17
+ataque furia,normal,Fisico,Fisico,100,15,0,2,5,4.17
+ataque rapido,normal,Fisico,Fisico,100,40,0,1,1,4.17
+doble bofeton,normal,Fisico,Fisico,85,15,0,2,5,4.17
+placaje,normal,Fisico,Fisico,100,40,0,1,1,4.17
+presa,normal,Fisico,Fisico,85,15,0,2,5,4.17
+puño cometa,normal,Fisico,Fisico,85,18,0,2,5,4.17
+corte,normal,Fisico,Fisico,95,50,0,1,1,4.17
+doble golpe,normal,Fisico,Fisico,90,35,0,2,2,4.17
+velocidad extrema,normal,Fisico,Fisico,100,80,2,1,1,4.17
+golpes furia,normal,Fisico,Fisico,80,18,0,2,5,4.17
+guillotina,normal,Fisico,Fisico,30,999999,0,1,1,4.17
+cornada,normal,Fisico,Fisico,100,65,0,1,1,4.17
+perforador,normal,Fisico,Fisico,30,999999,0,1,1,4.17
+vozarron,normal,Especial,Especial,100,90,0,1,1,4.17
+megapatada,normal,Fisico,Fisico,75,120,0,1,1,4.17
+megapuño,normal,Fisico,Fisico,85,80,0,1,1,4.17
+destructor,normal,Fisico,Fisico,100,40,0,1,1,4.17
+arañazo,normal,Fisico,Fisico,100,40,0,1,1,4.17
+atizar,normal,Fisico,Fisico,75,80,0,1,1,4.17
+cuchillada,normal,Fisico,Fisico,100,70,0,1,1,12.5
+fuerza,normal,Fisico,Fisico,100,80,0,1,1,4.17
+rapidez,normal,Especial,Especial,100,60,0,1,1,4.17
+plumerazo,normal,Fisico,Fisico,85,25,0,2,5,4.17
+paso dimensional,psychic,Especial,Especial,100,80,0,1,1,4.17
+psicocorte,psychic,Fisico,Fisico,100,70,0,1,1,12.5
+psicocarga,psychic,Especial,Fisico,100,80,0,1,1,4.17
+onda mental,psychic,Especial,Fisico,100,100,0,1,1,4.17
+joya de luz,rock,Especial,Especial,100,80,0,1,1,4.17
+lanzarrocas,rock,Fisico,Fisico,90,50,0,1,1,4.17
+pedrada,rock,Fisico,Fisico,90,25,0,2,5,4.17
+roca afilada,rock,Fisico,Fisico,80,100,0,1,1,12.5
+roca veloz,rock,Fisico,Fisico,100,40,1,1,1,4.17
+puño bala,steel,Fisico,Fisico,100,40,1,1,1,4.17
+rueda doble,steel,Fisico,Fisico,85,50,0,2,2,4.17
+cuerno certero,steel,Fisico,Fisico,100,70,0,1,1,4.17
+meteoimpacto,steel,Fisico,Fisico,100,100,0,1,1,4.17
+acua cola,water,Fisico,Fisico,90,90,0,1,1,4.17
+aqua jet,water,Fisico,Fisico,100,40,1,1,1,4.17
+hidrobomba,water,Especial,Especial,80,110,0,1,1,4.17
+pistola agua,water,Especial,Especial,100,50,0,1,1,4.17
+martillazo,water,Fisico,Fisico,90,100,0,1,1,12.5
+pulso primigenio,water,Especial,Especial,85,110,0,1,1,4.17
+surf,water,Especial,Especial,100,90,0,1,1,4.17
+azote torrencial,water,Fisico,Fisico,100,25,0,3,3,100

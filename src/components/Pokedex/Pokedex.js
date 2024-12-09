@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import "./Pokedex.css";
 
 function Pokedex() {
-  const [pokemonList, setPokemonList] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [activeGeneration, setActiveGeneration] = useState(1);
-  const [userInput, setUserInput] = useState("");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isPopupOpenPokemon, setIsPopupOpenPokemon] = useState(false);
   const [isGifVisible, setIsGifVisible] = useState(false);
   const sheetUrl = process.env.REACT_APP_POKEDEX_SHEET_URL;
 
@@ -20,6 +18,52 @@ function Pokedex() {
 
     return userStats.sort((a, b) => b.pokemonCount - a.pokemonCount); // Orden descendente por cantidad de Pokémon
   };
+
+  const icons = ["🌸 ", "🏯 ", "🌊 ", "🗻 ", "🏢 ", "🗼 ", "🌴 ", "🏰 ", "🥘 "];
+
+  const regions = [
+    "Kanto",
+    "Johto",
+    "Hoenn",
+    "Sinnoh",
+    "Teselia",
+    "Kalos",
+    "Alola",
+    "Galar",
+    "Paldea",
+  ];
+
+  const regionNames = [
+    "Kanto",
+    "Johto",
+    "Hoenn",
+    "Sinnoh",
+    "Teselia",
+    "Kalos",
+    "Alola",
+    "Galar",
+    "Paldea",
+  ];
+
+  const [pokemonList, setPokemonList] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [userInput, setUserInput] = useState("");
+  const { region } = useParams(); // Obtener el nombre de la región desde la URL
+  const navigate = useNavigate();
+  const [selectedPokemon, setSelectedPokemon] = useState(null);
+  const [moves, setMoves] = useState([]);
+
+  const activeRegion = regions.find(
+    (r) => r.toLowerCase() === region?.toLowerCase()
+  );
+  const activeGeneration = activeRegion ? regions.indexOf(activeRegion) + 1 : 1; // Default a Kanto si no es válido
+
+  useEffect(() => {
+    // Si la región es inválida, redirige a Kanto (por defecto)
+    if (activeGeneration < 1 || activeGeneration > regions.length) {
+      navigate("/pokedex/kanto");
+    }
+  }, [activeGeneration, navigate]);
 
   const getGeneration = (generation) => {
     const generationData = {
@@ -37,21 +81,26 @@ function Pokedex() {
     return generationData[generation] || { start: 0, end: 0 };
   };
 
-  const icons = ["🌸 ", "🏯 ", "🌊 ", "🗻 ", "🏢 ", "🗼 ", "🌴 ", "🏰 ", "🥘 "];
+  const handleRegionClick = (regionName) => {
+    navigate(`/pokedex/${regionName.toLowerCase()}`); // Cambia la URL al seleccionar una región
+  };
 
-  const regions = [
-    "Kanto",
-    "Johto",
-    "Hoenn",
-    "Sinnoh",
-    "Teselia",
-    "Kalos",
-    "Alola",
-    "Galar",
-    "Paldea",
-  ];
+  const handlePokemonClick = (pokemon) => {
+    if (!pokemon.captured) return; // No hacer clic si no está capturado
 
-  const formatPokemonId = (id) => id.toString().padStart(4, "0");
+    const userId = users.find(([id, name]) =>
+      name.toLowerCase().includes(userInput.toLowerCase())
+    )?.[0];
+
+    const fullPokemon = pokemonList.find(
+      (p) => p.id === pokemon.id && p.Usuario === userId
+    );
+
+    if (fullPokemon) {
+      setSelectedPokemon(fullPokemon);
+      setIsPopupOpenPokemon(true);
+    }
+  };
 
   const handleUserInputChange = (e) => {
     const input = e.target.value;
@@ -105,6 +154,31 @@ function Pokedex() {
           const tipo1 = columns[4]?.trim();
           const tipo2 = columns[5]?.trim();
           const shiny = columns[17]?.trim();
+          const stats = {
+            HP: columns[10]?.trim(),
+            Ataque: columns[11]?.trim(),
+            Defensa: columns[12]?.trim(),
+            AtaqueEsp: columns[13]?.trim(),
+            DefensaEsp: columns[14]?.trim(),
+            Velocidad: columns[15]?.trim(),
+            Experiencia: columns[16]?.trim(),
+            Peso: columns[24]?.trim(),
+            IVs: {
+              HP: columns[18]?.trim(),
+              Ataque: columns[19]?.trim(),
+              Defensa: columns[20]?.trim(),
+              AtaqueEsp: columns[21]?.trim(),
+              DefensaEsp: columns[22]?.trim(),
+              Velocidad: columns[23]?.trim(),
+            },
+          };
+
+          const movimientos = {
+            Movimiento1: columns[6]?.trim(),
+            Movimiento2: columns[7]?.trim(),
+            Movimiento3: columns[8]?.trim(),
+            Movimiento4: columns[9]?.trim(),
+          };
 
           parsedData.push({
             id,
@@ -114,6 +188,8 @@ function Pokedex() {
             Tipo1: tipo1,
             Tipo2: tipo2,
             Shiny: shiny,
+            stats, // Agregar las stats al objeto
+            movimientos,
           });
 
           if (usuario && nombre) {
@@ -147,48 +223,6 @@ function Pokedex() {
     e.target.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
       e.target.dataset.shiny === "true" ? "shiny/" : ""
     }${e.target.dataset.pokemonId}.png`;
-  };
-
-  const handleMouseEnter = (e, pokemon) => {
-    const img = e.currentTarget.querySelector("img");
-
-    if (img) {
-      // Desvanecemos la imagen para la transición
-      img.style.opacity = 0;
-
-      // Cambiar la fuente después de que la imagen haya desaparecido
-      setTimeout(() => {
-        if (pokemon.shiny === "si" || pokemon.shiny === true) {
-          img.src = getPokemonGifUrl(pokemon.id, true); // GIF shiny
-        } else {
-          img.src = getPokemonGifUrl(pokemon.id, false); // GIF normal
-        }
-
-        // Hacer que la imagen vuelva a ser visible
-        img.style.opacity = 1;
-      }, 0); // Tiempo igual al de la transición CSS
-    }
-  };
-
-  const handleMouseLeave = (e, pokemon) => {
-    const img = e.currentTarget.querySelector("img");
-
-    if (img) {
-      // Desvanecemos la imagen para la transición
-      img.style.opacity = 0;
-
-      // Cambiar la fuente después de que la imagen haya desaparecido
-      setTimeout(() => {
-        if (pokemon.shiny === "si" || pokemon.shiny === true) {
-          img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${pokemon.id}.png`; // PNG shiny
-        } else {
-          img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`; // PNG normal
-        }
-
-        // Hacer que la imagen vuelva a ser visible
-        img.style.opacity = 1;
-      }, 0); // Tiempo igual al de la transición CSS
-    }
   };
 
   const getPokemonsForGeneration = (generation, start, end) => {
@@ -240,6 +274,10 @@ function Pokedex() {
     setIsPopupOpen((prev) => !prev);
   };
 
+  const togglePopupPokemon = () => {
+    setIsPopupOpenPokemon((prev) => !prev);
+  };
+
   // Manejar clic en un usuario
   const handleUserClick = (userName) => {
     setUserInput(userName); // Cambia el usuario actual
@@ -259,6 +297,67 @@ function Pokedex() {
       e.target.style.height = `${img.height * 0.65}px`;
     };
   };
+
+  const calcularNivel = (experiencia) => {
+    return Math.floor(Math.cbrt(experiencia));
+  };
+
+  const handleMouseEnter = (e, pokemon) => {
+    if (!pokemon.captured) return; // No hacer hover si no está capturado
+
+    const img = e.currentTarget.querySelector("img");
+    if (img) {
+      img.style.opacity = 0; // Solo cambiar opacidad si el Pokémon está capturado
+      setTimeout(() => {
+        img.src = getPokemonGifUrl(pokemon.id, pokemon.shiny); // Cambia la imagen al GIF
+        img.style.opacity = 1; // Restaura la opacidad al 100%
+      }, 0);
+    }
+  };
+
+  const handleMouseLeave = (e, pokemon) => {
+    if (!pokemon.captured) return; // No hacer hover si no está capturado
+
+    const img = e.currentTarget.querySelector("img");
+    if (img) {
+      img.style.opacity = 0; // Solo cambiar opacidad si el Pokémon está capturado
+      setTimeout(() => {
+        img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
+          pokemon.shiny ? `shiny/${pokemon.id}` : pokemon.id
+        }.png`; // Cambia la imagen de vuelta a la imagen estática
+        img.style.opacity = 1; // Restaura la opacidad al 100%
+      }, 0);
+    }
+  };
+
+  function displayWeightInKilos(weightInGrams) {
+    const weightInKilos = (weightInGrams / 10).toFixed(1); // Convierte a kilos con 2 decimales
+    return `${weightInKilos} kg`;
+  }
+
+  useEffect(() => {
+    // Cargar los movimientos desde moves.csv
+    const loadMoves = async () => {
+      const response = await fetch("/static/resources/pokemon/moves.csv");
+      const data = await response.text();
+      const rows = data.split("\n").slice(1); // Ignorar la primera fila (cabeceras)
+
+      const moves = {};
+
+      rows.forEach((row) => {
+        const [name, type] = row.split(","); // Asumiendo que el CSV está separado por comas
+        if (name && type) {
+          moves[name.trim()] = type.trim();
+        }
+      });
+
+      return moves;
+    };
+
+    loadMoves().then((moves) => {
+      setMoves(moves);
+    });
+  }, []);
 
   return (
     <div className="pokedex-container">
@@ -337,15 +436,15 @@ function Pokedex() {
 
         {/* Botones de generación */}
         <div className="generation-buttons">
-          {regions.map((region, index) => (
+          {regions.map((regionName, index) => (
             <button
               key={index}
               className={`generation-button ${
                 activeGeneration === index + 1 ? "active" : ""
               }`}
-              onClick={() => setActiveGeneration(index + 1)}
+              onClick={() => handleRegionClick(regionName)}
             >
-              {region}
+              {regionNames[index]}
             </button>
           ))}
         </div>
@@ -370,15 +469,16 @@ function Pokedex() {
                   key={index}
                   className={`pokemon-card ${
                     pokemon.id
-                      ? pokemon.shiny
-                        ? "shiny"
-                        : pokemon.captured
-                        ? "captured"
-                        : "default"
+                      ? pokemon.captured
+                        ? pokemon.shiny
+                          ? "shiny"
+                          : "captured"
+                        : "not-captured"
                       : "empty-slot"
                   }`}
                   onMouseEnter={(e) => handleMouseEnter(e, pokemon)} // Mover el mouse sobre la tarjeta
                   onMouseLeave={(e) => handleMouseLeave(e, pokemon)} // Mover el mouse fuera de la tarjeta
+                  onClick={() => handlePokemonClick(pokemon)}
                 >
                   {pokemon.id && (
                     <img
@@ -400,6 +500,214 @@ function Pokedex() {
           </div>
         );
       })}
+
+      {isPopupOpenPokemon && selectedPokemon && (
+        <div className="popup-overlay-pokemon" onClick={togglePopupPokemon}>
+          <div
+            className="popup-content-pokemon"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="pokemon-details">
+              <div className="pokemon-header">
+                <div className="pokemon-header-left">
+                  <h2 className="pokemon-name">{selectedPokemon.Pokemon}</h2>
+                  <div className="pokemon-types">
+                    {selectedPokemon.Tipo1 &&
+                      selectedPokemon.Tipo1 !== "undefined" && (
+                        <img
+                          src={`/static/resources/pokemon/types/${selectedPokemon.Tipo1.toLowerCase()}.png`}
+                          alt={selectedPokemon.Tipo1}
+                          className="pokemon-type-icon"
+                        />
+                      )}
+                    {selectedPokemon.Tipo2 &&
+                      selectedPokemon.Tipo2 !== "undefined" && (
+                        <img
+                          src={`/static/resources/pokemon/types/${selectedPokemon.Tipo2.toLowerCase()}.png`}
+                          alt={selectedPokemon.Tipo2}
+                          className="pokemon-type-icon"
+                        />
+                      )}
+                  </div>
+                </div>
+                <div className="pokemon-level">
+                  Lv.{calcularNivel(selectedPokemon.stats.Experiencia)}
+                </div>
+              </div>
+              <div className="pokemon-down">
+                <div className="pokemon-left">
+                  <div className="pokemon-footer">
+                    <h3 className="table-header">Movimientos</h3>
+                    <table>
+                      <tbody>
+                        <tr>
+                          <td>
+                            {selectedPokemon.movimientos.Movimiento1 && (
+                              <div className="attack">
+                                <img
+                                  src={`/static/resources/pokemon/types/${moves[
+                                    selectedPokemon.movimientos.Movimiento1.toLowerCase()
+                                  ]?.toLowerCase()}.png`}
+                                  alt={selectedPokemon.movimientos.Movimiento1}
+                                  className="attack-icon"
+                                />
+                                <span>
+                                  {selectedPokemon.movimientos.Movimiento1}
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            {selectedPokemon.movimientos.Movimiento2 && (
+                              <div className="attack">
+                                <img
+                                  src={`/static/resources/pokemon/types/${moves[
+                                    selectedPokemon.movimientos.Movimiento2.toLowerCase()
+                                  ]?.toLowerCase()}.png`}
+                                  alt={selectedPokemon.movimientos.Movimiento2}
+                                  className="attack-icon"
+                                />
+                                <span>
+                                  {selectedPokemon.movimientos.Movimiento2}
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            {selectedPokemon.movimientos.Movimiento3 && (
+                              <div className="attack">
+                                <img
+                                  src={`/static/resources/pokemon/types/${moves[
+                                    selectedPokemon.movimientos.Movimiento3.toLowerCase()
+                                  ]?.toLowerCase()}.png`}
+                                  alt={selectedPokemon.movimientos.Movimiento3}
+                                  className="attack-icon"
+                                />
+                                <span>
+                                  {selectedPokemon.movimientos.Movimiento3}
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            {selectedPokemon.movimientos.Movimiento4 && (
+                              <div className="attack">
+                                <img
+                                  src={`/static/resources/pokemon/types/${moves[
+                                    selectedPokemon.movimientos.Movimiento4.toLowerCase()
+                                  ]?.toLowerCase()}.png`}
+                                  alt={selectedPokemon.movimientos.Movimiento4}
+                                  className="attack-icon"
+                                />
+                                <span>
+                                  {selectedPokemon.movimientos.Movimiento4}
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                        {/* Repetir para los otros movimientos */}
+                      </tbody>
+                    </table>
+                    <h3 className="table-header-2">Estadisticas</h3>
+                    <table>
+                      <tbody>
+                        <tr>
+                          <th>HP</th>
+                          <td>{Math.round(selectedPokemon.stats.HP)}</td>
+                          <td>
+                            +
+                            {Math.round(selectedPokemon.stats.IVs?.HP || "N/A")}
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Ataque</th>
+                          <td>{Math.round(selectedPokemon.stats.Ataque)}</td>
+                          <td>
+                            +
+                            {Math.round(
+                              selectedPokemon.stats.IVs?.Ataque || "N/A"
+                            )}
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Defensa</th>
+                          <td>{Math.round(selectedPokemon.stats.Defensa)}</td>
+                          <td>
+                            +
+                            {Math.round(
+                              selectedPokemon.stats.IVs?.Defensa || "N/A"
+                            )}
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Atq.Esp</th>
+                          <td>{Math.round(selectedPokemon.stats.AtaqueEsp)}</td>
+                          <td>
+                            +
+                            {Math.round(
+                              selectedPokemon.stats.IVs?.AtaqueEsp || "N/A"
+                            )}
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Def.Esp</th>
+                          <td>
+                            {Math.round(selectedPokemon.stats.DefensaEsp)}
+                          </td>
+                          <td>
+                            +
+                            {Math.round(
+                              selectedPokemon.stats.IVs?.DefensaEsp || "N/A"
+                            )}
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Rapidez</th>
+                          <td>{Math.round(selectedPokemon.stats.Velocidad)}</td>
+                          <td>
+                            +
+                            {Math.round(
+                              selectedPokemon.stats.IVs?.Velocidad || "N/A"
+                            )}
+                          </td>
+                        </tr>
+                        {/* Repetir para otras stats */}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Sección izquierda */}
+
+                {/* Sección derecha */}
+                <div className="pokemon-right">
+                  <div className="pokemon-gif-container">
+                    <img
+                      src={getPokemonGifUrl(
+                        selectedPokemon.id,
+                        selectedPokemon.Shiny === "si"
+                      )}
+                      alt={selectedPokemon.Pokemon}
+                      className="pokemon-gif-popup"
+                    />
+                  </div>
+                  <p className="pokemon-weight">
+                    {displayWeightInKilos(selectedPokemon.stats.Peso) ||
+                      "Desconocido"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

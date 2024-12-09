@@ -289,7 +289,7 @@ function Gacha() {
             <img
               src={selectedImage}
               alt="Carta seleccionada"
-              className="popup-image"
+              className="popup-image-gacha"
             />
             <button
               className="close-button"

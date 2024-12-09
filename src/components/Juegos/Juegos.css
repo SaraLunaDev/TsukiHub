@@ -485,9 +485,13 @@ body {
   height: 100%; /* Asegúrate de que ocupe el alto completo */
 }
 
+.section-null{
+  margin-bottom: 20px;
+}
+
 /* Imagen del popup */
 .popup-image img {
-  max-height: 600px;
+  height: 600px;
   object-fit: cover;
   border-radius: 10px;
 }

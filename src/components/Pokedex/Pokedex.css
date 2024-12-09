@@ -53,9 +53,7 @@
 }
 
 .pokemon-card:hover {
-  transform: scale(
-    1.1
-  ); /* Aumenta el tamaño al 120% cuando se pasa el ratón */
+  transform: scale(1.1); /* Aumenta el tamaño al 120% cuando se pasa el ratón */
 }
 
 .pokemon-card img {
@@ -71,7 +69,6 @@
   width: 75%;
   height: 75%;
 }
-
 
 .generation-button {
   padding: 10px 20px; /* Espaciado dentro del botón */
@@ -360,36 +357,174 @@
 
 .popup-content h2 {
   margin-bottom: 30px;
-}
-
-.popup-overlay-pokemon {
-  position: fixed;
-  top: 0;
-  left: 0;
-  background-color: rgba(0, 0, 0, 0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100vw;
-  height: 100vh;
-  z-index: 1000;
-  opacity: 0;
-  animation: fadeIn 0.3s forwards; /* Animación para el overlay */
-}
-
-.popup-content-pokemon {
-  background-color: var(--dark);
-  padding: 20px;
-  border-radius: 8px;
-  position: relative;
-  width: 30vw;
-  height: calc(30vw * 3 / 4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  text-transform: capitalize;
 }
 
 .pokemon-gif {
   width: 40%;
 }
 
+.pokemon-card.not-captured {
+  filter: grayscale(100%); /* Hace que la imagen sea en escala de grises */
+}
+
+.pokemon-card.not-captured img {
+  opacity: 0.2; /* Reduce la opacidad */
+}
+
+.pokemon-card.not-captured:hover {
+  transform: none; /* Desactiva el aumento en hover */
+}
+
+.popup-overlay-pokemon {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.popup-overlay-pokemon h2 {
+  text-transform: capitalize;
+}
+
+.pokemon-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Alineación de los elementos dentro del contenedor */
+  justify-content: space-between;
+  min-width: 400px;
+}
+
+.pokemon-down {
+  display: flex;
+  flex-direction: row;
+}
+
+.popup-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Asegura que ocupe toda la altura disponible */
+}
+
+.pokemon-types img {
+  height: 30px;
+  width: auto;
+}
+
+.pokemon-footer {
+  width: 180px;
+  text-align: center; /* Alinea el GIF y el peso al centro */
+  padding-right: 40px;
+}
+
+.pokemon-gif-popup {
+  min-width: 120;
+  max-width: 160px; /* Ajusta el tamaño del GIF */
+  height: auto;
+}
+
+.popup-content-pokemon {
+  margin: 0 auto;
+  padding: 20px;
+  background-color: var(--dark);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.pokemon-header {
+  padding-top: 0px;
+  display: flex;
+  align-items: center;
+  width: 400px;
+}
+
+.pokemon-header-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex: 1;
+}
+
+.pokemon-name {
+  text-align: left;
+  padding-right: 10px;
+}
+
+.pokemon-types {
+  display: flex;
+  gap: 2px;
+}
+
+.pokemon-level {
+  text-align: right;
+  font-size: 1.2em;
+}
+
+.pokemon-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.pokemon-right {
+  display: grid;
+  flex-direction: column;
+  align-items: end;
+  width: 200px;
+}
+
+.pokemon-gif-container {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.pokemon-weight {
+  text-align: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+h3 {
+  text-align: left;
+  padding-top: 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 2px;
+  text-align: left;
+  color: var(--text-2);
+}
+
+.attack {
+  display: flex;
+  align-items: center;
+}
+
+.attack-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+}
+
+.table-header{
+  margin-top: 0px;
+  margin-bottom: 10px;
+  font-size: 1em;
+}
+
+.table-header-2{
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-size: 1em;
+}

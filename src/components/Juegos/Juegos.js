@@ -510,10 +510,11 @@ function Juegos() {
             <div className="popup-body">
               <div className="popup-image">
                 <img
-                  src={selectedGame.caratula}
+                  src={selectedGame.caratula.replace("t_cover_big", "t_1080p")}
                   alt={`Carátula de ${selectedGame.nombre}`}
                 />
               </div>
+
               <div className="popup-info">
                 <h2>{selectedGame.nombre}</h2>
                 <div className="popup-columns">
