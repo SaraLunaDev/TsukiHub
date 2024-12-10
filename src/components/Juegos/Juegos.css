@@ -232,7 +232,7 @@ body {
 }
 
 #game-cover-small {
-  height: 50px;
+  height: 80px;
 }
 
 /* Juegos dentro de las secciones Jugando y Planeo Jugar */
@@ -267,7 +267,7 @@ body {
 
 /* Imagen de portada al hacer hover en "Juegos Jugados" */
 .category-pasado li:hover .game-cover {
-  height: 130px; /* Reduce la altura de la carátula */
+  height: 140px; /* Reduce la altura de la carátula */
   transition: height 0.15s ease; /* Transición suave */
 }
 
