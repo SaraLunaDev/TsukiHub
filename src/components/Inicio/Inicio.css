@@ -3,9 +3,6 @@
   min-width: 600px;
   margin: 0px auto;
   text-align: center;
-  background-color: var(--dark-2);
-  border-radius: 10px;
-  box-shadow: var(--box-shadow-inset);
 }
 
 .content-section {
@@ -13,6 +10,25 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  background-color: var(--dark-2);
+  box-shadow: var(--box-shadow-inset);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.stats-section-global {
+  flex: 2;
+  margin-top: 20px;
+  padding: 10px;
+  background-color: var(--dark-2);
+  border-radius: 8px;
+  box-shadow: var(--box-shadow-inset);
+}
+
+.stats-section {
+  flex: 1; /* Distribuir el espacio proporcionalmente */
+  border-radius: 8px;
+  padding: 15px;
 }
 
 .bio-section {
@@ -49,6 +65,13 @@ section {
   padding-top: 20px;
   padding-bottom: 20px;
   border-radius: 8px;
+}
+
+.achievements-and-stats {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 20px; /* Espacio entre las secciones */
 }
 
 .inicio-header {
@@ -98,4 +121,307 @@ section {
 .social-and-bio {
   display: flex;
   align-items: center; /* Alinea los íconos con el inicio del texto */
+}
+
+.user-stats-section {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px; /* Separación entre tablas */
+}
+
+.stats-section h2 {
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.stats-section h2 {
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.stats-section table {
+  margin-top: 20px;
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.stats-section th,
+.stats-section td {
+  padding: 10px;
+  border-bottom: 1px solid var(--divider);
+  font-size: 14px;
+}
+
+.user-data-text {
+  text-align: right;
+}
+
+.stats-section td img.profile-pic {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.stats-section tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.racha-special {
+  color: #913636;
+}
+
+.achievements-section {
+  flex: 1;
+  padding: 20px;
+  padding-left: 30px;
+  margin-top: 20px;
+  background-color: var(--dark-2);
+  border-radius: 8px;
+  box-shadow: var(--box-shadow-inset);
+}
+
+.achievements-section h2 {
+  text-align: left;
+  margin-bottom: 6px;
+}
+
+.achievements-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  text-align: left;
+}
+
+.achievements-table tr {
+  height: 60px;
+}
+
+.achievements-table th,
+.achievements-table td {
+  padding: 10px;
+  font-size: 14px;
+}
+
+.achievements-table th {
+  background-color: var(--dark-1);
+  color: var(--text);
+  text-align: left;
+}
+
+.achievements-table tbody tr:hover {
+  background-color: var(--dark-hover);
+  cursor: default;
+}
+
+.achievements-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.achievement-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0px;
+  align-items: center;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+}
+
+.user-row span {
+  font-size: 14px;
+  color: var(--text-2);
+}
+
+.profile-pic-small {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%; /* Asegura que la imagen tenga forma redonda */
+}
+
+.achievements-container {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(120px, 1fr)
+  ); /* Crea columnas dinámicas */
+  gap: 0px;
+  width: 100%;
+}
+
+.achievement-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-top: 10px;
+  width: 100%;
+}
+
+.achievement-name {
+  font-weight: bold;
+  margin-bottom: 10px; /* Espacio entre el nombre del logro y los iconos */
+}
+
+.achievement-users {
+  display: flex;
+  justify-content: center;
+  gap: 0px; /* Espacio entre los iconos */
+  flex-wrap: wrap;
+}
+
+.user-icon {
+  display: inline-block;
+}
+
+.profile-pic-small {
+  width: 40px; /* Ajusta el tamaño del icono */
+  height: 40px;
+  border-radius: 50%;
+}
+
+.achievement-users {
+  margin-top: 10px;
+  margin-bottom: 20px;
+  height: 20px;
+}
+
+.achievements-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Alinea todo a la izquierda */
+  gap: 0px; /* Espacio entre cada logro */
+}
+
+.achievement-item {
+  display: flex;
+  flex-direction: row; /* Alinea el icono, nombre y usuarios horizontalmente */
+  align-items: center; /* Alinea verticalmente los elementos */
+  justify-content: flex-start; /* Alinea a la izquierda */
+  gap: 0px; /* Espacio entre el icono, nombre y los usuarios */
+}
+
+.achievement-icon {
+  /* Asegura que el icono se quede a la izquierda */
+  display: flex;
+  justify-content: flex-start;
+}
+
+.achievement-icon-img {
+  margin-right: 20px;
+  width: 40px; /* Tamaño del icono */
+  height: 40px;
+}
+
+.achievement-name {
+  font-weight: bold;
+  text-align: left;
+  margin-bottom: 10px;
+}
+
+.achievement-users {
+  display: flex;
+  justify-content: flex-start; /* Alinea los iconos de usuario a la izquierda */
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.user-icon {
+  display: inline-block;
+}
+
+.profile-pic-small {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.header-logro {
+  text-transform: capitalize;
+  font-size: 1em;
+  color: var(--text-2);
+}
+
+.achievement-item {
+  display: flex;
+  flex-direction: column; /* Coloca el nombre sobre los iconos */
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+}
+
+.header-logro {
+  width: 100%;
+  text-transform: capitalize;
+  color: var(--text-2);
+  padding-bottom: 10px; /* Espacio entre el nombre y los iconos */
+  margin-top: 2px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.achivement-global {
+  display: flex;
+  align-items: center; /* Alinea los elementos verticalmente */
+}
+
+.achievement-icon {
+  display: flex;
+  align-items: center;
+}
+
+.achievement-icon-img {
+  width: 30px; /* Tamaño del icono */
+  height: 30px;
+}
+
+.achievement-users {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.user-icon {
+  display: inline-block;
+}
+
+.profile-pic-small {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.achievements-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.achievement-item {
+  display: flex;
+  flex-direction: column; /* Mantiene el nombre sobre los iconos */
+  align-items: flex-start;
+  width: 100%;
+}
+
+.achievement-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-start; /* Alinea los iconos a la izquierda */
+}
+
+.logros-header {
+  padding-bottom: 10px;
 }
