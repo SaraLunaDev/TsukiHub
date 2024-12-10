@@ -190,7 +190,7 @@ section {
 
 .achievements-section h2 {
   text-align: left;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .achievements-table {
@@ -424,4 +424,75 @@ section {
 
 .logros-header {
   padding-bottom: 10px;
+}
+
+.achievement-content {
+  position: relative;
+  width: 100%;
+  height: auto;
+}
+
+.achievement-row {
+  display: flex;
+  align-items: center; /* Alinea verticalmente el ícono y los usuarios */
+  gap: 10px; /* Espacio entre el ícono del logro y los íconos de usuario */
+}
+
+.achievement-icon {
+  flex-shrink: 0; /* Evita que el ícono se reduzca */
+}
+
+.achievement-users {
+  display: flex;
+  flex-wrap: wrap; /* Permite que los íconos de usuario se distribuyan en varias líneas si es necesario */
+  gap: 5px; /* Espacio entre los íconos de usuario */
+}
+
+.user-icon img {
+  width: 30px; /* Tamaño de los íconos de usuario */
+  height: 30px;
+  border-radius: 50%; /* Redondea los íconos de usuario */
+  object-fit: cover; /* Asegura que las imágenes se ajusten bien */
+}
+
+.achievement-description {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: left;
+  font-size: 0.9rem;
+  color: #666;
+  opacity: 0;
+  visibility: hidden;
+  position: absolute; /* Superpone la descripción sobre los íconos */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: translateY(-20px); /* Inicialmente está más arriba */
+  transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+  padding: 10px;
+  cursor: default;
+}
+
+.achievement-icons {
+  transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+  transform: translateY(0); /* Posición inicial normal */
+}
+
+.achievement-item:hover .achievement-icons {
+  transform: translateY(20px); /* Desliza hacia abajo al ocultarse */
+  opacity: 0; /* Desvanece al ocultarse */
+  visibility: hidden; /* Oculta completamente */
+}
+
+.achievement-item:hover .achievement-icons {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.achievement-item:hover .achievement-description {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0); /* Desliza hacia abajo a su posición original */
 }

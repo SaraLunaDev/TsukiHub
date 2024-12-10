@@ -73,6 +73,30 @@ function Inicio() {
     header.startsWith("l_")
   );
 
+  const achievementDetails = {
+    l_racha: {
+      name: "Vigía Octogenario",
+      description:
+        "Escribir al menos un mensaje durante 80 directos consecutivos",
+    },
+    l_mensajes: {
+      name: "Eminencia de la Mensajería",
+      description: "Llegar a los 10 mil mensajes enviados",
+    },
+    l_pokedex: {
+      name: "Ápice de Kanto",
+      description: "Consigue capturar todos los Pokemons de la región de Kanto",
+    },
+    l_eevees: {
+      name: "Leyenda Evolutiva",
+      description: "Consigue capturar todos los eevees disponibles",
+    },
+    l_gacha: {
+      name: "La Tengu Implacable",
+      description: "Consigue a Sara del banner Genshin en el Gacha",
+    },
+  };
+
   const getFilteredData = (type) => {
     return userData
       .filter(
@@ -168,37 +192,54 @@ function Inicio() {
         <div className="achievements-section">
           <h2 className="logros-header">Logros</h2>
           <div className="achievements-container">
-            {achievementHeaders.map((header) => (
-              <div className="achievement-item" key={header}>
-                <h2 className="header-logro">{header.replace("l_", "")}</h2>
-                <div className="achivement-global">
-                  <div className="achievement-icon">
-                    {/* Icono correspondiente al logro */}
-                    <img
-                      src={`/static/resources/logros/${header.replace(
-                        "l_",
-                        ""
-                      )}.png`}
-                      alt={header.replace("l_", "")}
-                      className="achievement-icon-img"
-                    />
-                  </div>
-                  <div className="achievement-users">
-                    {userData
-                      .filter((user) => user[header]?.toLowerCase() === "si")
-                      .map((user) => (
-                        <div className="user-icon" key={user.id}>
+            {achievementHeaders.map((header) => {
+              const achievement = achievementDetails[header];
+              if (!achievement) return null;
+
+              return (
+                <div className="achievement-item" key={header}>
+                  <h2 className="header-logro">{achievement.name}</h2>
+                  <div className="achievement-content">
+                    {/* Iconos e información normal */}
+                    <div className="achievement-icons">
+                      <div className="achievement-row">
+                        {/* Icono del logro */}
+                        <div className="achievement-icon">
                           <img
-                            src={user.pfp}
-                            alt={user.nombre}
-                            className="profile-pic-small"
+                            src={`/static/resources/logros/${header.replace(
+                              "l_",
+                              ""
+                            )}.png`}
+                            alt={achievement.name}
+                            className="achievement-icon-img"
                           />
                         </div>
-                      ))}
+                        {/* Iconos de usuario */}
+                        <div className="achievement-users">
+                          {userData
+                            .filter(
+                              (user) => user[header]?.toLowerCase() === "si"
+                            )
+                            .map((user) => (
+                              <div className="user-icon" key={user.id}>
+                                <img
+                                  src={user.pfp}
+                                  alt={user.nombre}
+                                  className="profile-pic-small"
+                                />
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    </div>
+                    {/* Descripción (invisible inicialmente) */}
+                    <div className="achievement-description">
+                      <p>{achievement.description}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
