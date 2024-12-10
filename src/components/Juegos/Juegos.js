@@ -439,7 +439,8 @@ function Juegos() {
                 )}
                 <strong>{game.nombre}</strong>
                 <div className="game-extra">
-                  <Stars rating={parseInt(game.nota, 10)} />
+                  <Stars rating={parseFloat(game.nota)} />{" "}
+                  {/* Usa parseFloat para permitir decimales */}
                   <div className="game-details">
                     <span className="game-duration">
                       {game.horas ? `⌛ ${game.horas}h` : "N/A"}
@@ -547,7 +548,7 @@ function Juegos() {
                     )}
                     {selectedGame.nota && (
                       <p className="stars-popup">
-                        <StarsLeft rating={parseInt(selectedGame.nota, 10)} />
+                        <StarsLeft rating={parseFloat(selectedGame.nota, 10)} />
                       </p>
                     )}
                     {selectedGame.horas && (

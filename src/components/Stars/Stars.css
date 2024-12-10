@@ -1,19 +1,11 @@
 .stars {
-    display: flex;
-    justify-content: center;
-    margin-top: 5px;
-  }
-  
-  .star {
-    font-size: 1.5em;
-    margin: 0 2px;
-  }
-  
-  .star.filled {
-    color: #ffcc00; /* Color de estrella llena */
-  }
-  
-  .star.empty {
-    color: #ccc; /* Color de estrella vacía */
-  }
-  
+  display: flex;
+  justify-content: center;
+  margin-top: 5px;
+}
+
+.star {
+  width: 1.2em; /* Ajusta el tamaño según sea necesario */
+  height: auto; /* Mantén la proporción de la imagen */
+  margin: 0 2px;
+}
