@@ -42,6 +42,13 @@
     "fullName": "Jelo"
   },
   {
+    "id": 16,
+    "name": "Loquendo",
+    "file": "16_Loquendo.mp3",
+    "api": "elevenlabs",
+    "fullName": "Loquendo"
+  },
+  {
     "id": 1,
     "name": "Aerista",
     "file": "1_Aerista.mp3",
