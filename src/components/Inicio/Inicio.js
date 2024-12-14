@@ -31,6 +31,9 @@ function Inicio() {
   const fetchUserData = async () => {
     try {
       const response = await fetch("/api/userdata");
+      const text = await response.text(); // Usa text() para ver la respuesta cruda
+      console.log(text); // Imprime la respuesta para verificar qué está recibiendo
+
       const result = await response.json();
 
       if (result.success) {
