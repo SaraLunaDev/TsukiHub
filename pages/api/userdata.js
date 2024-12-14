@@ -1,5 +1,6 @@
 export default async function handler(req, res) {
   const sheetUrl = process.env.USERDATA_SHEET_URL; // Usando la variable de entorno
+  console.log(process.env.USERDATA_SHEET_URL);
 
   try {
     const response = await fetch(sheetUrl);
