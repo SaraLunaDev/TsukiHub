@@ -31,33 +31,14 @@ function Inicio() {
   const fetchUserData = async () => {
     try {
       const response = await fetch("/api/userdata");
-      const result = await response.text(); // Obtener como texto (CSV)
-      console.log("Respuesta de la API:", result); // Registra la respuesta completa
+      const result = await response.json();
 
-      if (result.startsWith("<!doctype html>")) {
-        throw new Error("Recibimos una página HTML en lugar de los datos CSV");
+      if (result.success) {
+        console.log("Datos del sheet:", result.data);
+        setUserData(result.data); // Asignar los datos obtenidos
+      } else {
+        console.error("Error al obtener los datos:", result.error);
       }
-
-      const rows = result.split("\n");
-      const headerRow = rows[0].split(",");
-      const bodyRows = rows.slice(1);
-
-      console.log("Header Row:", headerRow);
-
-      const parsedData = bodyRows.map((row) => {
-        const columns = row.split(",");
-        console.log("Columns for row:", columns);
-
-        const obj = {};
-        headerRow.forEach((header, index) => {
-          obj[header] = columns[index] || ""; // Asegura que no haya valores undefined
-        });
-
-        return obj;
-      });
-
-      setHeaders(headerRow);
-      setUserData(parsedData);
     } catch (error) {
       console.error("Error en la solicitud:", error);
     }
