@@ -28,8 +28,23 @@ function Inicio() {
 
   const saraAge = calculateAge("2001-08-03");
 
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch("/api/userdata");
+      const result = await response.json();
+
+      if (result.success) {
+        console.log("Datos del sheet:", result.data);
+      } else {
+        console.error("Error al obtener los datos:", result.error);
+      }
+    } catch (error) {
+      console.error("Error en la solicitud:", error);
+    }
+  };
+
   useEffect(() => {
-    fetch(process.env.USERDATA_SHEET_URL)
+    fetch(fetchUserData())
       .then((response) => response.text())
       .then((data) => {
         const rows = data.split("\n");
