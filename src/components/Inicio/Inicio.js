@@ -32,6 +32,7 @@ function Inicio() {
     try {
       const response = await fetch("/api/userdata");
       const result = await response.json();
+      console.log("Resultado API:", result); // Agrega este log para ver lo que devuelve
 
       if (result.success) {
         console.log("Datos del sheet:", result.data);
