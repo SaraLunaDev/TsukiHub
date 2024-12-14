@@ -108,7 +108,7 @@ function Juegos() {
   };
 
   // URL del Google Sheet en formato CSV
-  const sheetUrl = process.env.REACT_APP_JUEGOS_SHEET_URL;
+  const sheetUrl = process.env.JUEGOS_SHEET_URL;
 
   useEffect(() => {
     if (!sheetUrl) {

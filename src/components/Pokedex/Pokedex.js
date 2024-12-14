@@ -6,7 +6,7 @@ function Pokedex() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isPopupOpenPokemon, setIsPopupOpenPokemon] = useState(false);
   const [isGifVisible, setIsGifVisible] = useState(false);
-  const sheetUrl = process.env.REACT_APP_POKEDEX_SHEET_URL;
+  const sheetUrl = process.env.POKEDEX_SHEET_URL;
 
   const getUserStats = () => {
     const userStats = users.map(([userId, userName]) => {

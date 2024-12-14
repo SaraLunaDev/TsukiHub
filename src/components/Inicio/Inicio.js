@@ -29,7 +29,7 @@ function Inicio() {
   const saraAge = calculateAge("2001-08-03");
 
   useEffect(() => {
-    fetch(process.env.REACT_APP_USERDATA_SHEET_URL)
+    fetch(process.env.USERDATA_SHEET_URL)
       .then((response) => response.text())
       .then((data) => {
         const rows = data.split("\n");

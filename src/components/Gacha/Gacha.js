@@ -10,7 +10,7 @@ function Gacha() {
   const [userInput, setUserInput] = useState("");
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [cardsByStars, setCardsByStars] = useState({});
-  const sheetUrl = process.env.REACT_APP_GACHA_SHEET_URL;
+  const sheetUrl = process.env.GACHA_SHEET_URL;
   const [selectedImage, setSelectedImage] = useState(null); // Almacena la imagen seleccionada
   const [loading, setLoading] = useState(true); // Estado para controlar la carga inicial
 
