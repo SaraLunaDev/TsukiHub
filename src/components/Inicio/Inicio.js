@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import "./Inicio.css";
 
 function Inicio() {
-  const [data, setData] = useState(null);
   const [userData, setUserData] = useState([]);
   const [headers, setHeaders] = useState([]);
   const [filter, setFilter] = useState({
@@ -29,14 +28,8 @@ function Inicio() {
 
   const saraAge = calculateAge("2001-08-03");
 
-  const fetchData = async () => {
-    const response = await fetch("/api/data");
-    const result = await response.json();
-    setData(result);
-  };
-
   useEffect(() => {
-    fetch(fetchData())
+    fetch(process.env.USERDATA_SHEET_URL)
       .then((response) => response.text())
       .then((data) => {
         const rows = data.split("\n");
