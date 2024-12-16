@@ -29,7 +29,7 @@ function Inicio() {
   const saraAge = calculateAge("2001-08-03");
 
   useEffect(() => {
-    fetch(process.env.REACT_APP_USERDATA_SHEET_URL)
+    fetch(fetchUserDataSheet())
       .then((response) => response.text())
       .then((data) => {
         const rows = data.split("\n");
@@ -117,6 +117,17 @@ function Inicio() {
         return b[type] - a[type]; // Para tickets, asegura que es numérico
       })
       .slice(0, 10);
+  };
+
+  const fetchUserDataSheet = async () => {
+    try {
+      const response = await fetch("/api/getUserDataSheet"); // Llama al endpoint
+      const data = await response.json();
+
+      console.log("URL del Google Sheet:", data.sheetUrl);
+    } catch (error) {
+      console.error("Error al obtener la URL:", error);
+    }
   };
 
   return (
