@@ -29,45 +29,44 @@ function Inicio() {
   const saraAge = calculateAge("2001-08-03");
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        // Solicita la URL de la hoja de datos desde la Serverless Function
-        const apiResponse = await fetch("/api/getUserDataSheet");
-        const apiData = await apiResponse.json();
-
-        if (!apiData.sheetUrl) {
-          throw new Error("No se pudo obtener la URL de la hoja de datos.");
-        }
-
-        // Ahora, realiza una solicitud a la hoja de cálculo directamente
-        const sheetResponse = await fetch(apiData.sheetUrl);
-        const sheetData = await sheetResponse.text();
-
-        // Procesa los datos del CSV
-        const rows = sheetData.split("\n");
+    fetch(process.env.REACT_APP_USERDATA_SHEET_URL)
+      .then((response) => response.text())
+      .then((data) => {
+        const rows = data.split("\n");
         const headerRow = rows[0].split(",");
         const bodyRows = rows.slice(1);
 
-        console.log("Cabeceras del CSV:", headerRow);
+        // Imprimir las cabeceras para ver cómo están
+        console.log("Header Row:", headerRow);
 
         const parsedData = bodyRows.map((row) => {
           const columns = row.split(",");
+          console.log("Columns for row:", columns); // Verifica cómo están estructuradas las columnas
+
           const obj = {};
           headerRow.forEach((header, index) => {
-            obj[header.trim()] = columns[index]?.trim() || ""; // Asegura que no haya valores undefined
+            obj[header] = columns[index] || ""; // Asegura que no haya valores undefined
           });
+
+          // Verificar si existe 'tickets' u otro nombre similar
+          const ticketIndex = headerRow.findIndex((header) =>
+            header.toLowerCase().includes("ticket")
+          );
+          if (ticketIndex !== -1) {
+            const ticketValue = columns[ticketIndex];
+            console.log("Ticket Value: ", ticketValue); // Verifica el valor de tickets
+            obj.tickets = !isNaN(ticketValue) ? +ticketValue : 0;
+          } else {
+            console.log("No column related to 'tickets' found.");
+          }
+
           return obj;
         });
 
-        // Guarda los datos en el estado
-        setHeaders(headerRow); // Cabeceras
-        setUserData(parsedData); // Datos procesados
-      } catch (error) {
-        console.error("Error al cargar los datos:", error);
-      }
-    };
-
-    fetchUserData(); // Llama a la función asíncrona
+        setHeaders(headerRow); // Guarda los headers
+        setUserData(parsedData); // Guarda los datos procesados
+      })
+      .catch((error) => console.error("Error fetching data:", error));
   }, []);
 
   const achievementHeaders = headers.filter((header) =>
