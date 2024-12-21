@@ -85,6 +85,7 @@
   display: flex; /* Usamos flexbox para alinear el contenido */
   align-items: center; /* Centra el contenido verticalmente */
   justify-content: center; /* Asegura que el texto esté centrado horizontalmente */
+  box-shadow: var(--box-shadow-3);
 }
 
 .generation-button.active {
@@ -316,7 +317,8 @@
   display: flex;
   justify-content: space-between;
   padding: 10px;
-  background-color: var(--mid);
+  background-color: var(--clear);
+  box-shadow: var(--box-shadow-inset-3);
   border-radius: 5px;
   margin-bottom: 10px;
   align-items: center;
@@ -324,8 +326,8 @@
 
 /* Número de posición del usuario */
 .user-position {
-  font-weight: bold;
-  color: var(--text-2);
+  font-weight: bold !important;
+  color: var(--color) !important;
   width: 20px; /* Asegura un ancho consistente */
   text-align: right;
 }
@@ -335,13 +337,13 @@
   flex: 1; /* Ocupa el espacio restante */
   padding-left: 10px;
   color: var(--text);
-  font-weight: bold;
+  font-weight: normal !important;
 }
 
 /* Cantidad de Pokémon */
 .user-pokemon-count {
-  font-weight: bold;
-  color: var(--text-2);
+  font-weight: bold !important;
+  color: var(--text-2) !important;
 }
 
 /* Asegura que el contenido del popup sea desplazable si hay demasiados usuarios */

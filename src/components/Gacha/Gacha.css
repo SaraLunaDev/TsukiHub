@@ -94,7 +94,7 @@
   padding: 20px;
   padding-left: 40px;
   padding-bottom: 40px;
-  background-color: var(--mid);
+  background-color: var(--mid-3);
   border-radius: 8px;
   box-shadow: var(--box-shadow-inset);
   margin-bottom: 20px;
@@ -136,6 +136,7 @@
   display: flex; /* Usamos flexbox para alinear el contenido */
   align-items: center; /* Centra el contenido verticalmente */
   justify-content: center; /* Asegura que el texto esté centrado horizontalmente */
+  box-shadow: var(--box-shadow-3);
 }
 
 .banner-button.active {

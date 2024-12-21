@@ -1,21 +1,21 @@
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  margin: 0; /* Elimina el margen predeterminado del cuerpo */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif; /* Configura una fuente global compatible con varias plataformas */
+  -webkit-font-smoothing: antialiased; /* Mejora el renderizado de fuentes en Webkit */
+  -moz-osx-font-smoothing: grayscale; /* Mejora el renderizado de fuentes en macOS */
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace; /* Fuente especifica para bloques de codigo */
 }
 
 html {
-  scrollbar-width: none; /* Para Firefox */
+  scrollbar-width: none; /* Oculta la barra de desplazamiento en Firefox */
 }
 
 body::-webkit-scrollbar {
-  display: none; /* Para Chrome y Safari */
+  display: none; /* Oculta la barra de desplazamiento en Chrome y Safari */
 }

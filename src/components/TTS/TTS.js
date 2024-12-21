@@ -2,19 +2,27 @@ import React, { useState, useEffect, useRef } from "react";
 import "./TTS.css";
 
 const TTS = () => {
+  // Estado para manejar el tema (claro/oscuro)
   const [theme, setTheme] = useState(
     localStorage.getItem("theme") === "dark" ? "dark" : "light"
   );
+
+  // Estados para almacenar las voces y los sonidos
   const [voices, setVoices] = useState([]);
   const [sounds, setSounds] = useState([]);
-  const [characterLimit] = useState(500);
-  const [text, setText] = useState("");
-  const progressBarRef = useRef(null);
-  const [currentAudio, setCurrentAudio] = useState(null);
 
+  // Límite de caracteres en el editor
+  const [characterLimit] = useState(500);
+  const [text, setText] = useState(""); // Texto del editor
+
+  const progressBarRef = useRef(null); // Referencia a la barra de progreso
+  const [currentAudio, setCurrentAudio] = useState(null); // Audio actualmente en reproducción
+
+  // Directorios de recursos
   const voicesDirectory = "./static/voices/";
   const soundsDirectory = "./static/sounds/";
 
+  // Carga inicial de voces y sonidos desde JSON
   useEffect(() => {
     Promise.all([
       fetch("./static/voices-list.json").then((res) => res.json()),
@@ -27,10 +35,9 @@ const TTS = () => {
       .catch((error) => console.error("Error cargando datos:", error));
   }, []);
 
+  // Inserta texto en la posición del cursor en el editor
   const insertTextAtCursor = (textToInsert) => {
     const editor = document.getElementById("textEditor");
-
-    // Asegura que el editor reciba el foco
     editor.focus();
 
     const selection = window.getSelection();
@@ -39,30 +46,27 @@ const TTS = () => {
         ? selection.getRangeAt(0)
         : document.createRange();
 
-    // Si no hay rango o está vacío, coloca el cursor al final del editor
     if (selection.rangeCount === 0) {
       range.selectNodeContents(editor);
       range.collapse(false);
     }
 
-    // Inserta el texto en la posición actual del cursor
     const textNode = document.createTextNode(textToInsert);
     range.deleteContents();
     range.insertNode(textNode);
 
-    // Ajusta el rango para que el cursor quede al final del texto insertado
     range.setStartAfter(textNode);
     range.setEndAfter(textNode);
     selection.removeAllRanges();
     selection.addRange(range);
 
-    // Actualiza el contenido del editor y valida el texto
     const newText = editor.innerText;
     const styledText = validateText(newText);
     updateEditorWithStyledText(editor, styledText, newText.length);
     setText(newText);
   };
 
+  // Maneja cambios en el contenido del editor
   const handleTextChange = (e) => {
     const editor = e.target;
     let newText = editor.innerText;
@@ -78,6 +82,7 @@ const TTS = () => {
     setText(newText);
   };
 
+  // Valida y estiliza el texto según patrones
   const validateText = (text) => {
     const formattedText = text.replace(
       /\(([^():]+):\)|\(([^():]+)\)/g,
@@ -105,6 +110,7 @@ const TTS = () => {
     return formattedText;
   };
 
+  // Guarda la posición del cursor en el editor
   const saveCursorPosition = (element) => {
     const selection = window.getSelection();
     const range = selection.getRangeAt(0);
@@ -114,11 +120,13 @@ const TTS = () => {
     return preCaretRange.toString().length;
   };
 
+  // Actualiza el contenido del editor con texto estilizado
   const updateEditorWithStyledText = (element, htmlContent, cursorPosition) => {
     element.innerHTML = htmlContent;
     placeCaretAtPosition(element, cursorPosition);
   };
 
+  // Coloca el cursor en una posición específica
   const placeCaretAtPosition = (element, position) => {
     const range = document.createRange();
     const selection = window.getSelection();
@@ -152,6 +160,7 @@ const TTS = () => {
     return null;
   };
 
+  // Reproduce un archivo de audio
   const playAudio = (directory, file) => {
     if (currentAudio) {
       currentAudio.pause();
@@ -165,6 +174,7 @@ const TTS = () => {
     audio.addEventListener("ended", () => setCurrentAudio(null));
   };
 
+  // Actualiza la barra de progreso al cambiar el texto
   useEffect(() => {
     if (progressBarRef.current) {
       const progressPercentage = Math.min(
@@ -197,11 +207,9 @@ const TTS = () => {
           </div>
         </section>
 
-        {/* Contenedor principal en dos columnas */}
         <div className="tts-main-layout">
           {/* Columna izquierda: Voces y Sonidos */}
           <div className="tts-left-column">
-            {/* Voces */}
             <section id="voices">
               <h2>Voces</h2>
               <div id="voiceContainer">
@@ -226,7 +234,6 @@ const TTS = () => {
               </div>
             </section>
 
-            {/* Sonidos */}
             <section id="sounds">
               <h2>Sonidos</h2>
               <div id="soundContainer">
