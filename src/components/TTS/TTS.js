@@ -94,9 +94,9 @@ const TTS = () => {
           );
 
         if (isVoice) {
-          return `<span className="rosa">(${voiceMatch}:)</span>`;
+          return `<span class="rosa">(${voiceMatch}:)</span>`;
         } else if (isSound) {
-          return `<span className="azul">(${soundMatch})</span>`;
+          return `<span class="azul">(${soundMatch})</span>`;
         } else {
           return match;
         }
