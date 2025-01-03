@@ -198,43 +198,47 @@ function Inicio() {
 
               return (
                 <div className="achievement-item" key={header}>
-                  <h2 className="header-logro">{achievement.name}</h2>
-                  <div className="achievement-content">
-                    {/* Iconos e información normal */}
-                    <div className="achievement-icons">
-                      <div className="achievement-row">
-                        {/* Icono del logro */}
-                        <div className="achievement-icon">
-                          <img
-                            src={`/static/resources/logros/${header.replace(
-                              "l_",
-                              ""
-                            )}.png`}
-                            alt={achievement.name}
-                            className="achievement-icon-img"
-                          />
-                        </div>
-                        {/* Iconos de usuario */}
-                        <div className="achievement-users">
-                          {userData
-                            .filter(
-                              (user) => user[header]?.toLowerCase() === "si"
-                            )
-                            .map((user) => (
-                              <div className="user-icon" key={user.id}>
-                                <img
-                                  src={user.pfp}
-                                  alt={user.nombre}
-                                  className="profile-pic-small"
-                                />
-                              </div>
-                            ))}
+                  <div class="achievement-header">
+                    <h2 className="header-logro">{achievement.name}</h2>
+                    <div className="achievement-content">
+                      {/* Iconos e información normal */}
+                      <div className="achievement-icons">
+                        <div className="achievement-row">
+                          {/* Icono del logro */}
+                          <div className="achievement-icon">
+                            <img
+                              src={`/static/resources/logros/${header.replace(
+                                "l_",
+                                ""
+                              )}.png`}
+                              alt={achievement.name}
+                              className="achievement-icon-img"
+                            />
+                          </div>
+                          {/* Iconos de usuario */}
+                          <div className="achievement-users">
+                            {userData
+                              .filter(
+                                (user) => user[header]?.toLowerCase() === "si"
+                              )
+                              .map((user) => (
+                                <div className="user-icon" key={user.id}>
+                                  <img
+                                    src={user.pfp}
+                                    alt={user.nombre}
+                                    className="profile-pic-small"
+                                  />
+                                  <div className="user-name">{user.nombre}</div>{" "}
+                                  {/* Nombre del usuario */}
+                                </div>
+                              ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    {/* Descripción (invisible inicialmente) */}
-                    <div className="achievement-description">
-                      <p>{achievement.description}</p>
+                      {/* Descripción (invisible inicialmente) */}
+                      <div className="achievement-description">
+                        <p>{achievement.description}</p>
+                      </div>
                     </div>
                   </div>
                 </div>

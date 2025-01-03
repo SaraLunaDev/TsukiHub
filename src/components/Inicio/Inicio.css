@@ -18,7 +18,6 @@
 
 .stats-section-global {
   flex: 2;
-  margin-top: 20px;
   padding: 10px;
   background-color: var(--dark-2);
   border-radius: 8px;
@@ -182,7 +181,6 @@ section {
   flex: 1;
   padding: 20px;
   padding-left: 30px;
-  margin-top: 20px;
   background-color: var(--dark-2);
   border-radius: 8px;
   box-shadow: var(--box-shadow-inset);
@@ -190,7 +188,6 @@ section {
 
 .achievements-section h2 {
   text-align: left;
-  margin-bottom: 8px;
 }
 
 .achievements-table {
@@ -259,15 +256,6 @@ section {
   width: 100%;
 }
 
-.achievement-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding-top: 10px;
-  width: 100%;
-}
-
 .achievement-name {
   font-weight: bold;
   margin-bottom: 10px; /* Espacio entre el nombre del logro y los iconos */
@@ -301,14 +289,6 @@ section {
   flex-direction: column;
   align-items: flex-start; /* Alinea todo a la izquierda */
   gap: 0px; /* Espacio entre cada logro */
-}
-
-.achievement-item {
-  display: flex;
-  flex-direction: row; /* Alinea el icono, nombre y usuarios horizontalmente */
-  align-items: center; /* Alinea verticalmente los elementos */
-  justify-content: flex-start; /* Alinea a la izquierda */
-  gap: 0px; /* Espacio entre el icono, nombre y los usuarios */
 }
 
 .achievement-icon {
@@ -352,20 +332,11 @@ section {
   color: var(--text-2);
 }
 
-.achievement-item {
-  display: flex;
-  flex-direction: column; /* Coloca el nombre sobre los iconos */
-  align-items: flex-start;
-  gap: 10px;
-  width: 100%;
-}
-
 .header-logro {
   width: 100%;
   text-transform: capitalize;
   color: var(--text-2);
   padding-bottom: 10px; /* Espacio entre el nombre y los iconos */
-  margin-top: 2px;
   border-bottom: 1px solid var(--divider);
 }
 
@@ -413,6 +384,11 @@ section {
   flex-direction: column; /* Mantiene el nombre sobre los iconos */
   align-items: flex-start;
   width: 100%;
+  padding-bottom: 10px;
+}
+
+.achievement-header {
+  width: 100%;
 }
 
 .achievement-users {
@@ -422,14 +398,9 @@ section {
   justify-content: flex-start; /* Alinea los iconos a la izquierda */
 }
 
-.logros-header {
-  padding-bottom: 10px;
-}
-
 .achievement-content {
   position: relative;
   width: 100%;
-  height: auto;
 }
 
 .achievement-row {
@@ -457,11 +428,10 @@ section {
 
 .achievement-description {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
   text-align: left;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-4);
   opacity: 0;
   visibility: hidden;
   position: absolute; /* Superpone la descripción sobre los íconos */
@@ -471,7 +441,7 @@ section {
   bottom: 0;
   transform: translateY(-20px); /* Inicialmente está más arriba */
   transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
-  padding: 10px;
+  padding: 0px;
   cursor: default;
 }
 
@@ -480,19 +450,47 @@ section {
   transform: translateY(0); /* Posición inicial normal */
 }
 
-.achievement-item:hover .achievement-icons {
-  transform: translateY(20px); /* Desliza hacia abajo al ocultarse */
-  opacity: 0; /* Desvanece al ocultarse */
-  visibility: hidden; /* Oculta completamente */
-}
-
-.achievement-item:hover .achievement-icons {
-  opacity: 0;
-  visibility: hidden;
-}
-
-.achievement-item:hover .achievement-description {
+/* Mostrar la descripción y ocultar los iconos solo cuando el título tiene hover */
+.header-logro:hover + .achievement-content .achievement-description {
   opacity: 1;
   visibility: visible;
   transform: translateY(0); /* Desliza hacia abajo a su posición original */
+}
+
+.header-logro:hover + .achievement-content .achievement-icons {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px); /* Desliza hacia abajo al ocultarse */
+}
+
+.user-icon {
+  position: relative;
+  display: inline-block;
+  transition: transform 0.3s ease; /* Transición para el tamaño */
+}
+
+.user-icon:hover {
+  transform: scale(1.1); /* Aumenta el tamaño del icono un 10% */
+}
+
+.user-name {
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  top: 100%; /* Coloca el nombre debajo del ícono */
+  left: 50%;
+  transform: translateX(-50%); /* Centra el texto horizontalmente */
+  background-color: var(--mid-2);
+  color: var(--text);
+  font-size: 0.9rem;
+  padding: 5px;
+  border-radius: 5px;
+  white-space: nowrap;
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+}
+
+.user-icon:hover .user-name {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0px); /* Desliza el texto hacia abajo */
 }

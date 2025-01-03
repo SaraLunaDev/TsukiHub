@@ -11,6 +11,7 @@
   --text: #fafafa;
   --text-2: #bababa;
   --text-3: #eee;
+  --text-4: #666;
   --color-dark: #ff5555;
   --color-mid: #ff8888;
   --color-clear: #ffaaaa;
@@ -63,6 +64,7 @@ body.dark-mode {
   --text: #222;
   --text-2: #777;
   --text-3: #eee;
+  --text-4: #777;
   --color-dark: #ff5555;
   --color-mid: #ff8888;
   --color-clear: #ffaaaa;
