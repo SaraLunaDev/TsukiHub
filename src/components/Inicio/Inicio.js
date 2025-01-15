@@ -74,6 +74,10 @@ function Inicio() {
   );
 
   const achievementDetails = {
+    l_platino: {
+      name: "Platino",
+      description: "Conseguir todos los Logros",
+    },
     l_racha: {
       name: "Vigía Octogenario",
       description:
@@ -190,21 +194,75 @@ function Inicio() {
       </div>
       <div className="achievements-and-stats">
         <div className="achievements-section">
-          <h2 className="logros-header">Logros</h2>
           <div className="achievements-container">
+            {/* Primero renderiza Platino */}
             {achievementHeaders.map((header) => {
               const achievement = achievementDetails[header];
               if (!achievement) return null;
+
+              if (header === "l_platino") {
+                // Platino
+                return (
+                  <div className="achievement-item" key={header}>
+                    <div class="achievement-header">
+                      <h2 className="header-platino">{achievement.name}</h2>
+                      <div className="achievement-content">
+                        <div className="achievement-icons">
+                          <div className="achievement-row">
+                            <div className="achievement-icon">
+                              <img
+                                src={`/static/resources/logros/${header.replace(
+                                  "l_",
+                                  ""
+                                )}.png`}
+                                alt={achievement.name}
+                                className="achievement-icon-img"
+                              />
+                            </div>
+                            <div className="achievement-users">
+                              {userData
+                                .filter(
+                                  (user) => user[header]?.toLowerCase() === "si"
+                                )
+                                .map((user) => (
+                                  <div className="user-icon" key={user.id}>
+                                    <img
+                                      src={user.pfp}
+                                      alt={user.nombre}
+                                      className="profile-pic-small"
+                                    />
+                                    <div className="user-name">
+                                      {user.nombre}
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="achievement-description">
+                          <p>{achievement.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })}
+
+            {/* Ahora renderiza los demás logros y luego la cabecera "Logros" */}
+            <h2 className="logros-header">Logros</h2>
+            {achievementHeaders.map((header) => {
+              const achievement = achievementDetails[header];
+              if (!achievement || header === "l_platino") return null;
 
               return (
                 <div className="achievement-item" key={header}>
                   <div class="achievement-header">
                     <h2 className="header-logro">{achievement.name}</h2>
                     <div className="achievement-content">
-                      {/* Iconos e información normal */}
                       <div className="achievement-icons">
                         <div className="achievement-row">
-                          {/* Icono del logro */}
                           <div className="achievement-icon">
                             <img
                               src={`/static/resources/logros/${header.replace(
@@ -215,7 +273,6 @@ function Inicio() {
                               className="achievement-icon-img"
                             />
                           </div>
-                          {/* Iconos de usuario */}
                           <div className="achievement-users">
                             {userData
                               .filter(
@@ -228,14 +285,12 @@ function Inicio() {
                                     alt={user.nombre}
                                     className="profile-pic-small"
                                   />
-                                  <div className="user-name">{user.nombre}</div>{" "}
-                                  {/* Nombre del usuario */}
+                                  <div className="user-name">{user.nombre}</div>
                                 </div>
                               ))}
                           </div>
                         </div>
                       </div>
-                      {/* Descripción (invisible inicialmente) */}
                       <div className="achievement-description">
                         <p>{achievement.description}</p>
                       </div>

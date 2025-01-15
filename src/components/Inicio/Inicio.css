@@ -132,16 +132,10 @@ section {
 
 .stats-section h2 {
   text-align: center;
-  margin-top: 10px;
+  margin-top: 0px;
   margin-bottom: 20px;
   color: var(--text);
-}
-
-.stats-section h2 {
-  text-align: center;
-  margin-top: 10px;
-  margin-bottom: 20px;
-  color: var(--text);
+  font-size: 1.3em;
 }
 
 .stats-section table {
@@ -153,7 +147,7 @@ section {
 
 .stats-section th,
 .stats-section td {
-  padding: 10px;
+  padding: 12.5px;
   border-bottom: 1px solid var(--divider);
   font-size: 14px;
 }
@@ -188,6 +182,32 @@ section {
 
 .achievements-section h2 {
   text-align: left;
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+.logros-header {
+  padding-bottom: 6px;
+  font-size: 1.3em;
+}
+.header-platino {
+  margin-bottom: 0px;
+  font-size: 1.3em;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--divider);
+}
+
+/* Mostrar la descripción y ocultar los iconos solo cuando el título tiene hover */
+.header-platino:hover + .achievement-content .achievement-description {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0); /* Desliza hacia abajo a su posición original */
+}
+
+.header-platino:hover + .achievement-content .achievement-icons {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px); /* Desliza hacia abajo al ocultarse */
 }
 
 .achievements-table {
@@ -406,7 +426,7 @@ section {
 .achievement-row {
   display: flex;
   align-items: center; /* Alinea verticalmente el ícono y los usuarios */
-  gap: 10px; /* Espacio entre el ícono del logro y los íconos de usuario */
+  gap: 0px; /* Espacio entre el ícono del logro y los íconos de usuario */
 }
 
 .achievement-icon {
