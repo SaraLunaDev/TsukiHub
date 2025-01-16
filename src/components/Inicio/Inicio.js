@@ -60,6 +60,15 @@ function Inicio() {
             console.log("No column related to 'tickets' found.");
           }
 
+          // Procesa los emotes
+          const emotesIndex = headerRow.findIndex((header) =>
+            header.toLowerCase().includes("emotes")
+          );
+          if (emotesIndex !== -1) {
+            const emoteValue = columns[emotesIndex]?.trim(); // Asegúrate de eliminar espacios extra
+            obj.emotes = emoteValue ? emoteValue.split(" ") : []; // Si está vacío, devuelve un array vacío
+          }
+
           return obj;
         });
 
@@ -102,25 +111,30 @@ function Inicio() {
   };
 
   const getFilteredData = (type) => {
-    return userData
-      .filter(
-        (user) =>
-          !EXCLUDED_USERS.includes(user.nombre) && // Excluir usuarios
-          user.nombre.toLowerCase().includes(filter[type].toLowerCase())
-      )
-      .sort((a, b) => {
-        if (type === "racha") {
-          const rachaA = a.racha.startsWith("m_")
-            ? +a.racha.substring(2)
-            : +a.racha;
-          const rachaB = b.racha.startsWith("m_")
-            ? +b.racha.substring(2)
-            : +b.racha;
-          return rachaB - rachaA; // Ordena de mayor a menor
-        }
-        return b[type] - a[type]; // Para tickets, asegura que es numérico
-      })
-      .slice(0, 10);
+    if (!userData || userData.length === 0) return [];
+
+    // Filtra por el nombre y otros filtros generales (no afectará a "emotes")
+    let filteredData = userData.filter(
+      (user) =>
+        user.nombre && // Asegura que user.nombre no es undefined
+        !EXCLUDED_USERS.includes(user.nombre) &&
+        user.nombre.toLowerCase().includes(filter[type]?.toLowerCase() || "")
+    );
+
+    if (type === "emotes") {
+      // Filtra solo usuarios con emotes
+      filteredData = filteredData.filter(
+        (user) => user.emotes && user.emotes.length > 0
+      );
+
+      // Ordena por la cantidad de emotes (de mayor a menor)
+      filteredData.sort((a, b) => b.emotes.length - a.emotes.length);
+    } else {
+      // Si no es "emotes", realiza un orden general para los otros tipos
+      filteredData.sort((a, b) => b[type] - a[type]);
+    }
+
+    return filteredData.slice(0, 10);
   };
 
   return (
@@ -195,13 +209,11 @@ function Inicio() {
       <div className="achievements-and-stats">
         <div className="achievements-section">
           <div className="achievements-container">
-            {/* Primero renderiza Platino */}
             {achievementHeaders.map((header) => {
               const achievement = achievementDetails[header];
               if (!achievement) return null;
 
               if (header === "l_platino") {
-                // Platino
                 return (
                   <div className="achievement-item" key={header}>
                     <div class="achievement-header">
@@ -249,8 +261,6 @@ function Inicio() {
               }
               return null;
             })}
-
-            {/* Ahora renderiza los demás logros y luego la cabecera "Logros" */}
             <h2 className="logros-header">Logros</h2>
             {achievementHeaders.map((header) => {
               const achievement = achievementDetails[header];
@@ -303,11 +313,10 @@ function Inicio() {
         </div>
 
         <div className="stats-section-global">
-          {/* New Section */}
           <div className="user-stats-section">
-            {["racha", "mensajes", "tickets"].map((type) => (
-              <div className={`stats-section ${type}`} key={type}>
-                <h2>{type.charAt(0).toUpperCase() + type.slice(1)}</h2>
+            <div className="user-stats-container">
+              <div className="stats-section racha">
+                <h2>Racha</h2>
                 <div className="search-input-global">
                   <img
                     src="/static/resources/lupa.png"
@@ -316,17 +325,17 @@ function Inicio() {
                   />
                   <input
                     type="text"
-                    placeholder="Buscar usuario..."
-                    value={filter[type]}
+                    placeholder="Buscar Racha..."
+                    value={filter.racha}
                     onChange={(e) =>
-                      setFilter((prev) => ({ ...prev, [type]: e.target.value }))
+                      setFilter((prev) => ({ ...prev, racha: e.target.value }))
                     }
                     className="search-input"
-                  ></input>
+                  />
                 </div>
                 <table>
                   <tbody>
-                    {getFilteredData(type).map((user) => (
+                    {getFilteredData("racha").map((user) => (
                       <tr key={user.id}>
                         <td>
                           <img
@@ -336,26 +345,152 @@ function Inicio() {
                           />
                         </td>
                         <td>{user.nombre}</td>
-                        <td className="user-data-text">
-                          {type === "racha" ? (
-                            user.racha.startsWith("m_") ? (
-                              <span className="racha-special">
-                                {user.racha.substring(2)}{" "}
-                                {/* Elimina el prefijo m_ */}
-                              </span>
-                            ) : (
-                              user.racha
-                            )
-                          ) : (
-                            user[type]
-                          )}
-                        </td>
+                        <td>{user.racha}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            ))}
+
+              <div className="stats-section mensajes">
+                <h2>Mensajes</h2>
+                <div className="search-input-global">
+                  <img
+                    src="/static/resources/lupa.png"
+                    alt="Lupa"
+                    className="lupa-img"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Buscar Mensajes..."
+                    value={filter.mensajes}
+                    onChange={(e) =>
+                      setFilter((prev) => ({
+                        ...prev,
+                        mensajes: e.target.value,
+                      }))
+                    }
+                    className="search-input"
+                  />
+                </div>
+                <table>
+                  <tbody>
+                    {getFilteredData("mensajes").map((user) => (
+                      <tr key={user.id}>
+                        <td>
+                          <img
+                            src={user.pfp}
+                            alt={user.nombre}
+                            className="profile-pic"
+                          />
+                        </td>
+                        <td>{user.nombre}</td>
+                        <td>{user.mensajes}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <div className="stats-section tickets">
+                  <h2>Tickets</h2>
+                  <div className="search-input-global">
+                    <img
+                      src="/static/resources/lupa.png"
+                      alt="Lupa"
+                      className="lupa-img"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Buscar Tickets..."
+                      value={filter.tickets}
+                      onChange={(e) =>
+                        setFilter((prev) => ({
+                          ...prev,
+                          tickets: e.target.value,
+                        }))
+                      }
+                      className="search-input"
+                    />
+                  </div>
+                  <div className="table-container">
+                    <table>
+                      <tbody>
+                        {getFilteredData("tickets").map((user) => (
+                          <tr key={user.id}>
+                            <td>
+                              <img
+                                src={user.pfp}
+                                alt={user.nombre}
+                                className="profile-pic"
+                              />
+                            </td>
+                            <td>{user.nombre}</td>
+                            <td>{user.tickets}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="stats-section emotes">
+                  <h2>Emotes</h2>
+                  <div className="search-input-global">
+                    <img
+                      src="/static/resources/lupa.png"
+                      alt="Lupa"
+                      className="lupa-img"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Buscar Emotes..."
+                      value={filter.emotes}
+                      onChange={(e) =>
+                        setFilter((prev) => ({
+                          ...prev,
+                          emotes: e.target.value,
+                        }))
+                      }
+                      className="search-input"
+                    />
+                  </div>
+                  <div className="table-container">
+                    <table>
+                      <tbody>
+                        {getFilteredData("emotes").map((user) => (
+                          <tr key={user.id}>
+                            <td>
+                              <div className="user-profile-pic">
+                                <img
+                                  src={user.pfp}
+                                  alt={user.nombre}
+                                  className="profile-pic"
+                                />
+                              </div>
+                            </td>
+                            <div></div>
+                            <td className="emotes-user-name">{user.nombre}</td>
+                            <td className="emotes-section-table">
+                              {user.emotes.length > 0
+                                ? user.emotes.map((emoteId, index) => (
+                                    <img
+                                      key={index}
+                                      src={`https://cdn.7tv.app/emote/${emoteId}/4x.avif`}
+                                      alt={`Emote ${index}`}
+                                      className="emote-img"
+                                    />
+                                  ))
+                                : "No emotes"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

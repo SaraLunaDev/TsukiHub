@@ -17,7 +17,7 @@
 }
 
 .stats-section-global {
-  flex: 2;
+  flex: 4;
   padding: 10px;
   background-color: var(--dark-2);
   border-radius: 8px;
@@ -25,7 +25,7 @@
 }
 
 .stats-section {
-  flex: 1; /* Distribuir el espacio proporcionalmente */
+  flex: 1;
   border-radius: 8px;
   padding: 15px;
 }
@@ -70,37 +70,37 @@ section {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  gap: 20px; /* Espacio entre las secciones */
+  gap: 20px;
 }
 
 .inicio-header {
   display: flex;
-  align-items: center; /* Alinea verticalmente el texto y la imagen */
+  align-items: center;
 }
 
 .inicio-header h1 {
   margin-bottom: 10px;
-  flex: 0; /* Asegura que el texto no tome más espacio del necesario */
+  flex: 0;
   font-size: 2em;
   color: var(--text);
-  margin-right: 10px; /* Ajusta el espacio entre el texto y la imagen */
+  margin-right: 10px;
 }
 
 .inicio-header img {
   height: 40px;
-  margin: 0; /* Elimina cualquier margen adicional */
-  padding: 0; /* Elimina cualquier relleno adicional */
+  margin: 0;
+  padding: 0;
 }
 
 .social-links {
   display: flex;
-  flex-direction: column; /* Orientación vertical */
-  align-items: center; /* Alinea los íconos al inicio (izquierda) */
-  justify-content: flex-start; /* Alinea los íconos verticalmente al inicio */
-  margin-top: 0; /* Elimina cualquier margen superior */
-  margin-right: 20px; /* Ajusta la separación del texto */
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 0;
+  margin-right: 20px;
   margin-left: 20px;
-  gap: 8px; /* Espaciado entre los íconos */
+  gap: 8px;
 }
 
 .social-links a {
@@ -114,25 +114,31 @@ section {
 }
 
 .social-links a:hover {
-  transform: scale(1.1); /* Aumenta el tamaño al pasar el cursor */
+  transform: scale(1.1);
 }
 
 .social-and-bio {
   display: flex;
-  align-items: center; /* Alinea los íconos con el inicio del texto */
+  align-items: center;
 }
 
-.user-stats-section {
+.user-stats-container {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 10px; /* Separación entre tablas */
+  gap: 10px;
+}
+
+.stats-section {
+  flex: 1; /* Esto garantiza que las tablas ocupen el mismo espacio disponible */
+  border-radius: 8px;
+  padding: 15px;
 }
 
 .stats-section h2 {
   text-align: center;
-  margin-top: 0px;
+  margin-top: 0;
   margin-bottom: 20px;
   color: var(--text);
   font-size: 1.3em;
@@ -190,24 +196,24 @@ section {
   padding-bottom: 6px;
   font-size: 1.3em;
 }
+
 .header-platino {
-  margin-bottom: 0px;
+  margin-bottom: 0;
   font-size: 1.3em;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--divider);
 }
 
-/* Mostrar la descripción y ocultar los iconos solo cuando el título tiene hover */
 .header-platino:hover + .achievement-content .achievement-description {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0); /* Desliza hacia abajo a su posición original */
+  transform: translateY(0);
 }
 
 .header-platino:hover + .achievement-content .achievement-icons {
   opacity: 0;
   visibility: hidden;
-  transform: translateY(20px); /* Desliza hacia abajo al ocultarse */
+  transform: translateY(20px);
 }
 
 .achievements-table {
@@ -263,28 +269,25 @@ section {
 .profile-pic-small {
   width: 30px;
   height: 30px;
-  border-radius: 50%; /* Asegura que la imagen tenga forma redonda */
+  border-radius: 50%;
 }
 
 .achievements-container {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(120px, 1fr)
-  ); /* Crea columnas dinámicas */
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 0px;
   width: 100%;
 }
 
 .achievement-name {
   font-weight: bold;
-  margin-bottom: 10px; /* Espacio entre el nombre del logro y los iconos */
+  margin-bottom: 10px;
 }
 
 .achievement-users {
   display: flex;
   justify-content: center;
-  gap: 0px; /* Espacio entre los iconos */
+  gap: 0px;
   flex-wrap: wrap;
 }
 
@@ -293,7 +296,7 @@ section {
 }
 
 .profile-pic-small {
-  width: 40px; /* Ajusta el tamaño del icono */
+  width: 40px;
   height: 40px;
   border-radius: 50%;
 }
@@ -307,19 +310,18 @@ section {
 .achievements-container {
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* Alinea todo a la izquierda */
-  gap: 0px; /* Espacio entre cada logro */
+  align-items: flex-start;
+  gap: 0px;
 }
 
 .achievement-icon {
-  /* Asegura que el icono se quede a la izquierda */
   display: flex;
   justify-content: flex-start;
 }
 
 .achievement-icon-img {
   margin-right: 20px;
-  width: 40px; /* Tamaño del icono */
+  width: 40px;
   height: 40px;
 }
 
@@ -331,7 +333,7 @@ section {
 
 .achievement-users {
   display: flex;
-  justify-content: flex-start; /* Alinea los iconos de usuario a la izquierda */
+  justify-content: flex-start;
   gap: 10px;
   flex-wrap: wrap;
 }
@@ -356,13 +358,13 @@ section {
   width: 100%;
   text-transform: capitalize;
   color: var(--text-2);
-  padding-bottom: 10px; /* Espacio entre el nombre y los iconos */
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--divider);
 }
 
 .achivement-global {
   display: flex;
-  align-items: center; /* Alinea los elementos verticalmente */
+  align-items: center;
 }
 
 .achievement-icon {
@@ -371,7 +373,7 @@ section {
 }
 
 .achievement-icon-img {
-  width: 30px; /* Tamaño del icono */
+  width: 30px;
   height: 30px;
 }
 
@@ -401,7 +403,7 @@ section {
 
 .achievement-item {
   display: flex;
-  flex-direction: column; /* Mantiene el nombre sobre los iconos */
+  flex-direction: column;
   align-items: flex-start;
   width: 100%;
   padding-bottom: 10px;
@@ -415,7 +417,7 @@ section {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  justify-content: flex-start; /* Alinea los iconos a la izquierda */
+  justify-content: flex-start;
 }
 
 .achievement-content {
@@ -425,25 +427,25 @@ section {
 
 .achievement-row {
   display: flex;
-  align-items: center; /* Alinea verticalmente el ícono y los usuarios */
-  gap: 0px; /* Espacio entre el ícono del logro y los íconos de usuario */
+  align-items: center;
+  gap: 0px;
 }
 
 .achievement-icon {
-  flex-shrink: 0; /* Evita que el ícono se reduzca */
+  flex-shrink: 0;
 }
 
 .achievement-users {
   display: flex;
-  flex-wrap: wrap; /* Permite que los íconos de usuario se distribuyan en varias líneas si es necesario */
-  gap: 5px; /* Espacio entre los íconos de usuario */
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
 .user-icon img {
-  width: 30px; /* Tamaño de los íconos de usuario */
+  width: 30px;
   height: 30px;
-  border-radius: 50%; /* Redondea los íconos de usuario */
-  object-fit: cover; /* Asegura que las imágenes se ajusten bien */
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .achievement-description {
@@ -454,12 +456,12 @@ section {
   color: var(--text-4);
   opacity: 0;
   visibility: hidden;
-  position: absolute; /* Superpone la descripción sobre los íconos */
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  transform: translateY(-20px); /* Inicialmente está más arriba */
+  transform: translateY(-20px);
   transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
   padding: 0px;
   cursor: default;
@@ -467,39 +469,38 @@ section {
 
 .achievement-icons {
   transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
-  transform: translateY(0); /* Posición inicial normal */
+  transform: translateY(0);
 }
 
-/* Mostrar la descripción y ocultar los iconos solo cuando el título tiene hover */
 .header-logro:hover + .achievement-content .achievement-description {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0); /* Desliza hacia abajo a su posición original */
+  transform: translateY(0);
 }
 
 .header-logro:hover + .achievement-content .achievement-icons {
   opacity: 0;
   visibility: hidden;
-  transform: translateY(20px); /* Desliza hacia abajo al ocultarse */
+  transform: translateY(20px);
 }
 
 .user-icon {
   position: relative;
   display: inline-block;
-  transition: transform 0.3s ease; /* Transición para el tamaño */
+  transition: transform 0.3s ease;
 }
 
 .user-icon:hover {
-  transform: scale(1.1); /* Aumenta el tamaño del icono un 10% */
+  transform: scale(1.1);
 }
 
 .user-name {
   opacity: 0;
   visibility: hidden;
   position: absolute;
-  top: 100%; /* Coloca el nombre debajo del ícono */
+  top: 100%;
   left: 50%;
-  transform: translateX(-50%); /* Centra el texto horizontalmente */
+  transform: translateX(-50%);
   background-color: var(--mid-2);
   color: var(--text);
   font-size: 0.9rem;
@@ -512,5 +513,30 @@ section {
 .user-icon:hover .user-name {
   opacity: 1;
   visibility: visible;
-  transform: translateX(-50%) translateY(0px); /* Desliza el texto hacia abajo */
+  transform: translateX(-50%) translateY(0);
+}
+
+.emote-img {
+  height: 32px;
+  margin: 0 5px;
+  border-radius: 4px;
+}
+
+.stats-section.tickets,
+.stats-section.emotes {
+  padding-bottom: 0px;
+}
+
+.table-container {
+  max-height: 252px;
+  overflow-y: auto;
+}
+
+.table-container {
+  -ms-overflow-style: none; /* Para IE y Edge */
+  scrollbar-width: none; /* Para Firefox */
+}
+
+.emotes-user-name {
+  display: none;
 }
