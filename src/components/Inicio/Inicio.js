@@ -8,7 +8,10 @@ function Inicio() {
     racha: "",
     mensajes: "",
     tickets: "",
+    emotes: "",
   });
+  const [filteredData, setFilteredData] = useState({});
+  const [achievementUsers, setAchievementUsers] = useState({});
 
   const EXCLUDED_USERS = ["StreamElements", "TsukiSoft"];
 
@@ -28,54 +31,147 @@ function Inicio() {
 
   const saraAge = calculateAge("2001-08-03");
 
+  // **Move the getFilteredData function here, before JSX**
+  const getFilteredData = (type) => {
+    if (!userData || userData.length === 0) return [];
+
+    // Filtra por el nombre y otros filtros generales (no afectará a "emotes")
+    let filteredData = userData.filter(
+      (user) =>
+        user.nombre && // Asegura que user.nombre no es undefined
+        !EXCLUDED_USERS.includes(user.nombre) &&
+        user.nombre.toLowerCase().includes(filter[type]?.toLowerCase() || "")
+    );
+
+    if (type === "emotes") {
+      // Filtra solo usuarios con emotes
+      filteredData = filteredData.filter(
+        (user) => user.emotes && user.emotes.length > 0
+      );
+
+      // Ordena por la cantidad de emotes (de mayor a menor)
+      filteredData.sort((a, b) => b.emotes.length - a.emotes.length);
+    } else {
+      // Si no es "emotes", realiza un orden general para los otros tipos
+      filteredData.sort((a, b) => b[type] - a[type]);
+    }
+
+    return filteredData.slice(0, 10);
+  };
+
   useEffect(() => {
-    fetch(process.env.REACT_APP_USERDATA_SHEET_URL)
-      .then((response) => response.text())
-      .then((data) => {
+    const sheetUrl = process.env.REACT_APP_USERDATA_SHEET_URL;
+
+    if (!sheetUrl) {
+      console.error("La URL del Google Sheet no está configurada en .env");
+      return;
+    }
+
+    const fetchUserData = async (silentUpdate = false) => {
+      try {
+        const response = await fetch(sheetUrl);
+        const data = await response.text();
+
         const rows = data.split("\n");
         const headerRow = rows[0].split(",");
         const bodyRows = rows.slice(1);
 
-        // Imprimir las cabeceras para ver cómo están
-        console.log("Header Row:", headerRow);
-
         const parsedData = bodyRows.map((row) => {
           const columns = row.split(",");
-          console.log("Columns for row:", columns); // Verifica cómo están estructuradas las columnas
-
           const obj = {};
           headerRow.forEach((header, index) => {
-            obj[header] = columns[index] || ""; // Asegura que no haya valores undefined
+            obj[header] = columns[index] || "";
           });
 
-          // Verificar si existe 'tickets' u otro nombre similar
+          // Procesar tickets
           const ticketIndex = headerRow.findIndex((header) =>
             header.toLowerCase().includes("ticket")
           );
           if (ticketIndex !== -1) {
             const ticketValue = columns[ticketIndex];
-            console.log("Ticket Value: ", ticketValue); // Verifica el valor de tickets
             obj.tickets = !isNaN(ticketValue) ? +ticketValue : 0;
-          } else {
-            console.log("No column related to 'tickets' found.");
           }
 
-          // Procesa los emotes
+          // Procesar emotes
           const emotesIndex = headerRow.findIndex((header) =>
             header.toLowerCase().includes("emotes")
           );
           if (emotesIndex !== -1) {
-            const emoteValue = columns[emotesIndex]?.trim(); // Asegúrate de eliminar espacios extra
-            obj.emotes = emoteValue ? emoteValue.split(" ") : []; // Si está vacío, devuelve un array vacío
+            const emoteValue = columns[emotesIndex]?.trim();
+            obj.emotes = emoteValue ? emoteValue.split(" ") : [];
           }
 
           return obj;
         });
 
-        setHeaders(headerRow); // Guarda los headers
-        setUserData(parsedData); // Guarda los datos procesados
-      })
-      .catch((error) => console.error("Error fetching data:", error));
+        // Filtrar usuarios por logros
+        const achievements = headerRow.filter((header) =>
+          header.startsWith("l_")
+        );
+        const usersWithAchievements = {};
+
+        achievements.forEach((achievement) => {
+          usersWithAchievements[achievement] = parsedData.filter(
+            (user) => user[achievement]?.toLowerCase() === "si"
+          );
+        });
+
+        // Usuarios con todos los logros
+        usersWithAchievements["l_platino"] = parsedData.filter((user) =>
+          achievements.every(
+            (achievement) => user[achievement]?.toLowerCase() === "si"
+          )
+        );
+
+        const cachedData = localStorage.getItem("userData");
+        const cachedAchievements = localStorage.getItem("achievementUsers");
+
+        // Comparar con el caché para evitar actualizaciones innecesarias
+        if (
+          JSON.stringify(parsedData) !== cachedData ||
+          JSON.stringify(usersWithAchievements) !== cachedAchievements
+        ) {
+          console.log("Se detectaron cambios en los datos. Actualizando...");
+          localStorage.setItem("userData", JSON.stringify(parsedData));
+          localStorage.setItem(
+            "achievementUsers",
+            JSON.stringify(usersWithAchievements)
+          );
+          setUserData(parsedData);
+          setAchievementUsers(usersWithAchievements);
+          setHeaders(headerRow);
+        } else if (!silentUpdate) {
+          console.log("No hay cambios en los datos.");
+        }
+      } catch (error) {
+        console.error("Error al cargar los datos:", error);
+      }
+    };
+
+    const loadUserDataFromCache = () => {
+      const cachedData = localStorage.getItem("userData");
+      const cachedAchievements = localStorage.getItem("achievementUsers");
+
+      if (cachedData && cachedAchievements) {
+        console.log("Cargando datos desde el caché...");
+        setUserData(JSON.parse(cachedData));
+        setAchievementUsers(JSON.parse(cachedAchievements));
+      }
+    };
+
+    // Cargar primero desde el caché
+    loadUserDataFromCache();
+
+    // Hacer un fetch inicial para obtener datos nuevos
+    fetchUserData();
+
+    // Configurar el intervalo para actualizar cada minuto
+    const intervalId = setInterval(() => {
+      fetchUserData(true); // Hacer un fetch silencioso cada minuto
+    }, 60000); // 60000 ms = 1 minuto
+
+    // Limpia el intervalo al desmontar el componente
+    return () => clearInterval(intervalId);
   }, []);
 
   const achievementHeaders = headers.filter((header) =>
@@ -110,32 +206,36 @@ function Inicio() {
     },
   };
 
-  const getFilteredData = (type) => {
-    if (!userData || userData.length === 0) return [];
+  useEffect(() => {
+    const filterData = (type) => {
+      if (!userData || userData.length === 0) return [];
 
-    // Filtra por el nombre y otros filtros generales (no afectará a "emotes")
-    let filteredData = userData.filter(
-      (user) =>
-        user.nombre && // Asegura que user.nombre no es undefined
-        !EXCLUDED_USERS.includes(user.nombre) &&
-        user.nombre.toLowerCase().includes(filter[type]?.toLowerCase() || "")
-    );
-
-    if (type === "emotes") {
-      // Filtra solo usuarios con emotes
-      filteredData = filteredData.filter(
-        (user) => user.emotes && user.emotes.length > 0
+      let filtered = userData.filter(
+        (user) =>
+          user.nombre &&
+          !EXCLUDED_USERS.includes(user.nombre) &&
+          user.nombre.toLowerCase().includes(filter[type]?.toLowerCase() || "")
       );
 
-      // Ordena por la cantidad de emotes (de mayor a menor)
-      filteredData.sort((a, b) => b.emotes.length - a.emotes.length);
-    } else {
-      // Si no es "emotes", realiza un orden general para los otros tipos
-      filteredData.sort((a, b) => b[type] - a[type]);
-    }
+      if (type === "emotes") {
+        filtered = filtered.filter(
+          (user) => user.emotes && user.emotes.length > 0
+        );
+        filtered.sort((a, b) => b.emotes.length - a.emotes.length);
+      } else {
+        filtered.sort((a, b) => b[type] - a[type]);
+      }
 
-    return filteredData.slice(0, 10);
-  };
+      return filtered.slice(0, 10);
+    };
+
+    setFilteredData({
+      racha: filterData("racha"),
+      mensajes: filterData("mensajes"),
+      tickets: filterData("tickets"),
+      emotes: filterData("emotes"),
+    });
+  }, [userData, filter]);
 
   return (
     <div className="inicio-container">
@@ -209,86 +309,31 @@ function Inicio() {
       <div className="achievements-and-stats">
         <div className="achievements-section">
           <div className="achievements-container">
-            {achievementHeaders.map((header) => {
-              const achievement = achievementDetails[header];
-              if (!achievement) return null;
-
-              if (header === "l_platino") {
-                return (
-                  <div className="achievement-item" key={header}>
-                    <div class="achievement-header">
-                      <h2 className="header-platino">{achievement.name}</h2>
+            {Object.entries(achievementDetails).map(([key, details]) => {
+              const users = achievementUsers[key] || [];
+              return (
+                <React.Fragment key={key}>
+                  {/* Sección de Platino */}
+                  {key === "l_platino" && (
+                    <div className="achievement-item">
+                      <h2 className="header-platino">{details.name}</h2>
                       <div className="achievement-content">
                         <div className="achievement-icons">
                           <div className="achievement-row">
+                            {/* Icono de Platino */}
                             <div className="achievement-icon">
                               <img
-                                src={`/static/resources/logros/${header.replace(
-                                  "l_",
-                                  ""
+                                src={`/static/resources/logros/${key.slice(
+                                  2
                                 )}.png`}
-                                alt={achievement.name}
+                                alt={details.name}
                                 className="achievement-icon-img"
                               />
                             </div>
-                            <div className="achievement-users">
-                              {userData
-                                .filter(
-                                  (user) => user[header]?.toLowerCase() === "si"
-                                )
-                                .map((user) => (
-                                  <div className="user-icon" key={user.id}>
-                                    <img
-                                      src={user.pfp}
-                                      alt={user.nombre}
-                                      className="profile-pic-small"
-                                    />
-                                    <div className="user-name">
-                                      {user.nombre}
-                                    </div>
-                                  </div>
-                                ))}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="achievement-description">
-                          <p>{achievement.description}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-              return null;
-            })}
-            <h2 className="logros-header">Logros</h2>
-            {achievementHeaders.map((header) => {
-              const achievement = achievementDetails[header];
-              if (!achievement || header === "l_platino") return null;
 
-              return (
-                <div className="achievement-item" key={header}>
-                  <div class="achievement-header">
-                    <h2 className="header-logro">{achievement.name}</h2>
-                    <div className="achievement-content">
-                      <div className="achievement-icons">
-                        <div className="achievement-row">
-                          <div className="achievement-icon">
-                            <img
-                              src={`/static/resources/logros/${header.replace(
-                                "l_",
-                                ""
-                              )}.png`}
-                              alt={achievement.name}
-                              className="achievement-icon-img"
-                            />
-                          </div>
-                          <div className="achievement-users">
-                            {userData
-                              .filter(
-                                (user) => user[header]?.toLowerCase() === "si"
-                              )
-                              .map((user) => (
+                            {/* Usuarios con el logro Platino */}
+                            <div className="achievement-users">
+                              {users.map((user) => (
                                 <div className="user-icon" key={user.id}>
                                   <img
                                     src={user.pfp}
@@ -298,15 +343,61 @@ function Inicio() {
                                   <div className="user-name">{user.nombre}</div>
                                 </div>
                               ))}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="achievement-description">
-                        <p>{achievement.description}</p>
+                        <div className="achievement-description">
+                          <p>{details.description}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  )}
+
+                  {/* Header "Logros" justo después de los usuarios con Platino */}
+                  {key === "l_platino" && (
+                    <h2 className="header-logros-global">Logros</h2>
+                  )}
+
+                  {/* Otras categorías de logros */}
+                  {key !== "l_platino" && (
+                    <div className="achievement-item">
+                      <h2 className="header-logro">{details.name}</h2>
+                      <div className="achievement-content">
+                        <div className="achievement-icons">
+                          <div className="achievement-row">
+                            {/* Icono del logro */}
+                            <div className="achievement-icon">
+                              <img
+                                src={`/static/resources/logros/${key.slice(
+                                  2
+                                )}.png`}
+                                alt={details.name}
+                                className="achievement-icon-img"
+                              />
+                            </div>
+
+                            {/* Usuarios con el logro */}
+                            <div className="achievement-users">
+                              {users.map((user) => (
+                                <div className="user-icon" key={user.id}>
+                                  <img
+                                    src={user.pfp}
+                                    alt={user.nombre}
+                                    className="profile-pic-small"
+                                  />
+                                  <div className="user-name">{user.nombre}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="achievement-description">
+                          <p>{details.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </React.Fragment>
               );
             })}
           </div>

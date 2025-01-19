@@ -111,15 +111,19 @@ function Juegos() {
   const sheetUrl = process.env.REACT_APP_JUEGOS_SHEET_URL;
 
   useEffect(() => {
+    const sheetUrl = process.env.REACT_APP_JUEGOS_SHEET_URL;
+
     if (!sheetUrl) {
       console.error("La URL del Google Sheet no está configurada en .env");
       return;
     }
 
-    // Fetch data del Google Sheet
-    fetch(sheetUrl)
-      .then((response) => response.text())
-      .then((data) => {
+    // Función para cargar datos desde Google Sheet
+    const fetchGames = async (silentUpdate = false) => {
+      try {
+        const response = await fetch(sheetUrl);
+        const data = await response.text();
+
         const rows = data.split("\n");
         const parsedData = rows.slice(1).map((row) => {
           const [
@@ -155,11 +159,47 @@ function Juegos() {
             publicadores: publicadores?.trim(),
           };
         });
-        setGames(parsedData);
-      })
 
-      .catch((error) => console.error("Error al cargar los datos:", error));
-  }, [sheetUrl]);
+        const cachedData = localStorage.getItem("juegosData");
+        const cachedParsedData = cachedData ? JSON.parse(cachedData) : null;
+
+        // Compara si los nuevos datos son diferentes a los del caché
+        if (JSON.stringify(parsedData) !== JSON.stringify(cachedParsedData)) {
+          console.log("Se detectaron cambios en los datos. Actualizando...");
+          localStorage.setItem("juegosData", JSON.stringify(parsedData));
+          setGames(parsedData); // Actualiza la interfaz con los nuevos datos
+        } else if (!silentUpdate) {
+          console.log("No hay cambios en los datos.");
+        }
+      } catch (error) {
+        console.error("Error al cargar los datos:", error);
+      }
+    };
+
+    // Verificar y cargar datos desde el caché
+    const loadGamesFromCache = () => {
+      const cachedData = localStorage.getItem("juegosData");
+
+      if (cachedData) {
+        console.log("Cargando datos desde el caché...");
+        setGames(JSON.parse(cachedData)); // Mostrar datos antiguos de inmediato
+      }
+    };
+
+    // Cargar primero desde el caché
+    loadGamesFromCache();
+
+    // Hacer un fetch inicial para obtener datos nuevos
+    fetchGames();
+
+    // Configurar el intervalo para actualizar cada minuto
+    const intervalId = setInterval(() => {
+      fetchGames(true); // Hacer un fetch silencioso cada minuto
+    }, 60000); // 60000 ms = 1 minuto
+
+    // Limpia el intervalo al desmontar el componente
+    return () => clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     const planeoJugarGames = games.filter(
