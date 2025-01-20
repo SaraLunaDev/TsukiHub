@@ -426,19 +426,42 @@ function Inicio() {
                 </div>
                 <table>
                   <tbody>
-                    {getFilteredData("racha").map((user) => (
-                      <tr key={user.id}>
-                        <td>
-                          <img
-                            src={user.pfp}
-                            alt={user.nombre}
-                            className="profile-pic"
-                          />
-                        </td>
-                        <td>{user.nombre}</td>
-                        <td>{user.racha}</td>
-                      </tr>
-                    ))}
+                    {getFilteredData("racha")
+                      .sort((a, b) => {
+                        const rachaA =
+                          parseInt(a.racha?.replace("m_", ""), 10) || 0;
+                        const rachaB =
+                          parseInt(b.racha?.replace("m_", ""), 10) || 0;
+
+                        return rachaB - rachaA;
+                      })
+                      .map((user) => {
+                        const rachaValue = user.racha?.startsWith("m_")
+                          ? user.racha.slice(2)
+                          : user.racha;
+
+                        const isRed = user.racha?.startsWith("m_");
+
+                        return (
+                          <tr key={user.id}>
+                            <td>
+                              <img
+                                src={user.pfp}
+                                alt={user.nombre}
+                                className="profile-pic"
+                              />
+                            </td>
+                            <td>{user.nombre}</td>
+                            <td
+                              style={{
+                                color: isRed ? "red" : "inherit",
+                              }}
+                            >
+                              {rachaValue}
+                            </td>
+                          </tr>
+                        );
+                      })}
                   </tbody>
                 </table>
               </div>

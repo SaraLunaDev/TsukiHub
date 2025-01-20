@@ -562,3 +562,9 @@ section {
 .emotes-user-name {
   display: none;
 }
+
+.highlight-red {
+  color: rgb(117, 34, 34);
+  font-weight: bold;
+}
+
