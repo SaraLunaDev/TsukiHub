@@ -43,7 +43,18 @@ function Inicio() {
         user.nombre.toLowerCase().includes(filter[type]?.toLowerCase() || "")
     );
 
-    if (type === "emotes") {
+    if (type === "racha") {
+      // Ordenar considerando prefijos m_
+      filteredData.sort((a, b) => {
+        const aValue = a[type].startsWith("m_")
+          ? parseInt(a[type].slice(2), 10)
+          : parseInt(a[type], 10);
+        const bValue = b[type].startsWith("m_")
+          ? parseInt(b[type].slice(2), 10)
+          : parseInt(b[type], 10);
+        return bValue - aValue; // Descendente
+      });
+    } else if (type === "emotes") {
       // Filtra solo usuarios con emotes
       filteredData = filteredData.filter(
         (user) => user.emotes && user.emotes.length > 0
@@ -353,7 +364,6 @@ function Inicio() {
                     </div>
                   )}
 
-                  {/* Header "Logros" justo después de los usuarios con Platino */}
                   {key === "l_platino" && (
                     <h2 className="header-logros-global">Logros</h2>
                   )}
@@ -365,7 +375,6 @@ function Inicio() {
                       <div className="achievement-content">
                         <div className="achievement-icons">
                           <div className="achievement-row">
-                            {/* Icono del logro */}
                             <div className="achievement-icon">
                               <img
                                 src={`/static/resources/logros/${key.slice(
@@ -426,42 +435,33 @@ function Inicio() {
                 </div>
                 <table>
                   <tbody>
-                    {getFilteredData("racha")
-                      .sort((a, b) => {
-                        const rachaA =
-                          parseInt(a.racha?.replace("m_", ""), 10) || 0;
-                        const rachaB =
-                          parseInt(b.racha?.replace("m_", ""), 10) || 0;
+                    {getFilteredData("racha").map((user) => {
+                      const rachaValue = user.racha?.startsWith("m_")
+                        ? user.racha.slice(2)
+                        : user.racha;
 
-                        return rachaB - rachaA;
-                      })
-                      .map((user) => {
-                        const rachaValue = user.racha?.startsWith("m_")
-                          ? user.racha.slice(2)
-                          : user.racha;
+                      const isRed = user.racha?.startsWith("m_");
 
-                        const isRed = user.racha?.startsWith("m_");
-
-                        return (
-                          <tr key={user.id}>
-                            <td>
-                              <img
-                                src={user.pfp}
-                                alt={user.nombre}
-                                className="profile-pic"
-                              />
-                            </td>
-                            <td>{user.nombre}</td>
-                            <td
-                              style={{
-                                color: isRed ? "red" : "inherit",
-                              }}
-                            >
-                              {rachaValue}
-                            </td>
-                          </tr>
-                        );
-                      })}
+                      return (
+                        <tr key={user.id}>
+                          <td>
+                            <img
+                              src={user.pfp}
+                              alt={user.nombre}
+                              className="profile-pic"
+                            />
+                          </td>
+                          <td>{user.nombre}</td>
+                          <td
+                            style={{
+                              color: isRed ? "rgb(182, 38, 38)" : "inherit",
+                            }}
+                          >
+                            {rachaValue}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
