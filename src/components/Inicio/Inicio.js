@@ -454,7 +454,7 @@ function Inicio() {
                           <td>{user.nombre}</td>
                           <td
                             style={{
-                              color: isRed ? "rgb(182, 38, 38)" : "inherit",
+                              color: isRed ? "rgb(182, 38, 38)" : "var(--text-2)",
                             }}
                           >
                             {rachaValue}
