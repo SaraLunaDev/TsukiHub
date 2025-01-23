@@ -14,12 +14,19 @@ function Gacha() {
   const [selectedImage, setSelectedImage] = useState(null); // Almacena la imagen seleccionada
   const [loading, setLoading] = useState(true); // Estado para controlar la carga inicial
 
-  const banners = ["Dragon Ball", "Monster Hunter", "Genshin", "One Piece"];
+  const banners = [
+    "Dragon Ball",
+    "Monster Hunter",
+    "Genshin",
+    "One Piece",
+    "Dark Souls",
+  ];
   const bannerIcons = {
     "Dragon Ball": "🐲",
     "Monster Hunter": "🦖",
     Genshin: "🍙",
     "One Piece": "🌊",
+    "Dark Souls": "🔥",
   };
 
   const handleImageClick = (imageSrc) => {
@@ -82,6 +89,7 @@ function Gacha() {
     "Monster Hunter": "mh",
     Genshin: "gs",
     "One Piece": "op",
+    "Dark Souls": "ds",
   };
 
   const stars = ["5 estrellas", "4 estrellas", "3 estrellas"];
@@ -121,6 +129,9 @@ function Gacha() {
             op3: columns[11]?.trim(),
             op4: columns[12]?.trim(),
             op5: columns[13]?.trim(),
+            ds3: columns[14]?.trim(),
+            ds4: columns[15]?.trim(),
+            ds5: columns[16]?.trim(),
           };
 
           parsedData.push(userCards);
