@@ -11,8 +11,9 @@ function Gacha() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [cardsByStars, setCardsByStars] = useState({});
   const sheetUrl = process.env.REACT_APP_GACHA_SHEET_URL;
-  const [selectedImage, setSelectedImage] = useState(null); // Almacena la imagen seleccionada
   const [loading, setLoading] = useState(true); // Estado para controlar la carga inicial
+  const [selectedImage, setSelectedImage] = useState(null); // Almacena la imagen seleccionada
+  const [selectedCharacterName, setSelectedCharacterName] = useState(null);
 
   const banners = [
     "Dragon Ball",
@@ -29,8 +30,9 @@ function Gacha() {
     "Dark Souls": "🔥",
   };
 
-  const handleImageClick = (imageSrc) => {
+  const handleImageClick = (imageSrc, characterName) => {
     setSelectedImage(imageSrc);
+    setSelectedCharacterName(characterName); // Almacena el nombre del personaje
   };
 
   const getUserStats = () => {
@@ -306,7 +308,10 @@ function Gacha() {
       {selectedImage && (
         <div
           className="image-popup-overlay"
-          onClick={() => setSelectedImage(null)}
+          onClick={() => {
+            setSelectedImage(null);
+            setSelectedCharacterName(null); // Restablece el nombre del personaje al cerrar el popup
+          }}
         >
           <div
             className="image-popup-content popup-animate"
@@ -317,9 +322,15 @@ function Gacha() {
               alt="Carta seleccionada"
               className="popup-image-gacha"
             />
+            {selectedCharacterName && (
+              <p className="character-name-popup">{selectedCharacterName}</p> // Muestra el nombre del personaje
+            )}
             <button
               className="close-button"
-              onClick={() => setSelectedImage(null)}
+              onClick={() => {
+                setSelectedImage(null);
+                setSelectedCharacterName(null); // Restablece el nombre del personaje al cerrar el popup
+              }}
             >
               ✖
             </button>
@@ -408,7 +419,8 @@ function Gacha() {
                           isCardOwned
                             ? () =>
                                 handleImageClick(
-                                  `/static/resources/gacha/${bannerFolders[activeBanner]}/high/${card.id}_high.webp`
+                                  `/static/resources/gacha/${bannerFolders[activeBanner]}/high/${card.id}_high.webp`,
+                                  card.name // Pasa el nombre del personaje al hacer clic
                                 )
                             : null // No hace nada si la carta no está poseída
                         }

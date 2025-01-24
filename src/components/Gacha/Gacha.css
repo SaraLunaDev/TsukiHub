@@ -71,24 +71,20 @@
   opacity: 0.25;
 }
 
-
 .card-unowned img {
   filter: grayscale(100%) contrast(500) brightness(25%) blur(1px);
   opacity: 0.25;
 }
-
 
 .card img:hover {
   transform: scale(1.1);
   opacity: 0.5;
 }
 
-
 .card-unowned img:hover {
   transform: none;
   opacity: 0.25;
 }
-
 
 .star-section {
   padding: 20px;
@@ -185,21 +181,18 @@
   transform: scale(0.9);
   opacity: 0;
   width: 30vw; /* Ajusta el ancho del popup a un 80% del ancho de la ventana */
-  height: calc(
-    30vw * 3 / 4
-  ); /* Asegura que la altura sea proporcional al ancho con una relación 3:4 */
   max-width: 90vw;
   max-height: 90vh;
   display: flex;
+  flex-direction: column; /* Cambiar a columna para colocar imagen y texto uno debajo del otro */
   justify-content: center;
   align-items: center;
 }
 
 .popup-image-gacha {
   width: 100%;
-  height: 100%;
-  object-fit: cover; /* Esto recorta la imagen para que cubra el contenedor */
-  object-position: center; /* Esto asegura que el centro de la imagen esté siempre visible */
+  height: auto;
+  object-fit: contain;
 }
 
 /* Animación para el contenedor */
@@ -258,4 +251,14 @@
   font-size: 2em; /* Tamaño más grande para esta categoría */
   margin-bottom: 10px;
   margin-top: 10px;
+}
+
+.character-name-popup {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--text-2);
+  padding-top: 10px;
+  padding-bottom: 10px;
+  text-align: center; /* Centra el texto debajo de la imagen */
+  text-transform: capitalize; /* Opcional: para que el nombre esté en formato de título */
 }
