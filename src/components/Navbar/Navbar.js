@@ -5,6 +5,7 @@ import "./Navbar.css";
 function Navbar() {
   const [darkMode, setDarkMode] = useState(false);
 
+  // Alterna entre modo claro y oscuro
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
     document.body.classList.toggle("dark-mode");
@@ -41,7 +42,7 @@ function Navbar() {
                 ? "/static/resources/sun.png"
                 : "/static/resources/moon.png"
             }
-            alt="Toggle Dark Mode"
+            alt="Cambiar tema"
           />
         </button>
       </div>

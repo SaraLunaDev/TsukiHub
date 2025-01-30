@@ -134,19 +134,29 @@ function Pokedex() {
       return;
     }
 
-    const storedUser = localStorage.getItem("selectedUser");
+    const loadCachedData = () => {
+      const cachedData = localStorage.getItem("pokedexData");
+      if (cachedData) {
+        console.log("Cargando datos desde el caché...");
+        const parsedData = JSON.parse(cachedData);
+        setPokemonList(parsedData.pokemonList);
+        setUsers(parsedData.users);
+        return true;
+      }
+      return false;
+    };
 
-    fetch(sheetUrl)
-      .then((response) => response.text())
-      .then((data) => {
-        const rows = data.split("\n").slice(1); // Omite los headers
+    const fetchDataFromSheet = async () => {
+      try {
+        const response = await fetch(sheetUrl);
+        const data = await response.text();
+
+        const rows = data.split("\n").slice(1); // Omitir headers
         const parsedData = [];
         const userMap = new Map();
 
         rows.forEach((row) => {
           const columns = row.split(",");
-
-          // Usa índices para acceder a los datos
           const id = columns[0]?.trim();
           const nombre = columns[1]?.trim();
           const usuario = columns[2]?.trim();
@@ -188,35 +198,46 @@ function Pokedex() {
             Tipo1: tipo1,
             Tipo2: tipo2,
             Shiny: shiny,
-            stats, // Agregar las stats al objeto
+            stats,
             movimientos,
           });
 
           if (usuario && nombre) {
-            userMap.set(usuario, nombre); // Guarda el último nombre por usuario
+            userMap.set(usuario, nombre);
           }
         });
 
         setPokemonList(parsedData);
-        console.log(parsedData.map((p) => ({ id: p.id, Shiny: p.Shiny })));
 
         const uniqueUsers = Array.from(userMap.entries());
         setUsers(uniqueUsers);
 
-        // Si hay un usuario almacenado, establece el input
-        if (storedUser) {
-          const storedUserName = uniqueUsers.find(
-            ([id]) => id === storedUser
-          )?.[1];
-          if (storedUserName) setUserInput(storedUserName);
-          setUserInput(storedUserName || "");
-        } else {
-          setUserInput("");
-          setUserInput(uniqueUsers[0]?.[1] || ""); // Establece el nombre del primer usuario
-        }
-      })
-      .catch((error) => console.error("Error al cargar los datos:", error));
+        localStorage.setItem(
+          "pokedexData",
+          JSON.stringify({ pokemonList: parsedData, users: uniqueUsers })
+        );
+
+        console.log("Datos cargados y guardados en caché.");
+      } catch (error) {
+        console.error("Error al cargar los datos:", error);
+      }
+    };
+
+    if (!loadCachedData()) {
+      fetchDataFromSheet();
+    }
   }, [sheetUrl]);
+
+  // Cargar el último usuario seleccionado cuando los usuarios estén disponibles
+  useEffect(() => {
+    if (users.length > 0) {
+      const storedUserId = localStorage.getItem("selectedUser");
+      const storedUserName = users.find(([id]) => id === storedUserId)?.[1];
+      if (storedUserName) {
+        setUserInput(storedUserName);
+      }
+    }
+  }, [users]);
 
   const handleImageError = (e) => {
     // Si la imagen no se carga, revertimos a la imagen estática
@@ -227,21 +248,23 @@ function Pokedex() {
 
   const getPokemonsForGeneration = (generation, start, end) => {
     const totalSlots = 160; // Total de huecos por generación
-    const generationSize = end - start + 1; // Total de Pokémon reales en la generación
-    const emptySlots = totalSlots - generationSize; // Huecos vacíos necesarios al final
+    const generationSize = end - start + 1;
+    const userId = users.find(([id, name]) =>
+      name.toLowerCase().includes(userInput.toLowerCase())
+    )?.[0];
 
     const pokemonsInGeneration = Array.from(
       { length: totalSlots },
       (_, index) => {
-        const id = start + index; // Calcula el ID del Pokémon en esta posición
+        const id = start + index;
 
-        // Si el ID está fuera del rango de la generación, deja el hueco vacío
         if (index >= generationSize) {
           return { id: null, captured: false, shiny: false };
         }
 
-        const matchedPokemon = filteredPokemons.find(
-          (pokemon) => parseInt(pokemon.id, 10) === id
+        const matchedPokemon = pokemonList.find(
+          (pokemon) =>
+            parseInt(pokemon.id, 10) === id && pokemon.Usuario === userId
         );
 
         return {
@@ -359,6 +382,11 @@ function Pokedex() {
     });
   }, []);
 
+  useEffect(() => {
+    // Forzar re-renderización al cambiar de usuario
+    setPokemonList((prevList) => [...prevList]);
+  }, [userInput]);
+
   return (
     <div className="pokedex-container">
       <div className="pokedex-header">
@@ -466,14 +494,14 @@ function Pokedex() {
             <div className="pokemon-grid">
               {pokemons.map((pokemon, index) => (
                 <div
-                  key={index}
+                  key={`${userInput}-${index}`} // Clave única basada en el usuario actual
                   className={`pokemon-card ${
                     pokemon.id
                       ? pokemon.captured
                         ? pokemon.shiny
                           ? "shiny"
                           : "captured"
-                        : "not-captured"
+                        : "default"
                       : "empty-slot"
                   }`}
                   onMouseEnter={(e) => handleMouseEnter(e, pokemon)} // Mover el mouse sobre la tarjeta

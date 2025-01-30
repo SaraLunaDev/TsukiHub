@@ -35,7 +35,7 @@ const TTS = () => {
       .catch((error) => console.error("Error cargando datos:", error));
   }, []);
 
-  // Inserta texto en la posición del cursor en el editor
+  // Inserta texto en la posicion del cursor en el editor
   const insertTextAtCursor = (textToInsert) => {
     const editor = document.getElementById("textEditor");
     editor.focus();
@@ -82,7 +82,7 @@ const TTS = () => {
     setText(newText);
   };
 
-  // Valida y estiliza el texto según patrones
+  // Valida y estiliza el texto segun patrones
   const validateText = (text) => {
     const formattedText = text.replace(
       /\(([^():]+):\)|\(([^():]+)\)/g,
@@ -126,7 +126,7 @@ const TTS = () => {
     placeCaretAtPosition(element, cursorPosition);
   };
 
-  // Coloca el cursor en una posición específica
+  // Coloca el cursor en una posicion especifica
   const placeCaretAtPosition = (element, position) => {
     const range = document.createRange();
     const selection = window.getSelection();

@@ -63,29 +63,6 @@ function Gacha() {
   const { banner: starsLevel } = useParams();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!starsLevel) {
-      navigate(`/gacha/Dragon-Ball`); // Redirige al banner predeterminado si no hay banner en la URL
-    } else {
-      setActiveBanner(starsLevel.replace("-", " ")); // Actualiza el banner según la URL
-    }
-    setLoading(false); // Indica que la carga ha terminado
-  }, [starsLevel, navigate]);
-
-  const handleUserInputChange = (e) => {
-    const input = e.target.value;
-    setUserInput(input);
-
-    const matchedUser = users.find(([, name]) =>
-      name.toLowerCase().includes(input.toLowerCase())
-    );
-
-    if (matchedUser) {
-      const selectedUserId = matchedUser[0]; // Obtiene el ID del usuario coincidente
-      localStorage.setItem("selectedUser", selectedUserId); // Guarda el ID del usuario en localStorage
-    }
-  };
-
   const bannerFolders = {
     "Dragon Ball": "db",
     "Monster Hunter": "mh",
@@ -97,17 +74,25 @@ function Gacha() {
   const stars = ["5 estrellas", "4 estrellas", "3 estrellas"];
 
   useEffect(() => {
-    if (!sheetUrl) {
-      console.error("La URL del Google Sheet no está configurada en .env");
-      return;
-    }
+    // Cargar datos de usuarios y cartas desde caché o la fuente remota
+    const loadCachedData = () => {
+      const cachedData = localStorage.getItem("gachaData");
+      if (cachedData) {
+        console.log("Cargando datos desde el caché...");
+        const parsedData = JSON.parse(cachedData);
+        setCardData(parsedData.cardData);
+        setUsers(parsedData.users);
+        return true;
+      }
+      return false;
+    };
 
-    const storedUser = localStorage.getItem("selectedUser");
+    const fetchDataFromSheet = async () => {
+      try {
+        const response = await fetch(sheetUrl);
+        const data = await response.text();
 
-    fetch(sheetUrl)
-      .then((response) => response.text())
-      .then((data) => {
-        const rows = data.split("\n").slice(1); // Omite los headers
+        const rows = data.split("\n").slice(1);
         const parsedData = [];
         const userMap = new Map();
 
@@ -142,52 +127,62 @@ function Gacha() {
           }
         });
 
-        setCardData(parsedData);
-
         const uniqueUsers = Array.from(userMap.entries());
+        setCardData(parsedData);
         setUsers(uniqueUsers);
 
-        // Calcular el usuario con más cartas
-        const userStats = uniqueUsers.map(([userId, userName]) => {
-          const userCards = parsedData.find((data) => data.id === userId);
-          if (!userCards) return { userId, userName, totalCards: 0 };
+        localStorage.setItem(
+          "gachaData",
+          JSON.stringify({ cardData: parsedData, users: uniqueUsers })
+        );
 
-          const totalCards = Object.keys(bannerFolders).reduce(
-            (acc, banner) => {
-              stars.forEach((starLevel) => {
-                const column = `${bannerFolders[banner]}${starLevel.charAt(0)}`;
-                const cards = (userCards[column] || "")
-                  .split("/-/")
-                  .filter((card) => card.trim());
-                acc += cards.length;
-              });
-              return acc;
-            },
-            0
-          );
+        console.log("Datos cargados y guardados en caché.");
+      } catch (error) {
+        console.error("Error al cargar los datos:", error);
+      }
+    };
 
-          return { userId, userName, totalCards };
-        });
-
-        const topUser = userStats.sort(
-          (a, b) => b.totalCards - a.totalCards
-        )[0]; // Usuario con más cartas
-
-        // Establecer usuario predeterminado
-        if (storedUser) {
-          const storedUserName = uniqueUsers.find(
-            ([id]) => id.toLowerCase() === storedUser.toLowerCase()
-          )?.[1];
-          setUserInput(storedUserName || "");
-        } else if (topUser) {
-          localStorage.setItem("selectedUser", topUser.userId); // Guardar usuario con más cartas en memoria
-          setUserInput(topUser.userName); // Establecer como predeterminado
-        } else {
-          setUserInput(uniqueUsers[0]?.[1] || ""); // Si no hay usuarios, seleccionar el primero disponible
-        }
-      })
-      .catch((error) => console.error("Error al cargar los datos:", error));
+    if (!loadCachedData()) {
+      fetchDataFromSheet();
+    }
   }, [sheetUrl]);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("selectedUser");
+
+    if (storedUser) {
+      const matchingUser = users.find(([id]) => id === storedUser);
+      if (matchingUser) {
+        setUserInput(matchingUser[1]); // Establece el nombre del usuario en el input
+      }
+    } else if (users.length > 0) {
+      setUserInput(users[0][1]); // Si no hay usuario guardado, selecciona el primero
+      localStorage.setItem("selectedUser", users[0][0]); // Guarda el primer usuario por defecto
+    }
+  }, [users]);
+
+  useEffect(() => {
+    if (!starsLevel) {
+      navigate(`/gacha/Dragon-Ball`); // Redirige al banner predeterminado
+    } else {
+      setActiveBanner(starsLevel.replace("-", " "));
+    }
+    setLoading(false);
+  }, [starsLevel, navigate]);
+
+  const handleUserInputChange = (e) => {
+    const input = e.target.value;
+    setUserInput(input);
+
+    const matchedUser = users.find(([, name]) =>
+      name.toLowerCase().includes(input.toLowerCase())
+    );
+
+    if (matchedUser) {
+      const selectedUserId = matchedUser[0];
+      localStorage.setItem("selectedUser", selectedUserId);
+    }
+  };
 
   // Cargar cartas desde los CSV
   useEffect(() => {

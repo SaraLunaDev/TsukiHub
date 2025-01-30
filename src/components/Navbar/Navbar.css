@@ -1,5 +1,5 @@
 .navbar {
-  padding: 15px 0; /* Solo deja el padding vertical */
+  padding: 15px 0;
   background: var(--navbar);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: sticky;
@@ -8,20 +8,19 @@
   margin-bottom: 40px;
 }
 
-
 .navbar-container {
-  max-width: 1400px; /* Mismo ancho que .juegos-container */
-  min-width: 600px; /* Mismo ancho mínimo que .juegos-container */
-  margin: 0 auto; /* Centra el contenido */
+  max-width: 1400px;
+  min-width: 600px;
+  margin: 0 auto;
   display: flex;
-  justify-content: space-between; /* Mantén la estructura de la barra */
+  justify-content: space-between;
   align-items: center;
 }
 
 .navbar-left {
   display: flex;
   align-items: center;
-  gap: 20px; /* Espacio entre el logo y los enlaces */
+  gap: 20px;
 }
 
 .navbar-logo img {
@@ -45,7 +44,7 @@
 .navbar-links a {
   text-decoration: none;
   color: var(--text);
-  font-size: 18px; /* Tamaño del texto */
+  font-size: 18px;
   font-weight: bold;
   transition: color 0.3s ease;
 }

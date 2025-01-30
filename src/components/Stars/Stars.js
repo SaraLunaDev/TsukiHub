@@ -6,40 +6,40 @@ const starEmpty = "/static/resources/estrellas/star-empty.png";
 const starHalf = "/static/resources/estrellas/star-half.png";
 
 function Stars({ rating }) {
-  // Aseguramos que el rating esté en el rango de 0 a 5
+  // Asegura que el rating esta entre 0 y 5
   const validRating = Math.max(0, Math.min(rating, 5));
 
   const totalStars = 5;
   const fullStars = Math.floor(validRating); // Estrellas completas
-  const halfStar = validRating % 1 >= 0.5; // Si la calificación tiene medio punto
+  const halfStar = validRating % 1 >= 0.5; // Si hay media estrella
 
   return (
     <div className="stars">
-      {/* Renderizar estrellas completas */}
+      {/* Estrellas completas */}
       {Array(fullStars)
         .fill(0)
         .map((_, index) => (
           <img
             key={`filled-${index}`}
             src={starFilled}
-            alt="Full Star"
+            alt="Estrella completa"
             className="star"
           />
         ))}
 
-      {/* Renderizar una estrella medio llena */}
+      {/* Estrella media */}
       {halfStar && (
-        <img key="half" src={starHalf} alt="Half Star" className="star" />
+        <img key="half" src={starHalf} alt="Media estrella" className="star" />
       )}
 
-      {/* Renderizar estrellas vacías */}
+      {/* Estrellas vacias */}
       {Array(totalStars - fullStars - (halfStar ? 1 : 0))
         .fill(0)
         .map((_, index) => (
           <img
             key={`empty-${index}`}
             src={starEmpty}
-            alt="Empty Star"
+            alt="Estrella vacia"
             className="star"
           />
         ))}

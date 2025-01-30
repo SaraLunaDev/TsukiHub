@@ -18,7 +18,7 @@
   --background-color-filter-menu: #333;
   --text-filter-menu: #fafafa;
 
-  /* Sombras para elementos */
+  /* Sombras para elementos del tema claro */
   --box-shadow: 0 8px 10px rgba(0, 0, 0, 0.25);
   --box-shadow-2: 0 8px 10px rgba(0, 0, 0, 0.1);
   --box-shadow-3: 0 8px 10px rgba(0, 0, 0, 0.1);
@@ -28,12 +28,12 @@
   --box-shadow-inset-3: inset 0 0 2px rgb(0, 0, 0, 0.75);
   --box-shadow-inset-glow: inset 0 0 5px 1px rgb(255, 208, 0, 0.5);
 
-  /* Estilos para imagenes */
+  /* Estilos para imagenes del tema claro */
   --img-shadow-glow: drop-shadow(0 0 1px gold);
   --img-background-glow: #55553f;
   --img-border: drop-shadow(1px 1px 1px #222);
 
-  /* Otros colores */
+  /* Otros colores del tema claro */
   --selected-button-high: #55555548;
   --edit-text: #333;
   --edit-text-border: #333;
@@ -113,4 +113,10 @@ body {
 .App {
   text-align: center; /* Centrado del contenido principal */
   padding: 20px;
+}
+
+.star {
+  width: 1.2em; /* Tamaño ajustable */
+  height: auto; /* Mantener proporcion */
+  margin: 0 2px;
 }

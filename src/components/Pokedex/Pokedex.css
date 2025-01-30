@@ -61,7 +61,7 @@
   height: 95%;
   object-fit: contain;
   filter: var(--img-border);
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity 0s ease-in-out;
 }
 
 .pokemon-card img.gif {

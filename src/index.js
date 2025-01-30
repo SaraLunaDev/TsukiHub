@@ -1,12 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css"; // Estilos principales para la aplicacion
+import "./index.css"; // Estilos principales de la aplicacion
 import App from "./App"; // Componente principal de la aplicacion
 
-// Crear la raiz de React vinculada al contenedor con el id 'root'
+// Vinculacion de React con el contenedor principal en el DOM
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
-// Renderizar la aplicacion en modo estricto para destacar posibles problemas
+// Renderizado del componente raiz de la aplicacion
 root.render(
   <React.StrictMode>
     <App />
