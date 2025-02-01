@@ -44,15 +44,16 @@ function Inicio() {
     );
 
     if (type === "racha") {
-      // Ordenar considerando prefijos m_
       filteredData.sort((a, b) => {
-        const aValue = a[type].startsWith("m_")
-          ? parseInt(a[type].slice(2), 10)
-          : parseInt(a[type], 10);
-        const bValue = b[type].startsWith("m_")
-          ? parseInt(b[type].slice(2), 10)
-          : parseInt(b[type], 10);
-        return bValue - aValue; // Descendente
+        const aValue =
+          a[type].startsWith("m_") || a[type].startsWith("f_")
+            ? parseInt(a[type].slice(2), 10)
+            : parseInt(a[type], 10);
+        const bValue =
+          b[type].startsWith("m_") || b[type].startsWith("f_")
+            ? parseInt(b[type].slice(2), 10)
+            : parseInt(b[type], 10);
+        return bValue - aValue; // Orden descendente
       });
     } else if (type === "emotes") {
       // Filtra solo usuarios con emotes
@@ -436,11 +437,18 @@ function Inicio() {
                 <table>
                   <tbody>
                     {getFilteredData("racha").map((user) => {
-                      const rachaValue = user.racha?.startsWith("m_")
-                        ? user.racha.slice(2)
-                        : user.racha;
-
+                      // Eliminar prefijos y determinar el color
+                      let rachaValue = user.racha;
+                      const hasPrefix =
+                        user.racha?.startsWith("m_") ||
+                        user.racha?.startsWith("f_");
                       const isRed = user.racha?.startsWith("m_");
+                      const isBlue = user.racha?.startsWith("f_");
+
+                      // Si tiene prefijo, eliminarlo
+                      if (hasPrefix) {
+                        rachaValue = user.racha.slice(2);
+                      }
 
                       return (
                         <tr key={user.id}>
@@ -454,7 +462,11 @@ function Inicio() {
                           <td>{user.nombre}</td>
                           <td
                             style={{
-                              color: isRed ? "rgb(182, 38, 38)" : "var(--text-2)",
+                              color: isRed
+                                ? "rgb(182, 38, 38)"
+                                : isBlue
+                                ? "rgb(38, 148, 182)"
+                                : "var(--text-2)",
                             }}
                           >
                             {rachaValue}
