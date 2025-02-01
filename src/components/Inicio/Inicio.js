@@ -12,6 +12,7 @@ function Inicio() {
   });
   const [filteredData, setFilteredData] = useState({});
   const [achievementUsers, setAchievementUsers] = useState({});
+  const [hoverData, setHoverData] = useState({ message: "", position: null });
 
   const EXCLUDED_USERS = ["StreamElements", "TsukiSoft"];
 
@@ -249,6 +250,35 @@ function Inicio() {
     });
   }, [userData, filter]);
 
+  const handleRachaClick = (isRed) => {
+    if (isRed) {
+      window.location.href = "https://www.twitch.tv/tsukisoft";
+    }
+  };
+
+  const handleRachaHover = (isRed, isBlue, event) => {
+    const message = isRed
+      ? "Escribe un mensaje para mantener tu racha"
+      : isBlue
+      ? "Usaste 50 tickets para congelar tu racha"
+      : "";
+
+    if (message) {
+      const rect = event.target.getBoundingClientRect();
+      setHoverData({
+        message,
+        position: {
+          top: rect.top - 30,
+          left: rect.left + rect.width / 2,
+        },
+      });
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setHoverData({ message: "", position: null });
+  };
+
   return (
     <div className="inicio-container">
       <div className="content-section">
@@ -437,21 +467,16 @@ function Inicio() {
                 <table>
                   <tbody>
                     {getFilteredData("racha").map((user) => {
-                      // Eliminar prefijos y determinar el color
-                      let rachaValue = user.racha;
-                      const hasPrefix =
-                        user.racha?.startsWith("m_") ||
-                        user.racha?.startsWith("f_");
                       const isRed = user.racha?.startsWith("m_");
                       const isBlue = user.racha?.startsWith("f_");
-
-                      // Si tiene prefijo, eliminarlo
-                      if (hasPrefix) {
-                        rachaValue = user.racha.slice(2);
-                      }
+                      const rachaValue = user.racha.replace(/^[mf]_/, "");
 
                       return (
-                        <tr key={user.id}>
+                        <tr
+                          key={user.id}
+                          onClick={() => handleRachaClick(isRed)}
+                          style={{ cursor: isRed ? "pointer" : "default" }}
+                        >
                           <td>
                             <img
                               src={user.pfp}
@@ -468,6 +493,10 @@ function Inicio() {
                                 ? "rgb(38, 148, 182)"
                                 : "var(--text-2)",
                             }}
+                            onMouseEnter={(e) =>
+                              handleRachaHover(isRed, isBlue, e)
+                            }
+                            onMouseLeave={handleMouseLeave}
                           >
                             {rachaValue}
                           </td>
@@ -476,6 +505,18 @@ function Inicio() {
                     })}
                   </tbody>
                 </table>
+
+                {hoverData.message && hoverData.position && (
+                  <div
+                    className={`tooltip tooltip-visible`}
+                    style={{
+                      top: `${hoverData.position.top}px`,
+                      left: `${hoverData.position.left}px`,
+                    }}
+                  >
+                    {hoverData.message}
+                  </div>
+                )}
               </div>
 
               <div className="stats-section mensajes">

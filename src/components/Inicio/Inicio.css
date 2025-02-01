@@ -568,3 +568,22 @@ section {
   font-weight: bold;
 }
 
+.tooltip {
+  position: absolute;
+  background-color: var(--mid-2);
+  color: var(--text);
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  z-index: 100;
+  white-space: nowrap;
+  transform: translateX(-50%) translateY(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.tooltip-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
