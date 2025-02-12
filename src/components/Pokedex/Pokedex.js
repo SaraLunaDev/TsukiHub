@@ -141,12 +141,10 @@ function Pokedex() {
         const parsedData = JSON.parse(cachedData);
         setPokemonList(parsedData.pokemonList);
         setUsers(parsedData.users);
-        return true;
       }
-      return false;
     };
 
-    const fetchDataFromSheet = async () => {
+    const fetchDataFromSheet = async (silentUpdate = false) => {
       try {
         const response = await fetch(sheetUrl);
         const data = await response.text();
@@ -207,25 +205,40 @@ function Pokedex() {
           }
         });
 
-        setPokemonList(parsedData);
-
         const uniqueUsers = Array.from(userMap.entries());
-        setUsers(uniqueUsers);
 
-        localStorage.setItem(
-          "pokedexData",
-          JSON.stringify({ pokemonList: parsedData, users: uniqueUsers })
-        );
+        // Comparar con caché para evitar actualizaciones innecesarias
+        const cachedData = localStorage.getItem("pokedexData");
+        const newData = JSON.stringify({
+          pokemonList: parsedData,
+          users: uniqueUsers,
+        });
 
-        console.log("Datos cargados y guardados en caché.");
+        if (newData !== cachedData) {
+          console.log("Se detectaron cambios en los datos. Actualizando...");
+          localStorage.setItem("pokedexData", newData);
+          setPokemonList(parsedData);
+          setUsers(uniqueUsers);
+        } else if (!silentUpdate) {
+          console.log("No hay cambios en los datos.");
+        }
       } catch (error) {
         console.error("Error al cargar los datos:", error);
       }
     };
 
-    if (!loadCachedData()) {
-      fetchDataFromSheet();
-    }
+    // Cargar primero desde el caché
+    loadCachedData();
+
+    // Hacer una primera actualización desde el CSV
+    fetchDataFromSheet();
+
+    // Configurar actualización cada minuto
+    const intervalId = setInterval(() => {
+      fetchDataFromSheet(true);
+    }, 60000);
+
+    return () => clearInterval(intervalId); // Limpiar el intervalo al desmontar
   }, [sheetUrl]);
 
   // Cargar el último usuario seleccionado cuando los usuarios estén disponibles
