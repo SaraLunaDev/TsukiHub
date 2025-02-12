@@ -74,33 +74,20 @@ function Gacha() {
   const stars = ["5 estrellas", "4 estrellas", "3 estrellas"];
 
   useEffect(() => {
-    // Cargar datos de usuarios y cartas desde caché o la fuente remota
-    const loadCachedData = () => {
-      const cachedData = localStorage.getItem("gachaData");
-      if (cachedData) {
-        console.log("Cargando datos desde el caché...");
-        const parsedData = JSON.parse(cachedData);
-        setCardData(parsedData.cardData);
-        setUsers(parsedData.users);
-        return true;
-      }
-      return false;
-    };
-
-    const fetchDataFromSheet = async () => {
+    const fetchDataFromSheet = async (silentUpdate = false) => {
       try {
         const response = await fetch(sheetUrl);
         const data = await response.text();
-
+  
         const rows = data.split("\n").slice(1);
         const parsedData = [];
         const userMap = new Map();
-
+  
         rows.forEach((row) => {
           const columns = row.split(",");
           const id = columns[0]?.trim();
           const userName = columns[1]?.trim();
-
+  
           const userCards = {
             id,
             userName,
@@ -120,32 +107,56 @@ function Gacha() {
             op4: columns[15]?.trim(),
             op5: columns[16]?.trim(),
           };
-
+  
           parsedData.push(userCards);
           if (id && userName) {
             userMap.set(id, userName);
           }
         });
-
+  
         const uniqueUsers = Array.from(userMap.entries());
-        setCardData(parsedData);
-        setUsers(uniqueUsers);
-
-        localStorage.setItem(
-          "gachaData",
-          JSON.stringify({ cardData: parsedData, users: uniqueUsers })
-        );
-
-        console.log("Datos cargados y guardados en caché.");
+  
+        // Comparar con caché para evitar sobreescribir si no hay cambios
+        const cachedData = localStorage.getItem("gachaData");
+        const newData = JSON.stringify({ cardData: parsedData, users: uniqueUsers });
+  
+        if (newData !== cachedData) {
+          console.log("Se detectaron cambios en los datos. Actualizando...");
+          localStorage.setItem("gachaData", newData);
+          setCardData(parsedData);
+          setUsers(uniqueUsers);
+        } else if (!silentUpdate) {
+          console.log("No hay cambios en los datos.");
+        }
       } catch (error) {
         console.error("Error al cargar los datos:", error);
       }
     };
-
-    if (!loadCachedData()) {
-      fetchDataFromSheet();
-    }
+  
+    const loadCachedData = () => {
+      const cachedData = localStorage.getItem("gachaData");
+      if (cachedData) {
+        console.log("Cargando datos desde el caché...");
+        const parsedData = JSON.parse(cachedData);
+        setCardData(parsedData.cardData);
+        setUsers(parsedData.users);
+      }
+    };
+  
+    // Cargar desde caché antes de hacer la petición
+    loadCachedData();
+  
+    // Hacer una primera actualización desde el CSV
+    fetchDataFromSheet();
+  
+    // Configurar actualización cada minuto
+    const intervalId = setInterval(() => {
+      fetchDataFromSheet(true);
+    }, 60000);
+  
+    return () => clearInterval(intervalId); // Limpiar intervalo al desmontar
   }, [sheetUrl]);
+  
 
   useEffect(() => {
     const storedUser = localStorage.getItem("selectedUser");
