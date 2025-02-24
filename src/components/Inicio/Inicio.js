@@ -474,7 +474,6 @@ function Inicio() {
                       return (
                         <tr
                           key={user.id}
-                          onClick={() => handleRachaClick(isRed)}
                           style={{ cursor: isRed ? "pointer" : "default" }}
                         >
                           <td>
@@ -493,6 +492,7 @@ function Inicio() {
                                 ? "rgb(38, 148, 182)"
                                 : "var(--text-2)",
                             }}
+                            onClick={() => handleRachaClick(isRed)}
                             onMouseEnter={(e) =>
                               handleRachaHover(isRed, isBlue, e)
                             }

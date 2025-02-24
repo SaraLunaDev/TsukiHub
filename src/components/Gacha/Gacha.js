@@ -428,7 +428,11 @@ function Gacha() {
                                   `/static/resources/gacha/${bannerFolders[activeBanner]}/high/${card.id}_high.webp`,
                                   card.name // Pasa el nombre del personaje al hacer clic
                                 )
-                            : null // No hace nada si la carta no está poseída
+                            : () =>
+                              handleImageClick(
+                                `/static/resources/gacha/${bannerFolders[activeBanner]}/high/${card.id}_high.webp`,
+                                card.name // Pasa el nombre del personaje al hacer clic
+                              )
                         }
                       />
                       <span>{isCardOwned ? card.name : "???"}</span>{" "}

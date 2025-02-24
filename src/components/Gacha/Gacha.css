@@ -66,15 +66,15 @@
 .card img {
   width: 90px;
   height: 90px;
-  object-fit: cover;
+  object-fit: cover;/*
   filter: grayscale(100%);
-  opacity: 0.25;
+  opacity: 0.25;*/
 }
 
 
 .card-unowned img {
-  filter: grayscale(100%) contrast(500) brightness(25%) blur(1px);
-  opacity: 0.25;
+  /*filter: grayscale(100%) contrast(500) brightness(25%) blur(1px);
+  opacity: 0.25;*/
 }
 
 
