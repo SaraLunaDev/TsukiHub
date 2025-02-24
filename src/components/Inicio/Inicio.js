@@ -285,7 +285,7 @@ function Inicio() {
         <div className="social-and-bio">
           <div className="social-links">
             <a
-              href="https://www.youtube.com/@TsukiSoftRsb/videos"
+              href="https://www.youtube.com/@TsukiSoftYT/videos"
               target="_blank"
               rel="noopener noreferrer"
             >
