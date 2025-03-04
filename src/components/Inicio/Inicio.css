@@ -131,7 +131,8 @@ section {
 }
 
 .stats-section {
-  flex: 1; /* Esto garantiza que las tablas ocupen el mismo espacio disponible */
+  flex: 1;
+  /* Esto garantiza que las tablas ocupen el mismo espacio disponible */
   border-radius: 8px;
   padding: 15px;
 }
@@ -212,13 +213,13 @@ section {
   padding-bottom: 10px;
 }
 
-.header-platino:hover + .achievement-content .achievement-description {
+.header-platino:hover+.achievement-content .achievement-description {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
 
-.header-platino:hover + .achievement-content .achievement-icons {
+.header-platino:hover+.achievement-content .achievement-icons {
   opacity: 0;
   visibility: hidden;
   transform: translateY(20px);
@@ -494,13 +495,13 @@ section {
   gap: 6px;
 }
 
-.header-logro:hover + .achievement-content .achievement-description {
+.header-logro:hover+.achievement-content .achievement-description {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
 
-.header-logro:hover + .achievement-content .achievement-icons {
+.header-logro:hover+.achievement-content .achievement-icons {
   opacity: 0;
   visibility: hidden;
   transform: translateY(20px);
@@ -555,8 +556,10 @@ section {
 }
 
 .table-container {
-  -ms-overflow-style: none; /* Para IE y Edge */
-  scrollbar-width: none; /* Para Firefox */
+  -ms-overflow-style: none;
+  /* Para IE y Edge */
+  scrollbar-width: none;
+  /* Para Firefox */
 }
 
 .emotes-user-name {
@@ -586,4 +589,14 @@ section {
 .tooltip-visible {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+.emotes-section-table {
+  display: flex;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.emote-img {
+  flex-shrink: 0;
 }
