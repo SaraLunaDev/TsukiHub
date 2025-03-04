@@ -155,8 +155,11 @@ section {
 .stats-section th,
 .stats-section td {
   padding: 12.5px;
-  border-bottom: 1px solid var(--divider);
   font-size: 14px;
+}
+
+.stats-section tr {
+  border-bottom: 1px solid var(--divider);
 }
 
 .user-data-text {
@@ -595,8 +598,5 @@ section {
   display: flex;
   overflow: hidden;
   white-space: nowrap;
-}
-
-.emote-img {
-  flex-shrink: 0;
+  max-width: 200px;
 }
