@@ -260,3 +260,17 @@
   margin-bottom: 10px;
   margin-top: 10px;
 }
+
+.nota-text.nota-gacha {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  /* Elimina margen-bottom/margin-top si existía */
+}
+
+.nota-estrella {
+  height: 20px;
+  width: 20px;
+  margin-left: 2px;
+  vertical-align: middle;
+}

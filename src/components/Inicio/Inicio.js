@@ -2,20 +2,28 @@ import React, { useState, useEffect } from "react";
 import "./Inicio.css";
 
 function Inicio() {
+  // Estado para almacenar los datos de los usuarios
   const [userData, setUserData] = useState([]);
+  // Estado para almacenar los encabezados de la hoja
   const [headers, setHeaders] = useState([]);
+  // Estado para los filtros de búsqueda
   const [filter, setFilter] = useState({
     racha: "",
     mensajes: "",
     tickets: "",
     emotes: "",
   });
+  // Estado para los datos filtrados
   const [filteredData, setFilteredData] = useState({});
+  // Estado para los usuarios con logros
   const [achievementUsers, setAchievementUsers] = useState({});
+  // Estado para el tooltip de hover
   const [hoverData, setHoverData] = useState({ message: "", position: null });
 
-  const EXCLUDED_USERS = ["StreamElements", "TsukiSoft"];
+  // Lista de usuarios excluidos
+  const EXCLUDED_USERS = ["StreamElements", "TsukiSoft", "TsukiwiChan"];
 
+  // Calcula la edad a partir de la fecha de nacimiento
   const calculateAge = (birthDate) => {
     const today = new Date();
     const birth = new Date(birthDate);
@@ -30,20 +38,18 @@ function Inicio() {
     return age;
   };
 
+  // Edad de Sara
   const saraAge = calculateAge("2001-08-03");
 
-  // **Move the getFilteredData function here, before JSX**
+  // Devuelve los datos filtrados según el tipo
   const getFilteredData = (type) => {
     if (!userData || userData.length === 0) return [];
-
-    // Filtra por el nombre y otros filtros generales (no afectará a "emotes")
     let filteredData = userData.filter(
       (user) =>
-        user.nombre && // Asegura que user.nombre no es undefined
+        user.nombre &&
         !EXCLUDED_USERS.includes(user.nombre) &&
         user.nombre.toLowerCase().includes(filter[type]?.toLowerCase() || "")
     );
-
     if (type === "racha") {
       filteredData.sort((a, b) => {
         const aValue =
@@ -54,24 +60,20 @@ function Inicio() {
           b[type].startsWith("m_") || b[type].startsWith("f_")
             ? parseInt(b[type].slice(2), 10)
             : parseInt(b[type], 10);
-        return bValue - aValue; // Orden descendente
+        return bValue - aValue;
       });
     } else if (type === "emotes") {
-      // Filtra solo usuarios con emotes
       filteredData = filteredData.filter(
         (user) => user.emotes && user.emotes.length > 0
       );
-
-      // Ordena por la cantidad de emotes (de mayor a menor)
       filteredData.sort((a, b) => b.emotes.length - a.emotes.length);
     } else {
-      // Si no es "emotes", realiza un orden general para los otros tipos
       filteredData.sort((a, b) => b[type] - a[type]);
     }
-
     return filteredData.slice(0, 10);
   };
 
+  // Carga y cachea los datos de la hoja de Google
   useEffect(() => {
     const sheetUrl = process.env.REACT_APP_USERDATA_SHEET_URL;
 
@@ -80,9 +82,10 @@ function Inicio() {
       return;
     }
 
-    const fetchUserData = async (silentUpdate = false) => {
+    // Descarga y procesa los datos del sheet
+    const fetchUserData = async () => {
       try {
-        const response = await fetch(sheetUrl);
+        const response = await fetch(sheetUrl, { cache: "no-store" });
         const data = await response.text();
 
         const rows = data.split("\n");
@@ -136,61 +139,47 @@ function Inicio() {
           )
         );
 
-        const cachedData = localStorage.getItem("userData");
-        const cachedAchievements = localStorage.getItem("achievementUsers");
-
-        // Comparar con el caché para evitar actualizaciones innecesarias
-        if (
-          JSON.stringify(parsedData) !== cachedData ||
-          JSON.stringify(usersWithAchievements) !== cachedAchievements
-        ) {
-          console.log("Se detectaron cambios en los datos. Actualizando...");
-          localStorage.setItem("userData", JSON.stringify(parsedData));
-          localStorage.setItem(
-            "achievementUsers",
-            JSON.stringify(usersWithAchievements)
-          );
-          setUserData(parsedData);
-          setAchievementUsers(usersWithAchievements);
-          setHeaders(headerRow);
-        } else if (!silentUpdate) {
-          console.log("No hay cambios en los datos.");
-        }
+        // Guardar en cache local
+        localStorage.setItem("userData", JSON.stringify(parsedData));
+        localStorage.setItem(
+          "achievementUsers",
+          JSON.stringify(usersWithAchievements)
+        );
+        localStorage.setItem("userDataHeaders", JSON.stringify(headerRow));
+        setUserData(parsedData);
+        setAchievementUsers(usersWithAchievements);
+        setHeaders(headerRow);
       } catch (error) {
         console.error("Error al cargar los datos:", error);
       }
     };
 
+    // Carga los datos desde el caché si existen, si no, los descarga
     const loadUserDataFromCache = () => {
       const cachedData = localStorage.getItem("userData");
       const cachedAchievements = localStorage.getItem("achievementUsers");
-
-      if (cachedData && cachedAchievements) {
-        console.log("Cargando datos desde el caché...");
+      const cachedHeaders = localStorage.getItem("userDataHeaders");
+      if (cachedData && cachedAchievements && cachedHeaders) {
         setUserData(JSON.parse(cachedData));
         setAchievementUsers(JSON.parse(cachedAchievements));
+        setHeaders(JSON.parse(cachedHeaders));
+        // Siempre intenta actualizar en segundo plano
+        fetchUserData();
+      } else {
+        fetchUserData();
       }
     };
 
-    // Cargar primero desde el caché
     loadUserDataFromCache();
-
-    // Hacer un fetch inicial para obtener datos nuevos
-    fetchUserData();
-
-    // Configurar el intervalo para actualizar cada minuto
-    const intervalId = setInterval(() => {
-      fetchUserData(true); // Hacer un fetch silencioso cada minuto
-    }, 60000); // 60000 ms = 1 minuto
-
-    // Limpia el intervalo al desmontar el componente
-    return () => clearInterval(intervalId);
+    // Eliminada la actualización periódica
   }, []);
 
+  // Encabezados de logros
   const achievementHeaders = headers.filter((header) =>
     header.startsWith("l_")
   );
 
+  // Detalles de cada logro
   const achievementDetails = {
     l_platino: {
       name: "Platino",
@@ -219,17 +208,16 @@ function Inicio() {
     },
   };
 
+  // Filtra y ordena los datos según los filtros activos
   useEffect(() => {
     const filterData = (type) => {
       if (!userData || userData.length === 0) return [];
-
       let filtered = userData.filter(
         (user) =>
           user.nombre &&
           !EXCLUDED_USERS.includes(user.nombre) &&
           user.nombre.toLowerCase().includes(filter[type]?.toLowerCase() || "")
       );
-
       if (type === "emotes") {
         filtered = filtered.filter(
           (user) => user.emotes && user.emotes.length > 0
@@ -238,10 +226,8 @@ function Inicio() {
       } else {
         filtered.sort((a, b) => b[type] - a[type]);
       }
-
       return filtered.slice(0, 10);
     };
-
     setFilteredData({
       racha: filterData("racha"),
       mensajes: filterData("mensajes"),
@@ -250,12 +236,14 @@ function Inicio() {
     });
   }, [userData, filter]);
 
+  // Redirige a Twitch si se hace clic en una racha roja
   const handleRachaClick = (isRed) => {
     if (isRed) {
       window.location.href = "https://www.twitch.tv/tsukisoft";
     }
   };
 
+  // Muestra el tooltip al hacer hover sobre la racha
   const handleRachaHover = (isRed, isBlue, event) => {
     const message = isRed
       ? "Escribe un mensaje para mantener tu racha"
@@ -275,10 +263,20 @@ function Inicio() {
     }
   };
 
+  // Oculta el tooltip al salir del hover
   const handleMouseLeave = () => {
     setHoverData({ message: "", position: null });
   };
 
+  // Calcula el margen de superposición dinámico solo si es necesario
+  const getUserIconOverlap = (userCount, iconSize = 40, maxWidth = 220) => {
+    if (userCount * iconSize <= maxWidth) return null; // No solapar si caben
+    // Calcular el margen negativo necesario para que todos quepan en maxWidth
+    const overlap = (maxWidth - iconSize) / (userCount - 1) - iconSize;
+    return `${overlap}px`;
+  };
+
+  // Renderizado principal del componente
   return (
     <div className="inicio-container">
       <div className="content-section">
@@ -311,6 +309,13 @@ function Inicio() {
               rel="noopener noreferrer"
             >
               <img src="/static/resources/redes/bluesky.png" alt="Bluesky" />
+            </a>
+            <a
+              href="https://x.com/TsukiSoft"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img src="/static/resources/redes/x.png" alt="Twitter" />
             </a>
             <a
               href="https://www.instagram.com/tsukisoft_/"
@@ -352,7 +357,15 @@ function Inicio() {
         <div className="achievements-section">
           <div className="achievements-container">
             {Object.entries(achievementDetails).map(([key, details]) => {
-              const users = achievementUsers[key] || [];
+              // Filtrar usuarios excluidos de los logros
+              const users = (achievementUsers[key] || []).filter(
+                (user) => user.nombre && !EXCLUDED_USERS.includes(user.nombre)
+              );
+              const overlapValue = getUserIconOverlap(users.length);
+              const overlapClass = overlapValue ? " overlap" : "";
+              const overlapStyle = overlapValue
+                ? { "--user-icon-overlap": overlapValue }
+                : {};
               return (
                 <React.Fragment key={key}>
                   {/* Sección de Platino */}
@@ -374,7 +387,10 @@ function Inicio() {
                             </div>
 
                             {/* Usuarios con el logro Platino */}
-                            <div className="achievement-users">
+                            <div
+                              className={`achievement-users${overlapClass}`}
+                              style={overlapStyle}
+                            >
                               {users.map((user) => (
                                 <div className="user-icon" key={user.id}>
                                   <img
@@ -417,7 +433,10 @@ function Inicio() {
                             </div>
 
                             {/* Usuarios con el logro */}
-                            <div className="achievement-users">
+                            <div
+                              className={`achievement-users${overlapClass}`}
+                              style={overlapStyle}
+                            >
                               {users.map((user) => (
                                 <div className="user-icon" key={user.id}>
                                   <img

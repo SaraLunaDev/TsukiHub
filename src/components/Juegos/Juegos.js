@@ -1,138 +1,153 @@
 import React, { useState, useEffect, useRef } from "react";
 
 import "./Juegos.css";
-import Stars from "../Stars/Stars";
-import StarsLeft from "../Stars Left/Stars";
 
 function Juegos() {
+  // Estado principal: lista de todos los juegos
   const [games, setGames] = useState([]);
-  // Separar juegos por estado
+  // Listas separadas por estado del juego
   const [jugando, setJugando] = useState([]);
   const [planeoJugar, setPlaneoJugar] = useState([]);
   const [pasado, setPasado] = useState([]);
+  // Controla la visibilidad de los filtros
   const [filterVisible, setFilterVisible] = useState(null);
-  const [filteredGames, setFilteredGames] = useState([]); // Juegos filtrados por búsqueda
+  // Lista de juegos filtrados por búsqueda
+  const [filteredGames, setFilteredGames] = useState([]);
+  // Consulta de búsqueda
   const [searchQuery, setSearchQuery] = useState("");
+  // Copia original de "planeo jugar" para restaurar si es necesario
   const [originalPlaneoJugar, setOriginalPlaneoJugar] = useState([]);
+  // Filtros activos para cada categoría
   const [activeFilters, setActiveFilters] = useState({
-    jugando: "name-asc", // Por nombre ascendente
-    planeoJugar: "recently-added", // Por último añadido
-    pasado: "date-desc", // Por fecha descendente
+    jugando: "name-asc",
+    planeoJugar: "recently-added",
+    pasado: "date-desc",
   });
+  // Juegos visibles en el carrusel de "planeo jugar"
   const [visibleGames, setVisibleGames] = useState([]);
+  // Índice de inicio para el carrusel
   const [startIndex, setStartIndex] = useState(0);
+  // Referencia al contenedor del carrusel
   const containerRef = useRef(null);
+  // Página actual de la paginación de "pasado"
   const [currentPage, setCurrentPage] = useState(1);
-  const gamesPerPage = 18; // Número máximo de juegos por página
+  // Número máximo de juegos por página
+  const gamesPerPage = 18;
+  // Juego seleccionado para mostrar en el popup
   const [selectedGame, setSelectedGame] = useState(null);
 
+  // Maneja el click en un juego para mostrar el popup
   const handleGameClick = (game) => {
-    setSelectedGame(game); // Guarda el juego seleccionado y muestra el popup
+    setSelectedGame(game);
   };
 
+  // Cierra el popup de detalles
   const closePopup = () => {
-    setSelectedGame(null); // Cierra el popup
+    setSelectedGame(null);
   };
 
+  // Normaliza cadenas para búsquedas (elimina acentos y caracteres especiales)
   const normalizeString = (str) => {
     return str
-      .normalize("NFD") // Descompone los caracteres acentuados
-      .replace(/[\u0300-\u036f]/g, "") // Elimina las marcas de acento
-      .replace(/[^a-zA-Z0-9]/g, "") // Elimina cualquier carácter no alfanumérico
-      .toLowerCase(); // Convierte a minúsculas
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .toLowerCase();
   };
 
-  // Calcular los juegos a mostrar en la página actual
+  // Obtiene los juegos a mostrar en la página actual de "pasado"
   const paginatedGames = filteredGames.slice(
     (currentPage - 1) * gamesPerPage,
     currentPage * gamesPerPage
   );
 
-  // Calcular el número total de páginas basado en los juegos filtrados
+  // Calcula el número total de páginas para la paginación
   const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
 
+  // Avanza a la siguiente página en la paginación
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage((prevPage) => prevPage + 1);
     }
   };
 
+  // Retrocede a la página anterior en la paginación
   const handlePreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage((prevPage) => prevPage - 1);
     }
   };
 
-  // Efecto para actualizar las páginas cuando cambia la búsqueda
+  // Reinicia la página al cambiar los juegos filtrados
   useEffect(() => {
-    setCurrentPage(1); // Reinicia a la primera página cuando se actualiza la búsqueda
+    setCurrentPage(1);
   }, [filteredGames]);
 
+  // Filtra los juegos de "pasado" según la búsqueda
   useEffect(() => {
-    const normalizedQuery = normalizeString(searchQuery); // Normaliza la búsqueda
-    const filtered = pasado.filter(
-      (game) => normalizeString(game.nombre).includes(normalizedQuery) // Normaliza el nombre del juego
+    const normalizedQuery = normalizeString(searchQuery);
+    const filtered = pasado.filter((game) =>
+      normalizeString(game.nombre).includes(normalizedQuery)
     );
     setFilteredGames(filtered);
-    setCurrentPage(1); // Resetear a la primera página
+    setCurrentPage(1);
   }, [searchQuery, pasado]);
 
+  // Calcula cuántos juegos mostrar en el carrusel de "planeo jugar" según el ancho
   const calculateVisibleGames = () => {
     if (containerRef.current) {
-      const containerWidth = containerRef.current.offsetWidth; // Ancho del contenedor
-      const gameWidth = 210; // Ancho estimado de cada tarjeta (ajusta según diseño)
-      const maxVisible = Math.floor(containerWidth / gameWidth); // Máximo número de juegos visibles
-      setVisibleGames(
-        planeoJugar.slice(startIndex, startIndex + maxVisible) // Ajusta los juegos visibles
-      );
+      const containerWidth = containerRef.current.offsetWidth;
+      const gameWidth = 210;
+      const maxVisible = Math.floor(containerWidth / gameWidth);
+      setVisibleGames(planeoJugar.slice(startIndex, startIndex + maxVisible));
     }
   };
 
+  // Recalcula los juegos visibles al cambiar el tamaño de la ventana o el índice
   useEffect(() => {
-    // Recalcular al cargar juegos o cambiar el tamaño de la ventana
     calculateVisibleGames();
     window.addEventListener("resize", calculateVisibleGames);
     return () => window.removeEventListener("resize", calculateVisibleGames);
   }, [startIndex, planeoJugar]);
 
+  // Avanza el carrusel de "planeo jugar"
   const handleNext = () => {
     if (startIndex + visibleGames.length < planeoJugar.length) {
       setStartIndex((prev) => prev + 1);
     }
   };
 
+  // Retrocede el carrusel de "planeo jugar"
   const handlePrevious = () => {
     if (startIndex > 0) {
       setStartIndex((prev) => prev - 1);
     }
   };
 
-  // URL del Google Sheet en formato CSV
+  // URL del Google Sheet (debe estar en .env)
   const sheetUrl = process.env.REACT_APP_JUEGOS_SHEET_URL;
 
+  // Carga y cachea los datos de Google Sheet
   useEffect(() => {
     const sheetUrl = process.env.REACT_APP_JUEGOS_SHEET_URL;
-
     if (!sheetUrl) {
       console.error("La URL del Google Sheet no está configurada en .env");
       return;
     }
-
-    // Función para cargar datos desde Google Sheet
+    // Descarga y procesa los datos del sheet
     const fetchGames = async (silentUpdate = false) => {
       try {
         const response = await fetch(sheetUrl);
         const data = await response.text();
-
         const rows = data.split("\n");
         const parsedData = rows.slice(1).map((row) => {
           const [
             nombre,
             estado,
             youtube,
-            twitch,
             nota,
             horas,
+            plataforma,
             fecha,
             caratula,
             fechaLanzamiento,
@@ -141,14 +156,16 @@ function Juegos() {
             resumen,
             desarrolladores,
             publicadores,
+            id,
+            votos,
           ] = row.split(",");
           return {
             nombre: nombre?.trim(),
             estado: estado?.trim().toLowerCase(),
             youtube: youtube?.trim(),
-            twitch: twitch?.trim(),
             nota: nota?.trim(),
             horas: horas?.trim(),
+            plataforma: plataforma?.trim(),
             fecha: fecha?.trim(),
             caratula: caratula?.trim(),
             "Fecha de Lanzamiento": fechaLanzamiento?.trim(),
@@ -159,48 +176,33 @@ function Juegos() {
             publicadores: publicadores?.trim(),
           };
         });
-
         const cachedData = localStorage.getItem("juegosData");
         const cachedParsedData = cachedData ? JSON.parse(cachedData) : null;
-
-        // Compara si los nuevos datos son diferentes a los del caché
         if (JSON.stringify(parsedData) !== JSON.stringify(cachedParsedData)) {
-          console.log("Se detectaron cambios en los datos. Actualizando...");
           localStorage.setItem("juegosData", JSON.stringify(parsedData));
-          setGames(parsedData); // Actualiza la interfaz con los nuevos datos
-        } else if (!silentUpdate) {
-          console.log("No hay cambios en los datos.");
+          setGames(parsedData);
         }
       } catch (error) {
         console.error("Error al cargar los datos:", error);
       }
     };
-
-    // Verificar y cargar datos desde el caché
+    // Carga los datos desde el caché si existen
     const loadGamesFromCache = () => {
       const cachedData = localStorage.getItem("juegosData");
-
       if (cachedData) {
-        console.log("Cargando datos desde el caché...");
-        setGames(JSON.parse(cachedData)); // Mostrar datos antiguos de inmediato
+        setGames(JSON.parse(cachedData));
       }
     };
-
-    // Cargar primero desde el caché
     loadGamesFromCache();
-
-    // Hacer un fetch inicial para obtener datos nuevos
     fetchGames();
-
-    // Configurar el intervalo para actualizar cada minuto
+    // Actualiza los datos cada minuto
     const intervalId = setInterval(() => {
-      fetchGames(true); // Hacer un fetch silencioso cada minuto
-    }, 60000); // 60000 ms = 1 minuto
-
-    // Limpia el intervalo al desmontar el componente
+      fetchGames(true);
+    }, 60000);
     return () => clearInterval(intervalId);
   }, []);
 
+  // Separa los juegos en "planeo jugar" al cargar datos
   useEffect(() => {
     const planeoJugarGames = games.filter(
       (game) => game.estado === "planeo jugar"
@@ -209,6 +211,7 @@ function Juegos() {
     setOriginalPlaneoJugar(planeoJugarGames);
   }, [games]);
 
+  // Separa y ordena los juegos en "jugando", "planeo jugar" y "pasado/dropeado"
   useEffect(() => {
     setJugando(
       sortByName(
@@ -223,12 +226,15 @@ function Juegos() {
     );
     setPasado(
       sortByDate(
-        games.filter((game) => game.estado === "pasado"),
+        games.filter(
+          (game) => game.estado === "pasado" || game.estado === "dropeado"
+        ),
         false
       )
     );
   }, [games]);
 
+  // Ordena una lista de juegos por nombre
   const sortByName = (list, ascending = true) => {
     return [...list].sort((a, b) =>
       ascending
@@ -237,10 +243,12 @@ function Juegos() {
     );
   };
 
+  // Devuelve la lista tal cual (para "recientemente añadidos")
   const sortByRecentlyAdded = (list) => {
     return [...list];
   };
 
+  // Ordena una lista de juegos por fecha
   const sortByDate = (list, ascending = true) => {
     const parseDate = (dateStr) => {
       const [day, month, year] = dateStr
@@ -248,7 +256,6 @@ function Juegos() {
         .map((num) => parseInt(num, 10));
       return new Date(year, month - 1, day);
     };
-
     return [...list].sort((a, b) =>
       ascending
         ? parseDate(a.fecha) - parseDate(b.fecha)
@@ -256,25 +263,27 @@ function Juegos() {
     );
   };
 
+  // Ordena una lista de juegos por duración
   const sortByDuration = (list, ascending = true) => {
     return [...list].sort((a, b) => {
-      const durationA = parseFloat(a.horas) || 0; // Convierte la duración a número o usa 0
+      const durationA = parseFloat(a.horas) || 0;
       const durationB = parseFloat(b.horas) || 0;
       return ascending ? durationA - durationB : durationB - durationA;
     });
   };
 
+  // Ordena una lista de juegos por nota
   const sortByRating = (list, ascending = true) => {
     return [...list].sort((a, b) => {
-      const ratingA = parseFloat(a.nota) || 0; // Convierte la nota a número o usa 0
+      const ratingA = parseFloat(a.nota) || 0;
       const ratingB = parseFloat(b.nota) || 0;
       return ascending ? ratingA - ratingB : ratingB - ratingA;
     });
   };
 
+  // Aplica el filtro seleccionado a la lista de "pasado"
   const handleFilter = (filterType, category) => {
     let sortedList;
-
     switch (filterType) {
       case "name-asc":
       case "name-desc":
@@ -295,18 +304,16 @@ function Juegos() {
       default:
         return;
     }
-
     if (category === "pasado") {
       setPasado(sortedList);
     }
-
     setActiveFilters((prev) => ({ ...prev, [category]: filterType }));
-    setCurrentPage(1); // Reinicia a la primera página al cambiar filtro
+    setCurrentPage(1);
   };
 
+  // Alterna el filtro activo para la lista de "pasado"
   const handleFilterToggle = (type) => {
     let filterType;
-
     switch (type) {
       case "name":
         filterType =
@@ -329,33 +336,323 @@ function Juegos() {
       default:
         return;
     }
-
-    handleFilter(filterType, "pasado"); // Llama al filtro con el nuevo tipo
+    handleFilter(filterType, "pasado");
   };
 
+  // Pre-carga las imágenes de carátula de la siguiente y anterior página en Juegos Jugados
+  useEffect(() => {
+    // Solo ejecuta si estamos en la sección de Juegos Jugados
+    if (!filteredGames || filteredGames.length === 0) return;
+    const preloadImages = (games) => {
+      games.forEach((game) => {
+        if (game.caratula) {
+          const img = new window.Image();
+          img.src = game.caratula;
+        }
+      });
+    };
+    // Calcula los índices de la página siguiente y anterior
+    const startNext = currentPage * gamesPerPage;
+    const endNext = startNext + gamesPerPage;
+    const startPrev = (currentPage - 2) * gamesPerPage;
+    const endPrev = startPrev + gamesPerPage;
+    // Pre-carga siguiente página
+    if (startNext < filteredGames.length) {
+      preloadImages(filteredGames.slice(startNext, endNext));
+    }
+    // Pre-carga anterior página
+    if (startPrev >= 0) {
+      preloadImages(filteredGames.slice(startPrev, endPrev));
+    }
+  }, [currentPage, filteredGames]);
+
+  // Estado para el filtro avanzado de género
+  const [selectedGenre, setSelectedGenre] = useState("");
+  // Estado para el filtro avanzado de plataforma
+  const [selectedPlatform, setSelectedPlatform] = useState("");
+  // Estado para el filtro de rango de fechas
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+
+  // Diccionario de traducción de géneros inglés -> español
+  const GENRE_TRANSLATIONS = {
+    "Role-playing (RPG)": "Rol",
+    "Turn-based strategy (TBS)": "Estrategia por turnos",
+    "Real Time Strategy (RTS)": "Estrategia tiempo real",
+    "Hack and slash/Beat 'em up": "Hack and slash",
+    "Card & Board Game": "Cartas y tablero",
+    "Point-and-click": "Point & Click",
+    Platform: "Plataformas",
+    Adventure: "Aventura",
+    Indie: "Indie",
+    Strategy: "Estrategia",
+    Puzzle: "Puzle",
+    Simulator: "Simulación",
+    Shooter: "Disparos",
+    Fighting: "Lucha",
+    Tactical: "Táctico",
+    Music: "Música",
+    Racing: "Carreras",
+    Sport: "Deportes",
+    MOBA: "MOBA",
+    "Visual Novel": "Novela visual",
+    Arcade: "Arcade",
+    "Real Time Strategy": "Estrategia en tiempo real",
+  };
+
+  // Función para traducir un género (devuelve el original si no hay traducción)
+  function translateGenre(genre) {
+    const trimmed = genre.trim();
+    return GENRE_TRANSLATIONS[trimmed] || trimmed;
+  }
+
+  // Calcula la lista única de géneros presentes en los juegos cargados
+  const getUniqueGenres = (gamesList) => {
+    const genreSet = new Set();
+    gamesList.forEach((game) => {
+      if (game.géneros) {
+        game.géneros.split("-%-").forEach((g) => {
+          const trimmed = g.trim();
+          if (trimmed) genreSet.add(trimmed);
+        });
+      }
+    });
+    return Array.from(genreSet).sort((a, b) =>
+      a.localeCompare(b, "es", { sensitivity: "base" })
+    );
+  };
+  const uniqueGenres = getUniqueGenres(games);
+  // Calcula la lista única de plataformas presentes en los juegos cargados
+  const getUniquePlatforms = (gamesList) => {
+    const platformSet = new Set();
+    gamesList.forEach((game) => {
+      if (game.plataforma) {
+        game.plataforma.split("-%-").forEach((p) => {
+          const trimmed = p.trim();
+          if (trimmed) platformSet.add(trimmed);
+        });
+      }
+    });
+    return Array.from(platformSet).sort((a, b) =>
+      a.localeCompare(b, "es", { sensitivity: "base" })
+    );
+  };
+  const uniquePlatforms = getUniquePlatforms(games);
+
+  // Filtra los juegos de "pasado" según la búsqueda y el género/plataforma seleccionados y el rango de fechas
+  useEffect(() => {
+    const normalizedQuery = normalizeString(searchQuery);
+    let filtered = pasado.filter((game) => {
+      // Filtros de texto igual que Filtros Generales
+      const nombreMatch = normalizeString(game.nombre).includes(
+        normalizedQuery
+      );
+      const notaMatch =
+        game.nota && game.nota.toLowerCase().includes(normalizedQuery);
+      const horasMatch =
+        game.horas && game.horas.toLowerCase().includes(normalizedQuery);
+      const fechaMatch =
+        game.fecha && game.fecha.toLowerCase().includes(normalizedQuery);
+      const resumenMatch =
+        game.resumen && normalizeString(game.resumen).includes(normalizedQuery);
+      // Coincide si alguno de los campos coincide
+      return (
+        nombreMatch || notaMatch || horasMatch || fechaMatch || resumenMatch
+      );
+    });
+    if (selectedGenre) {
+      filtered = filtered.filter((game) => {
+        if (!game.géneros) return false;
+        return game.géneros
+          .split("-%-")
+          .map((g) => g.trim().toLowerCase())
+          .includes(selectedGenre.trim().toLowerCase());
+      });
+    }
+    if (selectedPlatform) {
+      filtered = filtered.filter((game) => {
+        if (!game.plataforma) return false;
+        return game.plataforma
+          .split("-%-")
+          .map((p) => p.trim().toLowerCase())
+          .includes(selectedPlatform.trim().toLowerCase());
+      });
+    }
+    // Filtro por rango de fechas
+    if (dateFrom && dateTo) {
+      const from = new Date(dateFrom);
+      const to = new Date(dateTo);
+      filtered = filtered.filter((game) => {
+        if (!game.fecha) return false;
+        const [d, m, y] = game.fecha.split("/").map(Number);
+        const gameDate = new Date(y, m - 1, d);
+        return gameDate >= from && gameDate <= to;
+      });
+    }
+    setFilteredGames(filtered);
+    setCurrentPage(1);
+  }, [searchQuery, pasado, selectedGenre, selectedPlatform, dateFrom, dateTo]);
+
+  // Calcular fechas mínima y máxima de los juegos jugados
+  useEffect(() => {
+    if (pasado.length === 0) return;
+    // Encuentra la fecha más antigua y la más reciente
+    const fechas = pasado
+      .map((g) => g.fecha)
+      .filter(Boolean)
+      .map((f) => {
+        const [d, m, y] = f.split("/").map(Number);
+        return new Date(y, m - 1, d);
+      })
+      .sort((a, b) => a - b);
+    if (fechas.length > 0) {
+      const min = fechas[0];
+      const max = new Date();
+      setDateFrom(min.toISOString().slice(0, 10));
+      setDateTo(max.toISOString().slice(0, 10));
+    }
+  }, [pasado]);
+
+  // Estado para el popup de añadir recomendación
+  const [showAddPopup, setShowAddPopup] = useState(false);
+  const [searchIGDB, setSearchIGDB] = useState("");
+  const [igdbResults, setIgdbResults] = useState([]);
+  const [igdbLoading, setIgdbLoading] = useState(false);
+  const [igdbError, setIgdbError] = useState("");
+  const [selectedIGDB, setSelectedIGDB] = useState(null);
+  const [addStatus, setAddStatus] = useState(""); // Nuevo: feedback para el usuario
+
+  // Buscar en IGDB cuando cambia el input (con debounce de 5s)
+  useEffect(() => {
+    if (!showAddPopup) {
+      setIgdbResults([]);
+      setIgdbError("");
+      return;
+    }
+    if (!searchIGDB.trim()) {
+      setIgdbResults([]);
+      setIgdbError("");
+      return;
+    }
+    setIgdbLoading(true);
+    setIgdbError("");
+    setIgdbResults([]);
+    // Mostrar puntos suspensivos mientras espera
+    let loadingInterval = null;
+    let loadingDots = 0;
+    setIgdbError("Cargando");
+    loadingInterval = setInterval(() => {
+      loadingDots = (loadingDots + 1) % 4;
+      setIgdbError("Cargando" + ".".repeat(loadingDots));
+    }, 500);
+    // Debounce de 5 segundos
+    const handler = setTimeout(() => {
+      fetch("/api/igdb-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: searchIGDB }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          clearInterval(loadingInterval);
+          setIgdbError("");
+          if (data.error) {
+            setIgdbError("Error al buscar en IGDB: " + data.error);
+            setIgdbResults([]);
+          } else {
+            const results = (data.results || []).map((game) => ({
+              id: game.id,
+              name: game.name,
+              coverUrl:
+                game.cover?.url?.replace("t_thumb", "t_cover_big") ||
+                "/static/resources/default_cover.png",
+              releaseDate: game.first_release_date
+                ? new Date(game.first_release_date * 1000).toLocaleDateString()
+                : "",
+              genres: game.genres?.map((g) => g.name).join(", ") || "",
+              platforms: game.platforms?.map((p) => p.name).join(", ") || "",
+              summary: game.summary || "",
+              companies:
+                game.involved_companies
+                  ?.map((ic) => ic.company?.name)
+                  .join(", ") || "",
+              raw: game,
+            }));
+            setIgdbResults(results);
+          }
+          setIgdbLoading(false);
+        })
+        .catch(() => {
+          clearInterval(loadingInterval);
+          setIgdbError("Error al buscar en IGDB");
+          setIgdbLoading(false);
+        });
+    }, 5000);
+    return () => {
+      clearTimeout(handler);
+      clearInterval(loadingInterval);
+    };
+  }, [searchIGDB, showAddPopup]);
+
+  // Renderizado principal del componente
   return (
     <div className="juegos-container">
       <div className="categories-row">
         <section className="category-jugando">
-          <h2>Jugando</h2>
+          <h2 className="header-juegos">Jugando</h2>
           <ul>
             {jugando.map((game, index) => (
-              <li key={index} onClick={() => handleGameClick(game)}>
-                {game.caratula && (
-                  <img
-                    src={game.caratula}
-                    alt={`Carátula de ${game.nombre}`}
-                    className="game-cover"
-                  />
-                )}
-                <strong>{game.nombre}</strong>
+              <li key={index}>
+                <div className="cover-wrapper">
+                  {game.caratula && (
+                    <>
+                      <img
+                        src={game.caratula}
+                        alt={`Carátula de ${game.nombre}`}
+                        className="game-cover"
+                      />
+                      <div className="cover-gradient"></div>
+                    </>
+                  )}
+                </div>
+                <strong
+                  onClick={() => handleGameClick(game)}
+                  style={{ cursor: "pointer" }}
+                >
+                  {game.nombre}
+                </strong>
               </li>
             ))}
           </ul>
         </section>
         <section className="category-planeo-jugar">
-          <div className="category-header">
-            <h2>Planeo Jugar</h2>
+          <div
+            className="category-header"
+            style={{
+              display: "flex",
+              alignItems: "top",
+              justifyContent: "space-between",
+            }}
+          >
+            <h2 className="header-juegos">Planeo Jugar</h2>
+            {(() => {
+              let twitchUser = null;
+              try {
+                twitchUser = JSON.parse(localStorage.getItem("twitchUser"));
+              } catch {}
+              if (twitchUser && twitchUser.name) {
+                return (
+                  <button
+                    className="add-recommendation-button"
+                    onClick={() => setShowAddPopup(true)}
+                  >
+                    {" "}
+                    +
+                  </button>
+                );
+              }
+              return null;
+            })()}
           </div>
           <div className="planeo-jugar-container" ref={containerRef}>
             <button
@@ -367,15 +664,25 @@ function Juegos() {
             </button>
             <ul className="planeo-jugar-list">
               {visibleGames.map((game, index) => (
-                <li key={index} onClick={() => handleGameClick(game)}>
-                  {game.caratula && (
-                    <img
-                      src={game.caratula}
-                      alt={`Carátula de ${game.nombre}`}
-                      className="game-cover"
-                    />
-                  )}
-                  <strong>{game.nombre}</strong>
+                <li key={index}>
+                  <div className="cover-wrapper">
+                    {game.caratula && (
+                      <>
+                        <img
+                          src={game.caratula}
+                          alt={`Carátula de ${game.nombre}`}
+                          className="game-cover"
+                        />
+                        <div className="cover-gradient"></div>
+                      </>
+                    )}
+                  </div>
+                  <strong
+                    onClick={() => handleGameClick(game)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {game.nombre}
+                  </strong>
                 </li>
               ))}
             </ul>
@@ -389,7 +696,6 @@ function Juegos() {
           </div>
         </section>
       </div>
-
       <div className="juegos-wrapper">
         <div className="div-section">
           <div className="filtros-section">
@@ -408,118 +714,242 @@ function Juegos() {
               ></input>
             </div>
             <h1 className="header-filtros">Filtros Generales</h1>
-            <div className="filter-buttons">
-              <button
-                onClick={() => handleFilterToggle("name")}
-                style={{
-                  backgroundColor: activeFilters.pasado.includes("name")
-                    ? "var(--selected-button-high)"
-                    : "inherit",
-                }}
-              >
-                Nombre{" "}
-                {activeFilters.pasado === "name-asc"
-                  ? "ascendente"
-                  : "descendente"}
-              </button>
-              <button
-                onClick={() => handleFilterToggle("date")}
-                style={{
-                  backgroundColor: activeFilters.pasado.includes("date")
-                    ? "var(--selected-button-high)"
-                    : "inherit",
-                }}
-              >
-                Fecha{" "}
-                {activeFilters.pasado === "date-asc"
-                  ? "ascendente"
-                  : "descendente"}
-              </button>
-              <button
-                onClick={() => handleFilterToggle("rating")}
-                style={{
-                  backgroundColor: activeFilters.pasado.includes("rating")
-                    ? "var(--selected-button-high)"
-                    : "inherit",
-                }}
-              >
-                Nota{" "}
-                {activeFilters.pasado === "rating-asc"
-                  ? "ascendente"
-                  : "descendente"}
-              </button>
-              <button
-                onClick={() => handleFilterToggle("duration")}
-                style={{
-                  backgroundColor: activeFilters.pasado.includes("duration")
-                    ? "var(--selected-button-high)"
-                    : "inherit",
-                }}
-              >
-                Duración{" "}
-                {activeFilters.pasado === "duration-asc"
-                  ? "ascendente"
-                  : "descendente"}
-              </button>
+            <div className="filter-buttons-row">
+              <div className="filter-buttons">
+                <button
+                  onClick={() => handleFilterToggle("name")}
+                  style={{
+                    backgroundColor: activeFilters.pasado.includes("name")
+                      ? "var(--selected-button-high)"
+                      : "inherit",
+                  }}
+                >
+                  Nombre{" "}
+                  {activeFilters.pasado === "name-asc"
+                    ? "ascendente"
+                    : "descendente"}
+                </button>
+                <button
+                  onClick={() => handleFilterToggle("date")}
+                  style={{
+                    backgroundColor: activeFilters.pasado.includes("date")
+                      ? "var(--selected-button-high)"
+                      : "inherit",
+                  }}
+                >
+                  Fecha{" "}
+                  {activeFilters.pasado === "date-asc"
+                    ? "ascendente"
+                    : "descendente"}
+                </button>
+                <button
+                  onClick={() => handleFilterToggle("rating")}
+                  style={{
+                    backgroundColor: activeFilters.pasado.includes("rating")
+                      ? "var(--selected-button-high)"
+                      : "inherit",
+                  }}
+                >
+                  Nota{" "}
+                  {activeFilters.pasado === "rating-asc"
+                    ? "ascendente"
+                    : "descendente"}
+                </button>
+                <button
+                  onClick={() => handleFilterToggle("duration")}
+                  style={{
+                    backgroundColor: activeFilters.pasado.includes("duration")
+                      ? "var(--selected-button-high)"
+                      : "inherit",
+                  }}
+                >
+                  Duración{" "}
+                  {activeFilters.pasado === "duration-asc"
+                    ? "ascendente"
+                    : "descendente"}
+                </button>
+              </div>
+            </div>
+            <h1 className="header-filtros">Filtros Avanzados</h1>
+            <div className="filtros-avanzados-row">
+              <div className="filtro-avanzado-col">
+                <div className="filtro-avanzado-row">
+                  <label
+                    htmlFor="genre-select"
+                    className="label-filtro-avanzado"
+                  >
+                    Género:
+                  </label>
+                  <select
+                    id="genre-select"
+                    value={selectedGenre}
+                    onChange={(e) => setSelectedGenre(e.target.value)}
+                    className="spinner-generos"
+                  >
+                    <option value="">Todos</option>
+                    {uniqueGenres.map((genre) => (
+                      <option key={genre} value={genre}>
+                        {translateGenre(genre)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div
+                  className="filtro-avanzado-row"
+                  style={{ marginTop: "8px" }}
+                >
+                  <label
+                    htmlFor="platform-select"
+                    className="label-filtro-avanzado"
+                  >
+                    Plataforma:
+                  </label>
+                  <select
+                    id="platform-select"
+                    value={selectedPlatform}
+                    onChange={(e) => setSelectedPlatform(e.target.value)}
+                    className="spinner-generos"
+                  >
+                    <option value="">Todas</option>
+                    {uniquePlatforms.map((platform) => (
+                      <option key={platform} value={platform}>
+                        {platform}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div
+                  className="filtro-avanzado-row filtro-fechas-row"
+                  style={{
+                    marginTop: "8px",
+                    width: "100%",
+                    gap: 8,
+                    flexDirection: "column",
+                    display: "flex",
+                  }}
+                >
+                  <div className="filtro-fechas-labels">
+                    <span className="filtro-fecha-label filtro-fecha-label-desde">
+                      Desde
+                    </span>
+                    <span className="filtro-fecha-label filtro-fecha-label-hasta">
+                      Hasta
+                    </span>
+                  </div>
+                  <div className="filtro-fechas-inputs">
+                    <input
+                      type="date"
+                      id="date-from"
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="spinner-generos filtro-fecha-input"
+                    />
+                    <input
+                      type="date"
+                      id="date-to"
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="spinner-generos filtro-fecha-input"
+                      max={new Date().toISOString().slice(0, 10)}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-
         <section className="category-pasado">
-          <h2>Juegos Jugados</h2>
+          <h2 className="header-juegos">Juegos Jugados</h2>
           <ul>
-            {paginatedGames.map((game, index) => (
-              <li key={index} onClick={() => handleGameClick(game)}>
-                {game.caratula && (
-                  <img
-                    src={game.caratula}
-                    alt={`Carátula de ${game.nombre}`}
-                    className="game-cover"
-                  />
-                )}
-                <strong>{game.nombre}</strong>
-                <div className="game-extra">
-                  <Stars rating={parseFloat(game.nota)} />{" "}
-                  {/* Usa parseFloat para permitir decimales */}
-                  <div className="game-details">
-                    <span className="game-duration">
-                      {game.horas ? `⌛ ${game.horas}h` : "N/A"}
-                    </span>
-                    <span className="game-date">📆 {game.fecha}</span>
-                  </div>
-                  <div className="game-buttons">
+            {paginatedGames.map((game, index) => {
+              const showBadges =
+                (game.horas && game.horas !== "") ||
+                (game.nota && game.nota !== "");
+              return (
+                <li key={index}>
+                  {/* Badges row y línea separadora */}
+                  {showBadges && (
+                    <>
+                      <div className="badges-row">
+                        <div className="badge-duracion">
+                          {game.horas ? `⌛${game.horas}h` : ""}
+                        </div>
+                        <div className="badge-nota">
+                          {game.nota && (
+                            <>
+                              <img
+                                src="/static/resources/estrellas/star-filled.png"
+                                alt="estrella"
+                                className="nota-estrella"
+                              />
+                              {game.nota}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="linea-badges" />
+                    </>
+                  )}
+                  <div className="cover-wrapper">
+                    {game.estado === "dropeado" && (
+                      <div className="dropeado-badge">DROPEADO</div>
+                    )}
+                    {game.fecha && (
+                      <div className="game-date-hover">{game.fecha}</div>
+                    )}
+                    {game.caratula && (
+                      <>
+                        <img
+                          src={game.caratula}
+                          alt={`Carátula de ${game.nombre}`}
+                          className={`game-cover${
+                            game.youtube ? " has-youtube" : ""
+                          }`}
+                        />
+                        <div className="cover-gradient"></div>
+                      </>
+                    )}
                     {game.youtube && (
-                      <a
-                        href={game.youtube}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="game-button"
+                      <button
+                        className="play-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(
+                            game.youtube,
+                            "_blank",
+                            "noopener,noreferrer"
+                          );
+                        }}
+                        tabIndex={0}
+                        aria-label="Ver en YouTube"
                       >
-                        <img
-                          src="/static/resources/youtube-icon.png"
-                          alt="YouTube"
-                          className="game-icon"
-                        />
-                      </a>
-                    )}
-                    {game.twitch && (
-                      <a
-                        href={game.twitch}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="game-button"
-                      >
-                        <img
-                          src="/static/resources/twitch-icon.png"
-                          alt="Twitch"
-                          className="game-icon"
-                        />
-                      </a>
+                        <svg
+                          width="40"
+                          height="40"
+                          viewBox="0 0 40 40"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle
+                            cx="20"
+                            cy="20"
+                            r="20"
+                            fill="rgba(0,0,0,0.6)"
+                          />
+                          <polygon points="16,13 30,20 16,27" fill="#fff" />
+                        </svg>
+                      </button>
                     )}
                   </div>
-                </div>
-              </li>
-            ))}
+                  <strong
+                    onClick={() => handleGameClick(game)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {game.nombre}
+                  </strong>
+                </li>
+              );
+            })}
           </ul>
           <div className="pagination-container">
             <button
@@ -555,11 +985,10 @@ function Juegos() {
                   alt={`Carátula de ${selectedGame.nombre}`}
                 />
               </div>
-
               <div className="popup-info">
                 <h2>{selectedGame.nombre}</h2>
                 <div className="popup-columns">
-                  {/* Primera columna */}
+                  {/* Columna de detalles principales */}
                   <div className="game-details-column">
                     {selectedGame.estado && (
                       <p>{selectedGame.estado.toUpperCase()}</p>
@@ -575,20 +1004,16 @@ function Juegos() {
                         </a>
                       </p>
                     )}
-                    {selectedGame.twitch && (
-                      <p>
-                        <a
-                          href={selectedGame.twitch}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Twitch
-                        </a>
-                      </p>
-                    )}
                     {selectedGame.nota && (
-                      <p className="stars-popup">
-                        <StarsLeft rating={parseFloat(selectedGame.nota, 10)} />
+                      <p className="popup-rating">
+                        <img
+                          src="/static/resources/estrellas/star-filled.png"
+                          alt="estrella"
+                          className="nota-estrella"
+                        />
+                        <span className="popup-rating-text">
+                          {selectedGame.nota}
+                        </span>
                       </p>
                     )}
                     {selectedGame.horas && (
@@ -603,8 +1028,7 @@ function Juegos() {
                       </p>
                     )}
                   </div>
-
-                  {/* Segunda columna */}
+                  {/* Columna de metadatos */}
                   <div className="game-meta-column">
                     {selectedGame.desarrolladores && (
                       <p>
@@ -660,8 +1084,7 @@ function Juegos() {
                     </div>
                   </div>
                 </div>
-
-                {/* Resumen justo debajo de las columnas */}
+                {/* Resumen del juego */}
                 {selectedGame.resumen && (
                   <div className="game-summary">
                     <p>{selectedGame.resumen.replace(/-%-/g, ", ")}</p>
@@ -669,6 +1092,124 @@ function Juegos() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Popup para añadir recomendación */}
+      {showAddPopup && (
+        <div className="popup-overlay" onClick={() => setShowAddPopup(false)}>
+          <div
+            className="popup-content popup-add-recommendation"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="close-button"
+              onClick={() => setShowAddPopup(false)}
+            >
+              ✖
+            </button>
+            <h2 className="popup-add-title"></h2>
+            <div className="search-input-global popup-search-igdb">
+              <img
+                src="/static/resources/lupa.png"
+                alt="Lupa"
+                className="lupa-img"
+              />
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Buscar juego en IGDB..."
+                value={searchIGDB}
+                onChange={(e) => setSearchIGDB(e.target.value)}
+                autoFocus
+              />
+            </div>
+            {igdbLoading && (
+              <p className="popup-igdb-loading">{igdbError || "Buscando..."}</p>
+            )}
+            {igdbError && !igdbLoading && (
+              <p className="popup-igdb-error">{igdbError}</p>
+            )}
+            <div className="popup-igdb-scroll">
+              {igdbResults.map((game) => (
+                <div
+                  key={game.id}
+                  className={`igdb-result${
+                    selectedIGDB && selectedIGDB.id === game.id
+                      ? " selected"
+                      : ""
+                  }`}
+                  onClick={() => setSelectedIGDB(game)}
+                >
+                  <img
+                    src={game.coverUrl}
+                    alt={game.name}
+                    className="igdb-result-cover"
+                  />
+                  <div className="igdb-result-info">
+                    <div className="igdb-result-title">{game.name}</div>
+                    <div className="igdb-result-date">{game.releaseDate}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button
+              className="add-recommendation-confirm"
+              disabled={!selectedIGDB}
+              onClick={async () => {
+                if (!selectedIGDB) return;
+                setAddStatus("");
+                let twitchUser = null;
+                try {
+                  twitchUser = JSON.parse(localStorage.getItem("twitchUser"));
+                } catch {}
+                if (!twitchUser || !twitchUser.name) {
+                  setAddStatus(
+                    "Debes iniciar sesión con Twitch para recomendar."
+                  );
+                  return;
+                }
+                setAddStatus("Añadiendo...");
+                try {
+                  const res = await fetch("/api/add-recommendation", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      user: twitchUser.name,
+                      game: selectedIGDB.raw,
+                    }),
+                  });
+                  const data = await res.json();
+                  if (data.error) {
+                    setAddStatus("Error al añadir recomendación");
+                  } else {
+                    setAddStatus("¡Recomendación añadida!");
+                    // Actualiza la lista de juegos recomendados
+                    setTimeout(() => {
+                      setShowAddPopup(false);
+                      setSearchIGDB("");
+                      setSelectedIGDB(null);
+                      setIgdbResults([]);
+                      setAddStatus("");
+                    }, 2000);
+                  }
+                } catch (error) {
+                  setAddStatus("Error al añadir recomendación");
+                }
+              }}
+            >
+              Confirmar recomendación
+            </button>
+            {addStatus && (
+              <div
+                className={
+                  "popup-add-status " +
+                  (addStatus.startsWith("¡") ? "success" : "error")
+                }
+              >
+                {addStatus}
+              </div>
+            )}
           </div>
         </div>
       )}

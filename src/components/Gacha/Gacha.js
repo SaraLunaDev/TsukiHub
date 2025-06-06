@@ -1,20 +1,30 @@
 import React, { useState, useEffect } from "react";
-import Stars from "../Stars Left/Stars";
 import { useParams, useNavigate } from "react-router-dom";
 import "./Gacha.css";
 
 function Gacha() {
+  // Estado para almacenar los datos de cartas de todos los usuarios
   const [cardData, setCardData] = useState([]);
+  // Estado para la lista de usuarios
   const [users, setUsers] = useState([]);
+  // Estado para el banner activo
   const [activeBanner, setActiveBanner] = useState("Dragon Ball");
+  // Estado para el input de usuario
   const [userInput, setUserInput] = useState("");
+  // Estado para mostrar el popup de selección de usuario
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  // Estado para las cartas agrupadas por estrellas
   const [cardsByStars, setCardsByStars] = useState({});
+  // URL de la hoja de Google para el gacha
   const sheetUrl = process.env.REACT_APP_GACHA_SHEET_URL;
-  const [loading, setLoading] = useState(true); // Estado para controlar la carga inicial
-  const [selectedImage, setSelectedImage] = useState(null); // Almacena la imagen seleccionada
+  // Estado para controlar la carga inicial
+  const [loading, setLoading] = useState(true);
+  // Estado para la imagen seleccionada en el popup
+  const [selectedImage, setSelectedImage] = useState(null);
+  // Estado para el nombre del personaje seleccionado
   const [selectedCharacterName, setSelectedCharacterName] = useState(null);
 
+  // Lista de banners disponibles
   const banners = [
     "Dragon Ball",
     "Monster Hunter",
@@ -22,6 +32,7 @@ function Gacha() {
     "One Piece",
     "Dark Souls",
   ];
+  // Iconos para cada banner
   const bannerIcons = {
     "Dragon Ball": "🐲",
     "Monster Hunter": "🦖",
@@ -30,19 +41,18 @@ function Gacha() {
     "Dark Souls": "🔥",
   };
 
+  // Maneja el click en una imagen de carta para mostrar el popup
   const handleImageClick = (imageSrc, characterName) => {
     setSelectedImage(imageSrc);
-    setSelectedCharacterName(characterName); // Almacena el nombre del personaje
+    setSelectedCharacterName(characterName);
   };
 
+  // Devuelve las estadísticas de cartas por usuario
   const getUserStats = () => {
-    // Mapear usuarios con su conteo total de cartas
     const userStats = users.map(([userId, userName]) => {
       const userCards = cardData.find((data) => data.id === userId);
       if (!userCards) return { userId, userName, totalCards: 0 };
-
       const totalCards = Object.keys(bannerFolders).reduce((acc, banner) => {
-        // Sumar todas las cartas de este banner
         stars.forEach((starLevel) => {
           const column = `${bannerFolders[banner]}${starLevel.charAt(0)}`;
           const cards = (userCards[column] || "")
@@ -52,17 +62,17 @@ function Gacha() {
         });
         return acc;
       }, 0);
-
       return { userId, userName, totalCards };
     });
-
-    // Ordenar usuarios por número total de cartas en orden descendente
+    // Ordena por número total de cartas descendente
     return userStats.sort((a, b) => b.totalCards - a.totalCards);
   };
 
+  // Obtiene parámetros de la URL y navegación
   const { banner: starsLevel } = useParams();
   const navigate = useNavigate();
 
+  // Mapeo de banners a carpetas
   const bannerFolders = {
     "Dragon Ball": "db",
     "Monster Hunter": "mh",
@@ -70,24 +80,22 @@ function Gacha() {
     "One Piece": "op",
     "Dark Souls": "ds",
   };
-
+  // Niveles de estrellas
   const stars = ["5 estrellas", "4 estrellas", "3 estrellas"];
 
+  // Carga y cachea los datos de la hoja de Google
   useEffect(() => {
     const fetchDataFromSheet = async (silentUpdate = false) => {
       try {
         const response = await fetch(sheetUrl);
         const data = await response.text();
-  
         const rows = data.split("\n").slice(1);
         const parsedData = [];
         const userMap = new Map();
-  
         rows.forEach((row) => {
           const columns = row.split(",");
           const id = columns[0]?.trim();
           const userName = columns[1]?.trim();
-  
           const userCards = {
             id,
             userName,
@@ -107,171 +115,183 @@ function Gacha() {
             op4: columns[15]?.trim(),
             op5: columns[16]?.trim(),
           };
-  
           parsedData.push(userCards);
           if (id && userName) {
             userMap.set(id, userName);
           }
         });
-  
         const uniqueUsers = Array.from(userMap.entries());
-  
-        // Comparar con caché para evitar sobreescribir si no hay cambios
+        // Compara con caché para evitar sobreescribir si no hay cambios
         const cachedData = localStorage.getItem("gachaData");
-        const newData = JSON.stringify({ cardData: parsedData, users: uniqueUsers });
-  
+        const newData = JSON.stringify({
+          cardData: parsedData,
+          users: uniqueUsers,
+        });
         if (newData !== cachedData) {
-          console.log("Se detectaron cambios en los datos. Actualizando...");
           localStorage.setItem("gachaData", newData);
           setCardData(parsedData);
           setUsers(uniqueUsers);
-        } else if (!silentUpdate) {
-          console.log("No hay cambios en los datos.");
         }
       } catch (error) {
         console.error("Error al cargar los datos:", error);
       }
     };
-  
+    // Carga desde caché antes de hacer la petición
     const loadCachedData = () => {
       const cachedData = localStorage.getItem("gachaData");
       if (cachedData) {
-        console.log("Cargando datos desde el caché...");
         const parsedData = JSON.parse(cachedData);
         setCardData(parsedData.cardData);
         setUsers(parsedData.users);
       }
     };
-  
-    // Cargar desde caché antes de hacer la petición
     loadCachedData();
-  
-    // Hacer una primera actualización desde el CSV
     fetchDataFromSheet();
-  
-    // Configurar actualización cada minuto
+    // Actualiza cada minuto
     const intervalId = setInterval(() => {
       fetchDataFromSheet(true);
     }, 60000);
-  
-    return () => clearInterval(intervalId); // Limpiar intervalo al desmontar
+    return () => clearInterval(intervalId);
   }, [sheetUrl]);
-  
 
+  // Carga el usuario seleccionado desde localStorage o Twitch
   useEffect(() => {
-    const storedUser = localStorage.getItem("selectedUser");
-
-    if (storedUser) {
+    if (users.length > 0) {
+      // 1. Si hay usuario de Twitch logueado y está en la lista, usarlo
+      const twitchUser = (() => {
+        try {
+          return JSON.parse(localStorage.getItem("twitchUser"));
+        } catch {
+          return null;
+        }
+      })();
+      if (twitchUser && twitchUser.name) {
+        const twitchUserName = users.find(
+          ([, name]) => name.toLowerCase() === twitchUser.name.toLowerCase()
+        );
+        if (twitchUserName) {
+          setUserInput(twitchUserName[1]);
+          localStorage.setItem("selectedUser", twitchUserName[0]);
+          return;
+        }
+      }
+      // 2. Si hay usuario seleccionado en localStorage, usarlo
+      const storedUser = localStorage.getItem("selectedUser");
       const matchingUser = users.find(([id]) => id === storedUser);
       if (matchingUser) {
-        setUserInput(matchingUser[1]); // Establece el nombre del usuario en el input
+        setUserInput(matchingUser[1]);
+        return;
       }
-    } else if (users.length > 0) {
-      setUserInput(users[0][1]); // Si no hay usuario guardado, selecciona el primero
-      localStorage.setItem("selectedUser", users[0][0]); // Guarda el primer usuario por defecto
+      // 3. Si no, usar el primero
+      setUserInput(users[0][1]);
+      localStorage.setItem("selectedUser", users[0][0]);
     }
   }, [users]);
 
+  // Cambia el banner activo según la URL
   useEffect(() => {
     if (!starsLevel) {
-      navigate(`/gacha/Dragon-Ball`); // Redirige al banner predeterminado
+      navigate(`/gacha/Dragon-Ball`);
     } else {
       setActiveBanner(starsLevel.replace("-", " "));
     }
     setLoading(false);
   }, [starsLevel, navigate]);
 
+  // Maneja el cambio de input de usuario
   const handleUserInputChange = (e) => {
     const input = e.target.value;
     setUserInput(input);
-
     const matchedUser = users.find(([, name]) =>
       name.toLowerCase().includes(input.toLowerCase())
     );
-
     if (matchedUser) {
       const selectedUserId = matchedUser[0];
       localStorage.setItem("selectedUser", selectedUserId);
     }
   };
 
-  // Cargar cartas desde los CSV
+  // Carga las cartas de cada banner y las agrupa por estrellas
   useEffect(() => {
     const loadCardsByStars = async () => {
       const result = {};
-
       for (const [banner, folder] of Object.entries(bannerFolders)) {
         const response = await fetch(
           `/static/resources/gacha/${folder}/${folder}.csv`
         );
         const text = await response.text();
-
-        const rows = text.split("\n").slice(1); // Omite los headers
+        const rows = text.split("\n").slice(1);
         rows.forEach((row) => {
           const [id, name, star] = row.split(",").map((col) => col.trim());
           const starKey = `${star} estrellas`;
-
           if (!result[banner]) result[banner] = {};
           if (!result[banner][starKey]) result[banner][starKey] = [];
-
           result[banner][starKey].push({ id, name });
         });
       }
-
       setCardsByStars(result);
     };
-
     loadCardsByStars();
   }, []);
 
+  // Pre-carga las imágenes de cartas de la siguiente y anterior categoría de estrellas para el banner activo
+  useEffect(() => {
+    if (!cardsByStars[activeBanner]) return;
+    const starIndexes = stars.map((s, i) => i);
+    const currentIndex = starIndexes.find(
+      (i) => stars[i] === stars.find((s) => s === stars[0])
+    );
+    const preloadCards = (starLevel) => {
+      const cards = cardsByStars[activeBanner]?.[starLevel] || [];
+      cards.forEach((card) => {
+        const img = new window.Image();
+        img.src = `${process.env.PUBLIC_URL}/static/resources/gacha/${bannerFolders[activeBanner]}/low/${card.id}_low.webp`;
+      });
+    };
+    // Pre-carga la siguiente categoría de estrellas
+    if (cardsByStars[activeBanner][stars[1]]) preloadCards(stars[1]);
+    if (cardsByStars[activeBanner][stars[2]]) preloadCards(stars[2]);
+  }, [activeBanner, cardsByStars]);
+
+  // Devuelve las cartas del usuario para un banner y nivel de estrellas
   const getUserCards = (banner, starLevel) => {
     const storedUser = localStorage.getItem("selectedUser");
-    const searchQuery = userInput || storedUser || ""; // Prioriza el input actual, luego el usuario almacenado
-
+    const searchQuery = userInput || storedUser || "";
     const userCards = cardData.find((data) =>
       data.userName.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
     if (!userCards) {
-      console.log(`No se encontraron cartas para el usuario: ${searchQuery}`);
       return [];
     }
-
     const column = `${bannerFolders[banner]}${starLevel.charAt(0)}`;
     const rawData = userCards[column] || "";
-
-    // Dividir las cartas por "/-/" y limpiar caracteres innecesarios
     const cards = rawData
       .split("/-/")
-      .map((card) => card.trim().replace(/^"|"$/g, "")) // Elimina comillas dobles alrededor de los nombres
-      .filter((card) => card); // Elimina elementos vacíos
-
-    console.log(
-      `Cartas del usuario "${searchQuery}" para el banner "${banner}" y categoría "${starLevel}":`,
-      cards
-    );
-
+      .map((card) => card.trim().replace(/^"|"$/g, ""))
+      .filter((card) => card);
     return cards;
   };
 
+  // Alterna el popup de selección de usuario
   const togglePopup = () => {
     setIsPopupOpen((prev) => !prev);
   };
 
+  // Cambia el usuario seleccionado al hacer clic en la lista
   const handleUserClick = (userName) => {
     setUserInput(userName);
     const selectedUserId = users.find(([, name]) => name === userName)?.[0];
-    localStorage.setItem("selectedUser", selectedUserId); // Guarda el ID del usuario
+    localStorage.setItem("selectedUser", selectedUserId);
     setIsPopupOpen(false);
   };
 
+  // Renderizado principal del componente
   return (
     <div className="gacha-container">
       <div className="gacha-header">
         <div className="gacha-header-left">
           <h1>
             <span className="banner-icon">{bannerIcons[activeBanner]}</span>{" "}
-            {/* Ícono dinámico */}
             Gacha - {activeBanner} de{" "}
             <span className="user-name-gacha" onClick={togglePopup}>
               {users.find(([, name]) =>
@@ -281,20 +301,16 @@ function Gacha() {
           </h1>
         </div>
       </div>
-
       {isPopupOpen && (
         <div className="popup-overlay" onClick={togglePopup}>
-          <div
-            className="popup-content"
-            onClick={(e) => e.stopPropagation()} // Evita cerrar el popup al hacer clic en su contenido
-          >
+          <div className="popup-content" onClick={(e) => e.stopPropagation()}>
             <h2>Usuarios con más cartas</h2>
             <div className="user-list-scroll">
               {getUserStats().map((user, index) => (
                 <div
                   key={user.userId}
                   className="user-row"
-                  onClick={() => handleUserClick(user.userName)} // Cambia el usuario seleccionado al hacer clic
+                  onClick={() => handleUserClick(user.userName)}
                 >
                   <span className="user-position">{index + 1}</span>
                   <span className="user-name-popup">{user.userName}</span>
@@ -310,13 +326,12 @@ function Gacha() {
           </div>
         </div>
       )}
-
       {selectedImage && (
         <div
           className="image-popup-overlay"
           onClick={() => {
             setSelectedImage(null);
-            setSelectedCharacterName(null); // Restablece el nombre del personaje al cerrar el popup
+            setSelectedCharacterName(null);
           }}
         >
           <div
@@ -329,13 +344,13 @@ function Gacha() {
               className="popup-image-gacha"
             />
             {selectedCharacterName && (
-              <p className="character-name-popup">{selectedCharacterName}</p> // Muestra el nombre del personaje
+              <p className="character-name-popup">{selectedCharacterName}</p>
             )}
             <button
               className="close-button"
               onClick={() => {
                 setSelectedImage(null);
-                setSelectedCharacterName(null); // Restablece el nombre del personaje al cerrar el popup
+                setSelectedCharacterName(null);
               }}
             >
               ✖
@@ -343,7 +358,6 @@ function Gacha() {
           </div>
         </div>
       )}
-
       <div className="filters-container-gacha">
         <div className="user-selector">
           <div className="search-input-global">
@@ -362,7 +376,6 @@ function Gacha() {
             />
           </div>
         </div>
-
         <div className="banner-buttons">
           {banners.map((banner) => (
             <button
@@ -371,10 +384,7 @@ function Gacha() {
                 activeBanner === banner ? "active" : ""
               }`}
               onClick={() => {
-                // Primero, actualizamos el estado de activeBanner
                 setActiveBanner(banner);
-
-                // Luego, actualizamos la URL
                 navigate(`/gacha/${banner.replace(" ", "-")}`);
               }}
             >
@@ -383,24 +393,23 @@ function Gacha() {
           ))}
         </div>
       </div>
-
       <div className="banner-section">
         {stars.map((starLevel, index) => {
           const cardsInCategory = cardsByStars[activeBanner]?.[starLevel] || [];
           const userCards = getUserCards(activeBanner, starLevel);
-
           return (
             <div className="star-section" key={index}>
               <div className="star-header">
-                <Stars
-                  rating={Number(starLevel.charAt(0))}
-                  className="stars-large"
-                />
-
-                {/* Renderizar estrellas */}
+                <span className="nota-text nota-gacha">
+                  {starLevel.charAt(0)}
+                  <img
+                    src="/static/resources/estrellas/star-filled.png"
+                    alt="estrella"
+                    className="nota-estrella"
+                  />
+                </span>
                 <span className="star-count">
                   {userCards.length} / {cardsInCategory.length}{" "}
-                  {/* Mostrar conteo */}
                 </span>
               </div>
               <div className="card-grid">
@@ -409,7 +418,6 @@ function Gacha() {
                     (userCard) =>
                       userCard.toLowerCase() === card.name.toLowerCase()
                   );
-
                   return (
                     <div
                       key={card.id}
@@ -426,13 +434,12 @@ function Gacha() {
                             ? () =>
                                 handleImageClick(
                                   `/static/resources/gacha/${bannerFolders[activeBanner]}/high/${card.id}_high.webp`,
-                                  card.name // Pasa el nombre del personaje al hacer clic
+                                  card.name
                                 )
                             : () => null
                         }
                       />
                       <span>{isCardOwned ? card.name : "???"}</span>{" "}
-                      {/* Modificado aquí */}
                     </div>
                   );
                 })}

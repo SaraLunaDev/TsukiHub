@@ -1,6 +1,10 @@
+/*
+  Global base styles for the app.
+  Use CSS variables for font-family and keep selectors simple.
+*/
 body {
   margin: 0; /* Elimina el margen predeterminado del cuerpo */
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+  font-family: var(--font-main), -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif; /* Fuente principal compatible con varias plataformas */
   -webkit-font-smoothing: antialiased; /* Mejora el renderizado de fuentes en navegadores Webkit */

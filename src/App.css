@@ -1,5 +1,11 @@
+/*
+  THEME VARIABLES
+  ---------------
+  All main color, shadow, and UI variables for light and dark mode.
+  Use these for consistency and easy theme switching.
+*/
 :root {
-  /* Colores principales del tema claro */
+  /* Main Colors (Light Theme) */
   --navbar: #333;
   --dark: #222;
   --dark-2: #2a2a2a;
@@ -12,13 +18,18 @@
   --text-2: #bababa;
   --text-3: #eee;
   --text-4: #666;
+  --divider: #222;
+
+  /* Accent Colors */
   --color-dark: #ff5555;
   --color-mid: #ff8888;
   --color-clear: #ffaaaa;
+
+  /* Filter Menu */
   --background-color-filter-menu: #333;
   --text-filter-menu: #fafafa;
 
-  /* Sombras para elementos del tema claro */
+  /* Shadows */
   --box-shadow: 0 8px 10px rgba(0, 0, 0, 0.25);
   --box-shadow-2: 0 8px 10px rgba(0, 0, 0, 0.1);
   --box-shadow-3: 0 8px 10px rgba(0, 0, 0, 0.1);
@@ -28,12 +39,12 @@
   --box-shadow-inset-3: inset 0 0 2px rgb(0, 0, 0, 0.75);
   --box-shadow-inset-glow: inset 0 0 5px 1px rgb(255, 208, 0, 0.5);
 
-  /* Estilos para imagenes del tema claro */
+  /* Image Styles */
   --img-shadow-glow: drop-shadow(0 0 1px gold);
   --img-background-glow: #55553f;
   --img-border: drop-shadow(1px 1px 1px #222);
 
-  /* Otros colores del tema claro */
+  /* UI Elements */
   --selected-button-high: #55555548;
   --edit-text: #333;
   --edit-text-border: #333;
@@ -41,18 +52,17 @@
   --transparent: rgba(0, 0, 0, 0);
   --progressbar-color: #ff8888;
   --progressbar-back: #222;
-  --edittext: #3a3a3a;
   --voices: #ff8888;
   --sounds: #88c5ff;
   --button-color: #444;
   --button-color-clear: #666;
   --button-color-dark: #111;
   --textshadow: 1px 1px 2px #000000;
-  --divider: #222;
+  --font-main: "JetBrains Mono", monospace;
 }
 
 body.dark-mode {
-  /* Colores principales del tema oscuro */
+  /* Main Colors (Dark Theme) */
   --navbar: #ffffff;
   --dark: #f8f8f8;
   --dark-2: #fbfbfb;
@@ -65,13 +75,18 @@ body.dark-mode {
   --text-2: #777;
   --text-3: #eee;
   --text-4: #777;
+  --divider: #eee;
+
+  /* Accent Colors */
   --color-dark: #ff5555;
   --color-mid: #ff8888;
   --color-clear: #ffaaaa;
+
+  /* Filter Menu */
   --background-color-filter-menu: #f8f8f8;
   --text-filter-menu: #222;
 
-  /* Sombras ajustadas para el tema oscuro */
+  /* Shadows */
   --box-shadow: 0 8px 10px rgba(0, 0, 0, 0.25);
   --box-shadow-2: 0 0px 5px rgb(0, 0, 0, 0.5);
   --box-shadow-3: 0 0px 10px rgb(0, 0, 0, 0.25);
@@ -81,11 +96,11 @@ body.dark-mode {
   --box-shadow-inset-3: inset 0 0 2px rgb(0, 0, 0, 0.25);
   --box-shadow-inset-glow: inset 0 0 8px 2px rgb(168, 137, 0);
 
-  /* Estilos para imagenes en tema oscuro */
+  /* Image Styles */
   --img-shadow-glow: drop-shadow(0 0 1px rgb(155, 132, 0));
   --img-background-glow: #ffffd6;
 
-  /* Otros colores para el tema oscuro */
+  /* UI Elements */
   --selected-button-high: rgba(85, 85, 85, 0.082);
   --edit-text: #ffffff;
   --edit-text-border: #dfdfdf;
@@ -93,30 +108,29 @@ body.dark-mode {
   --transparent: rgba(0, 0, 0, 0);
   --progressbar-color: #ff8888;
   --progressbar-back: #bababa;
-  --edittext: #f8f8f8;
   --voices: #ff8888;
   --sounds: #88c5ff;
   --button-color: #fff;
   --button-color-clear: #ffffff;
   --button-color-dark: #ccc;
   --textshadow: 1px 1px 1px #ffffff00;
-  --divider: #eee;
+  --font-main: "JetBrains Mono", monospace;
 }
 
-/* Estilos generales */
+/* General Styles */
 body {
-  font-family: "JetBrains Mono", monospace; /* Tipografia principal */
+  font-family: var(--font-main);
   margin: 0;
   padding: 0;
 }
 
 .App {
-  text-align: center; /* Centrado del contenido principal */
+  text-align: center;
   padding: 20px;
 }
 
 .star {
-  width: 1.2em; /* Tamaño ajustable */
-  height: auto; /* Mantener proporcion */
+  width: 1.2em;
+  height: auto;
   margin: 0 2px;
 }

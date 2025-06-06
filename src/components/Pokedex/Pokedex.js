@@ -3,24 +3,27 @@ import { useParams, useNavigate } from "react-router-dom";
 import "./Pokedex.css";
 
 function Pokedex() {
+  // Estado para controlar el popup de selección de usuario
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  // Estado para controlar el popup de detalles de Pokémon
   const [isPopupOpenPokemon, setIsPopupOpenPokemon] = useState(false);
+  // Estado para controlar la visibilidad del GIF
   const [isGifVisible, setIsGifVisible] = useState(false);
+  // URL de la hoja de Google para la pokedex
   const sheetUrl = process.env.REACT_APP_POKEDEX_SHEET_URL;
+  // Estado para la lista de Pokémon
+  const [pokemonList, setPokemonList] = useState([]);
+  // Estado para la lista de usuarios
+  const [users, setUsers] = useState([]);
+  // Estado para el input de usuario
+  const [userInput, setUserInput] = useState("");
+  // Estado para el Pokémon seleccionado
+  const [selectedPokemon, setSelectedPokemon] = useState(null);
+  // Estado para los movimientos
+  const [moves, setMoves] = useState([]);
 
-  const getUserStats = () => {
-    const userStats = users.map(([userId, userName]) => {
-      const pokemonCount = pokemonList.filter(
-        (pokemon) => pokemon.Usuario === userId
-      ).length;
-      return { userId, userName, pokemonCount };
-    });
-
-    return userStats.sort((a, b) => b.pokemonCount - a.pokemonCount); // Orden descendente por cantidad de Pokémon
-  };
-
-  const icons = ["🌸 ", "🏯 ", "🌊 ", "🗻 ", "🏢 ", "🗼 ", "🌴 ", "🏰 ", "🥘 "];
-
+  // Regiones y nombres de regiones
+  const icons = ["🌸 ", "🏯 ", "🌊 ", "🏛️ ", "🏢 ", "🏜️ ", "🌴 ", "🏰 ", "🦘 "];
   const regions = [
     "Kanto",
     "Johto",
@@ -32,7 +35,6 @@ function Pokedex() {
     "Galar",
     "Paldea",
   ];
-
   const regionNames = [
     "Kanto",
     "Johto",
@@ -45,26 +47,22 @@ function Pokedex() {
     "Paldea",
   ];
 
-  const [pokemonList, setPokemonList] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [userInput, setUserInput] = useState("");
-  const { region } = useParams(); // Obtener el nombre de la región desde la URL
+  // Obtiene la región activa desde la URL
+  const { region } = useParams();
   const navigate = useNavigate();
-  const [selectedPokemon, setSelectedPokemon] = useState(null);
-  const [moves, setMoves] = useState([]);
-
   const activeRegion = regions.find(
     (r) => r.toLowerCase() === region?.toLowerCase()
   );
-  const activeGeneration = activeRegion ? regions.indexOf(activeRegion) + 1 : 1; // Default a Kanto si no es válido
+  const activeGeneration = activeRegion ? regions.indexOf(activeRegion) + 1 : 1;
 
+  // Redirige a Kanto si la región es inválida
   useEffect(() => {
-    // Si la región es inválida, redirige a Kanto (por defecto)
     if (activeGeneration < 1 || activeGeneration > regions.length) {
       navigate("/pokedex/kanto");
     }
   }, [activeGeneration, navigate]);
 
+  // Devuelve el rango de IDs para cada generación
   const getGeneration = (generation) => {
     const generationData = {
       1: { start: 1, end: 151 },
@@ -77,82 +75,78 @@ function Pokedex() {
       8: { start: 810, end: 905 },
       9: { start: 906, end: 1025 },
     };
-
     return generationData[generation] || { start: 0, end: 0 };
   };
 
+  // Cambia la región activa
   const handleRegionClick = (regionName) => {
-    navigate(`/pokedex/${regionName.toLowerCase()}`); // Cambia la URL al seleccionar una región
+    navigate(`/pokedex/${regionName.toLowerCase()}`);
   };
 
+  // Maneja el click en un Pokémon para mostrar el popup
   const handlePokemonClick = (pokemon) => {
-    if (!pokemon.captured) return; // No hacer clic si no está capturado
-
+    if (!pokemon.captured) return;
     const userId = users.find(([id, name]) =>
       name.toLowerCase().includes(userInput.toLowerCase())
     )?.[0];
-
     const fullPokemon = pokemonList.find(
       (p) => p.id === pokemon.id && p.Usuario === userId
     );
-
     if (fullPokemon) {
       setSelectedPokemon(fullPokemon);
       setIsPopupOpenPokemon(true);
     }
   };
 
+  // Maneja el cambio de input de usuario
   const handleUserInputChange = (e) => {
     const input = e.target.value;
     setUserInput(input);
-
-    // Si el usuario escribe un nombre válido, guárdalo en localStorage
     const matchedUser = users.find(([, name]) =>
       name.toLowerCase().includes(input.toLowerCase())
     );
     if (matchedUser) {
-      localStorage.setItem("selectedUser", matchedUser[0]); // Guarda el ID del usuario
+      localStorage.setItem("selectedUser", matchedUser[0]);
     }
   };
 
-  const filteredPokemons = pokemonList.filter(
-    (pokemon) =>
-      userInput.trim()
-        ? pokemon.Nombre?.toLowerCase().includes(userInput.toLowerCase()) // Filtra por el texto ingresado
-        : pokemon.Usuario === "173916175" // Muestra los Pokémon del usuario con ID predeterminado
+  // Filtra los Pokémon según el usuario
+  const filteredPokemons = pokemonList.filter((pokemon) =>
+    userInput.trim()
+      ? pokemon.Nombre?.toLowerCase().includes(userInput.toLowerCase())
+      : pokemon.Usuario === "173916175"
   );
 
+  // Devuelve la URL del GIF del Pokémon
   const getPokemonGifUrl = (pokemonId, shiny = false) => {
     return shiny
       ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/${pokemonId}.gif`
       : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${pokemonId}.gif`;
   };
 
+  // Carga y cachea los datos de la hoja de Google
   useEffect(() => {
     if (!sheetUrl) {
       console.error("La URL del Google Sheet no está configurada en .env");
       return;
     }
-
+    // Carga desde caché si existe
     const loadCachedData = () => {
       const cachedData = localStorage.getItem("pokedexData");
       if (cachedData) {
-        console.log("Cargando datos desde el caché...");
         const parsedData = JSON.parse(cachedData);
         setPokemonList(parsedData.pokemonList);
         setUsers(parsedData.users);
       }
     };
-
+    // Descarga y procesa los datos del sheet
     const fetchDataFromSheet = async (silentUpdate = false) => {
       try {
         const response = await fetch(sheetUrl);
         const data = await response.text();
-
-        const rows = data.split("\n").slice(1); // Omitir headers
+        const rows = data.split("\n").slice(1);
         const parsedData = [];
         const userMap = new Map();
-
         rows.forEach((row) => {
           const columns = row.split(",");
           const id = columns[0]?.trim();
@@ -180,14 +174,12 @@ function Pokedex() {
               Velocidad: columns[23]?.trim(),
             },
           };
-
           const movimientos = {
             Movimiento1: columns[6]?.trim(),
             Movimiento2: columns[7]?.trim(),
             Movimiento3: columns[8]?.trim(),
             Movimiento4: columns[9]?.trim(),
           };
-
           parsedData.push({
             id,
             Nombre: nombre,
@@ -199,87 +191,96 @@ function Pokedex() {
             stats,
             movimientos,
           });
-
           if (usuario && nombre) {
             userMap.set(usuario, nombre);
           }
         });
-
         const uniqueUsers = Array.from(userMap.entries());
-
-        // Comparar con caché para evitar actualizaciones innecesarias
+        // Compara con caché para evitar actualizaciones innecesarias
         const cachedData = localStorage.getItem("pokedexData");
         const newData = JSON.stringify({
           pokemonList: parsedData,
           users: uniqueUsers,
         });
-
         if (newData !== cachedData) {
-          console.log("Se detectaron cambios en los datos. Actualizando...");
           localStorage.setItem("pokedexData", newData);
           setPokemonList(parsedData);
           setUsers(uniqueUsers);
-        } else if (!silentUpdate) {
-          console.log("No hay cambios en los datos.");
         }
       } catch (error) {
         console.error("Error al cargar los datos:", error);
       }
     };
-
-    // Cargar primero desde el caché
     loadCachedData();
-
-    // Hacer una primera actualización desde el CSV
     fetchDataFromSheet();
-
-    // Configurar actualización cada minuto
+    // Actualiza cada minuto
     const intervalId = setInterval(() => {
       fetchDataFromSheet(true);
     }, 60000);
-
-    return () => clearInterval(intervalId); // Limpiar el intervalo al desmontar
+    return () => clearInterval(intervalId);
   }, [sheetUrl]);
 
-  // Cargar el último usuario seleccionado cuando los usuarios estén disponibles
+  // Carga el usuario seleccionado desde localStorage o Twitch
   useEffect(() => {
     if (users.length > 0) {
+      // 1. Si hay usuario de Twitch logueado y está en la lista, usarlo
+      const twitchUser = (() => {
+        try {
+          return JSON.parse(localStorage.getItem("twitchUser"));
+        } catch {
+          return null;
+        }
+      })();
+      if (twitchUser && twitchUser.name) {
+        const twitchUserName = users.find(
+          ([, name]) => name.toLowerCase() === twitchUser.name.toLowerCase()
+        );
+        if (twitchUserName) {
+          setUserInput(twitchUserName[1]);
+          localStorage.setItem("selectedUser", twitchUserName[0]);
+          return;
+        }
+      }
+      // 2. Si hay usuario seleccionado en localStorage, usarlo
       const storedUserId = localStorage.getItem("selectedUser");
       const storedUserName = users.find(([id]) => id === storedUserId)?.[1];
       if (storedUserName) {
         setUserInput(storedUserName);
+        return;
+      }
+      // 3. Si no, usar el primero
+      if (users.length > 0) {
+        setUserInput(users[0][1]);
+        localStorage.setItem("selectedUser", users[0][0]);
       }
     }
   }, [users]);
 
+  // Si la imagen GIF falla, usa la imagen estática
   const handleImageError = (e) => {
-    // Si la imagen no se carga, revertimos a la imagen estática
     e.target.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
       e.target.dataset.shiny === "true" ? "shiny/" : ""
     }${e.target.dataset.pokemonId}.png`;
   };
 
+  // Devuelve los Pokémon de una generación para el usuario actual
   const getPokemonsForGeneration = (generation, start, end) => {
-    const totalSlots = 160; // Total de huecos por generación
+    const totalSlots = 160;
     const generationSize = end - start + 1;
     const userId = users.find(([id, name]) =>
       name.toLowerCase().includes(userInput.toLowerCase())
     )?.[0];
-
     const pokemonsInGeneration = Array.from(
       { length: totalSlots },
       (_, index) => {
         const id = start + index;
-
         if (index >= generationSize) {
           return { id: null, captured: false, shiny: false };
         }
-
         const matchedPokemon = pokemonList.find(
           (pokemon) =>
             parseInt(pokemon.id, 10) === id && pokemon.Usuario === userId
         );
-
         return {
           id: id.toString(),
           captured: Boolean(matchedPokemon),
@@ -287,10 +288,8 @@ function Pokedex() {
         };
       }
     );
-
     const capturedCount = pokemonsInGeneration.filter((p) => p.captured).length;
     const shinyCount = pokemonsInGeneration.filter((p) => p.shiny).length;
-
     return {
       pokemonsInGeneration,
       capturedCount,
@@ -299,6 +298,7 @@ function Pokedex() {
     };
   };
 
+  // Obtiene los datos de la generación activa
   const { pokemonsInGeneration, capturedCount, shinyCount } =
     getPokemonsForGeneration(
       activeGeneration,
@@ -306,100 +306,143 @@ function Pokedex() {
       getGeneration(activeGeneration).end
     );
 
+  // Alterna el popup de selección de usuario
   const togglePopup = () => {
     setIsPopupOpen((prev) => !prev);
   };
 
+  // Alterna el popup de detalles de Pokémon
   const togglePopupPokemon = () => {
     setIsPopupOpenPokemon((prev) => !prev);
   };
 
-  // Manejar clic en un usuario
+  // Cambia el usuario seleccionado al hacer clic en la lista
   const handleUserClick = (userName) => {
-    setUserInput(userName); // Cambia el usuario actual
+    setUserInput(userName);
     localStorage.setItem(
       "selectedUser",
       users.find(([, name]) => name === userName)?.[0]
-    ); // Guarda el ID en localStorage
-    setIsPopupOpen(false); // Cierra el popup
+    );
+    setIsPopupOpen(false);
   };
 
-  // Función para obtener el tamaño de la imagen GIF
+  // Ajusta el tamaño del GIF al cargar
   const handleGifLoad = (e) => {
     const img = new Image();
     img.src = e.target.src;
     img.onload = () => {
-      e.target.style.width = `${img.width * 0.65}px`; // Ajusta el tamaño del GIF
+      e.target.style.width = `${img.width * 0.65}px`;
       e.target.style.height = `${img.height * 0.65}px`;
     };
   };
 
+  // Calcula el nivel a partir de la experiencia
   const calcularNivel = (experiencia) => {
     return Math.floor(Math.cbrt(experiencia));
   };
 
+  // Cambia la imagen a GIF al hacer hover
   const handleMouseEnter = (e, pokemon) => {
-    if (!pokemon.captured) return; // No hacer hover si no está capturado
-
+    if (!pokemon.captured) return;
     const img = e.currentTarget.querySelector("img");
     if (img) {
-      img.style.opacity = 0; // Solo cambiar opacidad si el Pokémon está capturado
+      img.style.opacity = 0;
       setTimeout(() => {
-        img.src = getPokemonGifUrl(pokemon.id, pokemon.shiny); // Cambia la imagen al GIF
-        img.style.opacity = 1; // Restaura la opacidad al 100%
+        img.src = getPokemonGifUrl(pokemon.id, pokemon.shiny);
+        img.style.opacity = 1;
       }, 0);
     }
   };
 
+  // Vuelve a la imagen estática al salir del hover
   const handleMouseLeave = (e, pokemon) => {
-    if (!pokemon.captured) return; // No hacer hover si no está capturado
-
+    if (!pokemon.captured) return;
     const img = e.currentTarget.querySelector("img");
     if (img) {
-      img.style.opacity = 0; // Solo cambiar opacidad si el Pokémon está capturado
+      img.style.opacity = 0;
       setTimeout(() => {
         img.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
           pokemon.shiny ? `shiny/${pokemon.id}` : pokemon.id
-        }.png`; // Cambia la imagen de vuelta a la imagen estática
-        img.style.opacity = 1; // Restaura la opacidad al 100%
+        }.png`;
+        img.style.opacity = 1;
       }, 0);
     }
   };
 
+  // Muestra el peso en kilos
   function displayWeightInKilos(weightInGrams) {
-    const weightInKilos = (weightInGrams / 10).toFixed(1); // Convierte a kilos con 2 decimales
+    const weightInKilos = (weightInGrams / 10).toFixed(1);
     return `${weightInKilos} kg`;
   }
 
+  // Carga los movimientos desde el CSV
   useEffect(() => {
-    // Cargar los movimientos desde moves.csv
     const loadMoves = async () => {
       const response = await fetch("/static/resources/pokemon/moves.csv");
       const data = await response.text();
-      const rows = data.split("\n").slice(1); // Ignorar la primera fila (cabeceras)
-
+      const rows = data.split("\n").slice(1);
       const moves = {};
-
       rows.forEach((row) => {
-        const [name, type] = row.split(","); // Asumiendo que el CSV está separado por comas
+        const [name, type] = row.split(",");
         if (name && type) {
           moves[name.trim()] = type.trim();
         }
       });
-
       return moves;
     };
-
     loadMoves().then((moves) => {
       setMoves(moves);
     });
   }, []);
 
+  // Fuerza el re-render al cambiar de usuario
   useEffect(() => {
-    // Forzar re-renderización al cambiar de usuario
     setPokemonList((prevList) => [...prevList]);
   }, [userInput]);
 
+  // Devuelve las estadísticas de Pokémon por usuario (para el ranking del popup)
+  const getUserStats = () => {
+    return users
+      .map(([userId, userName]) => {
+        const pokemonCount = pokemonList.filter(
+          (pokemon) => pokemon.Usuario === userId
+        ).length;
+        return { userId, userName, pokemonCount };
+      })
+      .sort((a, b) => b.pokemonCount - a.pokemonCount);
+  };
+
+  // Pre-carga las imágenes de los Pokémon de la generación siguiente y anterior para mejorar la fluidez
+  useEffect(() => {
+    if (!pokemonList.length || !users.length) return;
+    const userId = users.find(([id, name]) =>
+      name.toLowerCase().includes(userInput.toLowerCase())
+    )?.[0];
+    if (!userId) return;
+    const preloadGeneration = (gen) => {
+      const { start, end } = getGeneration(gen);
+      for (let i = start; i <= end; i++) {
+        const matchedPokemon = pokemonList.find(
+          (pokemon) =>
+            parseInt(pokemon.id, 10) === i && pokemon.Usuario === userId
+        );
+        if (matchedPokemon) {
+          const shiny = matchedPokemon.Shiny?.toLowerCase() === "si";
+          const url = shiny
+            ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${i}.png`
+            : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${i}.png`;
+          const img = new window.Image();
+          img.src = url;
+        }
+      }
+    };
+    // Pre-carga generación siguiente
+    if (activeGeneration < 9) preloadGeneration(activeGeneration + 1);
+    // Pre-carga generación anterior
+    if (activeGeneration > 1) preloadGeneration(activeGeneration - 1);
+  }, [activeGeneration, pokemonList, users, userInput]);
+
+  // Renderizado principal del componente
   return (
     <div className="pokedex-container">
       <div className="pokedex-header">
@@ -421,24 +464,19 @@ function Pokedex() {
               getGeneration(activeGeneration).start +
               1}
           </p>
-
           <p>Shiny: {shinyCount}</p>
         </div>
       </div>
-
       {isPopupOpen && (
         <div className="popup-overlay" onClick={togglePopup}>
-          <div
-            className="popup-content"
-            onClick={(e) => e.stopPropagation()} // Evita que el popup se cierre al hacer clic en su contenido
-          >
+          <div className="popup-content" onClick={(e) => e.stopPropagation()}>
             <h2>Usuarios con Pokémon</h2>
             <div className="user-list-scroll">
               {getUserStats().map((user, index) => (
                 <div
                   key={user.userId}
                   className="user-row"
-                  onClick={() => handleUserClick(user.userName)} // Maneja el clic
+                  onClick={() => handleUserClick(user.userName)}
                 >
                   <span className="user-position">{index + 1}</span>
                   <span className="user-name-popup">{user.userName}</span>
@@ -454,8 +492,6 @@ function Pokedex() {
           </div>
         </div>
       )}
-
-      {/* Selector de usuario */}
       <div className="filters-container">
         <div className="user-selector">
           <div className="search-input-global">
@@ -474,8 +510,6 @@ function Pokedex() {
             />
           </div>
         </div>
-
-        {/* Botones de generación */}
         <div className="generation-buttons">
           {regions.map((regionName, index) => (
             <button
@@ -490,24 +524,20 @@ function Pokedex() {
           ))}
         </div>
       </div>
-
-      {/* Pokémon divididos por generación */}
       {[...Array(9)].map((_, genIndex) => {
         if (genIndex + 1 !== activeGeneration) return null;
         const { start, end } = getGeneration(genIndex + 1);
-
         const { pokemonsInGeneration: pokemons } = getPokemonsForGeneration(
           genIndex + 1,
           start,
           end
         );
-
         return (
           <div key={genIndex} className="generation-section">
             <div className="pokemon-grid">
               {pokemons.map((pokemon, index) => (
                 <div
-                  key={`${userInput}-${index}`} // Clave única basada en el usuario actual
+                  key={`${userInput}-${index}`}
                   className={`pokemon-card ${
                     pokemon.id
                       ? pokemon.captured
@@ -517,21 +547,21 @@ function Pokedex() {
                         : "default"
                       : "empty-slot"
                   }`}
-                  onMouseEnter={(e) => handleMouseEnter(e, pokemon)} // Mover el mouse sobre la tarjeta
-                  onMouseLeave={(e) => handleMouseLeave(e, pokemon)} // Mover el mouse fuera de la tarjeta
+                  onMouseEnter={(e) => handleMouseEnter(e, pokemon)}
+                  onMouseLeave={(e) => handleMouseLeave(e, pokemon)}
                   onClick={() => handlePokemonClick(pokemon)}
                 >
                   {pokemon.id && (
                     <img
                       src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${
                         pokemon.shiny ? `shiny/${pokemon.id}` : pokemon.id
-                      }.png`} // PNG por defecto
+                      }.png`}
                       alt={`Pokemon ${pokemon.id}`}
                       data-pokemon-id={pokemon.id}
                       data-shiny={pokemon.shiny === "si"}
                       className={`pokemon-img ${isGifVisible ? "gif" : ""}`}
                       onError={handleImageError}
-                      onLoad={handleGifLoad} // Ajuste de tamaño del GIF si es necesario
+                      onLoad={handleGifLoad}
                     />
                   )}
                   {pokemon.shiny && <span className="shiny-icon">✨</span>}
@@ -541,7 +571,6 @@ function Pokedex() {
           </div>
         );
       })}
-
       {isPopupOpenPokemon && selectedPokemon && (
         <div className="popup-overlay-pokemon" onClick={togglePopupPokemon}>
           <div
@@ -653,7 +682,6 @@ function Pokedex() {
                             )}
                           </td>
                         </tr>
-                        {/* Repetir para los otros movimientos */}
                       </tbody>
                     </table>
                     <h3 className="table-header-2">Estadisticas</h3>
@@ -719,15 +747,10 @@ function Pokedex() {
                             )}
                           </td>
                         </tr>
-                        {/* Repetir para otras stats */}
                       </tbody>
                     </table>
                   </div>
                 </div>
-
-                {/* Sección izquierda */}
-
-                {/* Sección derecha */}
                 <div className="pokemon-right">
                   <div className="pokemon-gif-container">
                     <img
