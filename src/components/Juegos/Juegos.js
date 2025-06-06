@@ -647,7 +647,7 @@ function Juegos() {
                     onClick={() => setShowAddPopup(true)}
                   >
                     {" "}
-                    +
+                    + Añadir
                   </button>
                 );
               }

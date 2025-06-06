@@ -816,8 +816,8 @@ li:hover .game-cover.has-youtube {
 
 .badges-row {
   position: absolute;
-  left: -6px;
-  right: -6px;
+  left: 0px;
+  right: 0px;
   top: 0;
   bottom: auto;
   display: flex;
@@ -832,7 +832,6 @@ li:hover .game-cover.has-youtube {
   border-bottom: none;
   box-sizing: border-box;
   opacity: 0;
-  margin-top: -6px;
   color: var(--text-2);
 }
 
@@ -1104,13 +1103,14 @@ li:hover .game-cover.has-youtube {
   border: none;
   border-radius: 8px;
   font-weight: 700;
-  font-size: 17px;
+  font-size: 14px;
   letter-spacing: 0.5px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   cursor: pointer;
   padding: 4px 8px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
@@ -1151,7 +1151,6 @@ li:hover .game-cover.has-youtube {
 }
 
 .add-recommendation-button {
-  width: 26px;
   margin-top: -20px;
 }
 
@@ -1166,7 +1165,7 @@ li:hover .game-cover.has-youtube {
 .category-planeo-jugar .category-header::before {
   content: '';
   display: inline-block;
-  margin-left: 26px;
+  margin-left: 90px;
   height: 1px;
   visibility: hidden;
   pointer-events: none;
@@ -1178,7 +1177,7 @@ li:hover .game-cover.has-youtube {
   position: relative;
 }
 .category-planeo-jugar .add-recommendation-button {
-  width: 26px;
+  width: 90px;
   margin-left: 0;
   flex-shrink: 0;
 }
