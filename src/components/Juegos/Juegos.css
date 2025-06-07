@@ -190,7 +190,7 @@ body {
   border: none;
   font-size: 1.5em;
   cursor: pointer;
-  padding: 20px;
+  padding: 4px;
   color: var(--color-mid);
   transition: color 0.3s ease, transform 0.3s ease;
   text-shadow: var(--box-shadow);
@@ -290,12 +290,21 @@ body {
   transition: all 0.3s ease; /* Suaviza animaciones */
 }
 
-/* Efecto hover para todas las cartas */
+/* Efecto hover para todas las cartas - carrusel excluido para evitar conflictos de posicionamiento */
 .juegos-container li:hover,
 .planeo-jugar-list li:hover,
-.category-jugando li:hover,
-.category-planeo-jugar li:hover {
+.category-jugando li:hover {
   transform: scale(1.05); /* Aumenta ligeramente el tamaño */
+}
+
+/* Hover específico para carrusel - escala con brightness manteniendo posicionamiento */
+.category-planeo-jugar li {
+  --hover-scale: 1; /* Variable CSS para controlar escala del hover */
+}
+
+.category-planeo-jugar li:hover {
+  --hover-scale: 1.05; /* Aumenta la escala en hover */
+  filter: brightness(1.1); /* Efecto sutil adicional */
 }
 
 /* Contenedor del juego */
@@ -1165,7 +1174,7 @@ li:hover .game-cover.has-youtube {
 .category-planeo-jugar .category-header::before {
   content: '';
   display: inline-block;
-  margin-left: 90px;
+  margin-left: 140px;
   height: 1px;
   visibility: hidden;
   pointer-events: none;
@@ -1177,7 +1186,9 @@ li:hover .game-cover.has-youtube {
   position: relative;
 }
 .category-planeo-jugar .add-recommendation-button {
-  width: 90px;
+  width: 140px;
+  padding-top: 6px;
+  padding-bottom: 6px;
   margin-left: 0;
   flex-shrink: 0;
 }
@@ -1197,4 +1208,70 @@ li:hover .game-cover.has-youtube {
   }
 }
 
-/* JS/CSS hack: set --add-btn-width dynamically via JS if needed for perfect accuracy */
+/* --- Carrusel infinito Planeo Jugar --- */
+.category-planeo-jugar .planeo-jugar-list {
+  position: relative;
+  width: 900px; /* Expandido +140px total para máximo espacio (760 + 140) */
+  height: 280px; /* Altura fija para mantener el layout */
+  margin: 0 auto; /* Centrado automático */
+  padding-right: 12px;
+  overflow: visible;
+  display: block; /* Cambiar de flex a block para posicionamiento absoluto */
+}
+.category-planeo-jugar .planeo-jugar-list li {
+  position: absolute; /* Posicionamiento absoluto para control total */
+  background: var(--clear);
+  border-radius: 10px;
+  box-shadow: var(--box-shadow);
+  padding: 6px;
+  text-align: center;
+  overflow: visible;
+  width: 140px; /* Ancho fijo para cálculos */
+  height: 250px; /* Altura fija */
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
+              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.4s ease-out,
+              filter 0.4s ease-out;
+  will-change: transform, z-index, filter, opacity;
+}
+.category-planeo-jugar .planeo-jugar-list li.carrusel-center {
+  box-shadow: 0 8px 32px #000a, var(--box-shadow);
+  filter: drop-shadow(0 4px 16px #0008) brightness(1.05);
+  opacity: 1;
+  z-index: 100;
+}
+.category-planeo-jugar .planeo-jugar-list li.carrusel-adjacent {
+  opacity: 0.95;
+  filter: brightness(0.98);
+  z-index: 90;
+}
+.category-planeo-jugar .planeo-jugar-list li.carrusel-next {
+  opacity: 0.85;
+  filter: brightness(0.92);
+  z-index: 80;
+}
+.category-planeo-jugar .planeo-jugar-list li.carrusel-far {
+  opacity: 0.7;
+  filter: brightness(0.85);
+  z-index: 70;
+}
+
+/* Responsive: ajustar ancho del contenedor */
+@media (max-width: 1100px) {
+  .category-planeo-jugar .planeo-jugar-list {
+    width: 780px; /* Expandido +140px total para máximo espacio (640 + 140) */
+    margin: 0 auto; /* Centrado automático */
+  }
+  .category-planeo-jugar .planeo-jugar-list li {
+    width: 120px;
+  }
+}
+@media (max-width: 800px) {
+  .category-planeo-jugar .planeo-jugar-list {
+    width: 660px; /* Expandido +140px total para máximo espacio (520 + 140) */
+    margin: 0 auto; /* Centrado automático */
+  }
+  .category-planeo-jugar .planeo-jugar-list li {
+    width: 100px;
+  }
+}

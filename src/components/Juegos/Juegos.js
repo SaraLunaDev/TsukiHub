@@ -91,37 +91,124 @@ function Juegos() {
     );
     setFilteredGames(filtered);
     setCurrentPage(1);
-  }, [searchQuery, pasado]);
+  }, [searchQuery, pasado]); // Carrusel infinito y escalado para Planeo Jugar
+  const CARRUSEL_SIZE = 9;
+  const CENTER_INDEX = Math.floor(CARRUSEL_SIZE / 2);
 
-  // Calcula cuántos juegos mostrar en el carrusel de "planeo jugar" según el ancho
-  const calculateVisibleGames = () => {
-    if (containerRef.current) {
-      const containerWidth = containerRef.current.offsetWidth;
-      const gameWidth = 210;
-      const maxVisible = Math.floor(containerWidth / gameWidth);
-      setVisibleGames(planeoJugar.slice(startIndex, startIndex + maxVisible));
-    }
-  };
-
-  // Recalcula los juegos visibles al cambiar el tamaño de la ventana o el índice
+  // Hook para detectar el tamaño de la pantalla
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   useEffect(() => {
-    calculateVisibleGames();
-    window.addEventListener("resize", calculateVisibleGames);
-    return () => window.removeEventListener("resize", calculateVisibleGames);
-  }, [startIndex, planeoJugar]);
-
-  // Avanza el carrusel de "planeo jugar"
-  const handleNext = () => {
-    if (startIndex + visibleGames.length < planeoJugar.length) {
-      setStartIndex((prev) => prev + 1);
+    const handleResize = () => setScreenWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []); // Configuración responsive del carrusel
+  const getCarruselConfig = () => {
+    if (screenWidth <= 800) {
+      return { containerWidth: 660, gameWidth: 100, edgeMargin: 0 }; // +140px total (520 + 140) CSS centering only
+    } else if (screenWidth <= 1100) {
+      return { containerWidth: 780, gameWidth: 120, edgeMargin: 0 }; // +140px total (640 + 140) CSS centering only
+    } else {
+      return { containerWidth: 900, gameWidth: 140, edgeMargin: 0 }; // +140px total (760 + 140) CSS centering only
     }
   };
 
-  // Retrocede el carrusel de "planeo jugar"
-  const handlePrevious = () => {
-    if (startIndex > 0) {
-      setStartIndex((prev) => prev - 1);
+  // Calcula los índices de los 7 juegos a mostrar, centrando el carrusel
+  const getCarruselIndices = () => {
+    if (planeoJugar.length === 0) return [];
+    let indices = [];
+    let base = startIndex;
+    // Si hay menos de 7 juegos, repite para llenar
+    if (planeoJugar.length < CARRUSEL_SIZE) {
+      for (let i = 0; i < CARRUSEL_SIZE; i++) {
+        indices.push(i % planeoJugar.length);
+      }
+    } else {
+      for (let i = 0; i < CARRUSEL_SIZE; i++) {
+        let idx = (base + i) % planeoJugar.length;
+        if (idx < 0) idx += planeoJugar.length;
+        indices.push(idx);
+      }
     }
+    return indices;
+  };
+  const carruselIndices = getCarruselIndices();  // Función para calcular la posición de un juego en el carrusel
+  const calculateGamePosition = (index, containerWidth, gameWidth, edgeMargin) => {
+    if (CARRUSEL_SIZE === 1) {
+      return (containerWidth - gameWidth) / 2;
+    }
+
+    const totalAvailableWidth = containerWidth - 2 * edgeMargin - gameWidth;
+    const baseSpacing = totalAvailableWidth / (CARRUSEL_SIZE - 1);
+
+    if (index === 0) {
+      return edgeMargin;
+    } else if (index === CARRUSEL_SIZE - 1) {
+      return containerWidth - edgeMargin - gameWidth;
+    } else {
+      const centerDistance = Math.abs(index - CENTER_INDEX);
+      const maxCenterDistance = Math.floor(CARRUSEL_SIZE / 2);
+      const normalizedDistance = centerDistance / maxCenterDistance;
+      const spacingFactor = 1.8 - normalizedDistance * 0.8;
+
+      const uniformPosition = edgeMargin + index * baseSpacing;
+      let adjustment = 0;
+      
+      for (let k = 1; k <= Math.abs(index - CENTER_INDEX); k++) {
+        const stepDistance = k / maxCenterDistance;
+        const stepFactor = 1.8 - stepDistance * 0.8;
+        const extraSpace = (stepFactor - 1.0) * baseSpacing * 0.2;
+
+        if (index < CENTER_INDEX) {
+          adjustment -= extraSpace;
+        } else {
+          adjustment += extraSpace;
+        }
+      }
+
+      let position = uniformPosition + adjustment;
+
+      // Aplicar superposición para carruseles grandes
+      if (CARRUSEL_SIZE > 7) {
+        const overlapFactor = Math.min((CARRUSEL_SIZE - 7) * 0.08, 0.4);
+        const overlapAmount = (centerDistance / maxCenterDistance) * gameWidth * overlapFactor;
+
+        if (index < CENTER_INDEX) {
+          position += overlapAmount;
+        } else if (index > CENTER_INDEX) {
+          position -= overlapAmount;
+        }
+      }
+
+      return position;
+    }
+  };
+  // Función simple sin animación de desplazamiento
+  const animateCarousel = (direction, callback) => {
+    if (isAnimating) return;
+    
+    setIsAnimating(true);
+    setAnimationDirection(direction);
+    
+    // Ejecutar el cambio de índice directamente
+    callback();
+    
+    // Resetear el estado después de un breve delay
+    setTimeout(() => {
+      setIsAnimating(false);
+      setAnimationDirection(null);
+    }, 100);
+  };
+
+  const handleNext = () => {
+    animateCarousel('right', () => {
+      setStartIndex((prev) => (prev + 1) % planeoJugar.length);
+    });
+  };
+  
+  const handlePrevious = () => {
+    animateCarousel('left', () => {
+      setStartIndex((prev) => (prev - 1 + planeoJugar.length) % planeoJugar.length);
+    });
   };
 
   // URL del Google Sheet (debe estar en .env)
@@ -593,6 +680,40 @@ function Juegos() {
       clearInterval(loadingInterval);
     };
   }, [searchIGDB, showAddPopup]);
+  // Función para centrar un juego específico del carrusel
+  const handleCarouselGameClick = (clickedIndex, gameIndex) => {
+    // Si es el juego central, abrir el popup de detalles
+    if (clickedIndex === CENTER_INDEX) {
+      const game = planeoJugar[gameIndex];
+      handleGameClick(game);
+    } else {
+      // Calcular cuántas posiciones mover para centrar el juego clicado
+      const positionsToMove = clickedIndex - CENTER_INDEX;
+      
+      // Determinar dirección de la animación
+      const direction = positionsToMove > 0 ? 'right' : 'left';
+      
+      // Usar la función de animación para el cambio
+      animateCarousel(direction, () => {
+        setStartIndex((prev) => {
+          let newIndex = prev + positionsToMove;
+
+          // Aplicar wrapping circular
+          if (newIndex < 0) {
+            newIndex = planeoJugar.length + newIndex;
+          } else if (newIndex >= planeoJugar.length) {
+            newIndex = newIndex % planeoJugar.length;
+          }
+
+          return newIndex;
+        });
+      });
+    }
+  };
+
+  // Estado para controlar las animaciones del carrusel
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationDirection, setAnimationDirection] = useState(null); // 'left', 'right', 'click'
 
   // Renderizado principal del componente
   return (
@@ -647,7 +768,7 @@ function Juegos() {
                     onClick={() => setShowAddPopup(true)}
                   >
                     {" "}
-                    + Añadir
+                    + Recomendar
                   </button>
                 );
               }
@@ -658,38 +779,103 @@ function Juegos() {
             <button
               onClick={handlePrevious}
               className="arrow-button"
-              disabled={startIndex === 0}
+              aria-label="Anterior"
             >
               ◀︎
-            </button>
+            </button>{" "}
             <ul className="planeo-jugar-list">
-              {visibleGames.map((game, index) => (
-                <li key={index}>
-                  <div className="cover-wrapper">
-                    {game.caratula && (
-                      <>
-                        <img
-                          src={game.caratula}
-                          alt={`Carátula de ${game.nombre}`}
-                          className="game-cover"
-                        />
-                        <div className="cover-gradient"></div>
-                      </>
-                    )}
-                  </div>
-                  <strong
-                    onClick={() => handleGameClick(game)}
-                    style={{ cursor: "pointer" }}
+              {carruselIndices.map((gameIdx, i) => {
+                const game = planeoJugar[gameIdx];
+                const distance = Math.abs(i - CENTER_INDEX);                // Configuración responsive del carrusel
+                const { containerWidth, gameWidth, edgeMargin } =
+                  getCarruselConfig(); 
+                
+                // Calcular posición usando la función centralizada
+                const position = calculateGamePosition(i, containerWidth, gameWidth, edgeMargin);// Escala basada en distancia al centro con curva suave y progresiva
+                const maxDistance = Math.floor(CARRUSEL_SIZE / 2);
+                // Usar una función de easing más suave que preserve más el tamaño de los juegos cercanos al centro
+                const normalizedDistance = distance / maxDistance; // 0 a 1
+                const easedDistance = Math.pow(normalizedDistance, 2); // Curva más suave para reducción progresiva
+                let scale = 1.0 - easedDistance * 0.25; // Reducción máxima del 25% para mayor contraste
+
+                // Z-index basado en distancia al centro
+                const zIndex = CARRUSEL_SIZE - distance;                // Clases CSS para opacidad
+                let className = "carrusel-far";
+                let targetOpacity = 0.7;
+                if (distance === 0) {
+                  className = "carrusel-center";
+                  targetOpacity = 1;
+                } else if (distance <= Math.ceil(CARRUSEL_SIZE / 4)) {
+                  className = "carrusel-adjacent";
+                  targetOpacity = 0.95;
+                } else if (distance <= Math.ceil(CARRUSEL_SIZE / 2)) {
+                  className = "carrusel-next";
+                  targetOpacity = 0.85;
+                }
+
+                return (
+                  <li
+                    key={gameIdx + "-" + i}
+                    className={className}
+                    style={{
+                      position: "absolute",
+                      left: `${position}px`,
+                      transform: `scale(calc(${scale} * var(--hover-scale, 1)))`,
+                      transformOrigin: "center center",
+                      zIndex: zIndex,                      cursor: "pointer",
+                      width: `${gameWidth}px`,
+                      // Solo transición para el hover de escala
+                      transition: "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
+                      // Variables CSS para animaciones
+                      '--scale': scale,
+                      '--target-opacity': targetOpacity,
+                      '--current-opacity': targetOpacity,
+                    }}
+                    onClick={() => handleCarouselGameClick(i, gameIdx)}
+                    onMouseEnter={() => {
+                      // Aumentar escala al pasar el mouse
+                      const gameElement = document.querySelector(
+                        `.planeo-jugar-list li:nth-child(${i + 1})`
+                      );
+                      if (gameElement) {
+                        gameElement.style.transform = `scale(calc(${scale} * 1.1))`;
+                        gameElement.style.transition =
+                          "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)";
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      // Restablecer escala al quitar el mouse
+                      const gameElement = document.querySelector(
+                        `.planeo-jugar-list li:nth-child(${i + 1})`
+                      );
+                      if (gameElement) {
+                        gameElement.style.transform = `scale(calc(${scale}))`;
+                        gameElement.style.transition =
+                          "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)";
+                      }
+                    }}
                   >
-                    {game.nombre}
-                  </strong>
-                </li>
-              ))}
+                    <div className="cover-wrapper">
+                      {game.caratula && (
+                        <>
+                          <img
+                            src={game.caratula}
+                            alt={`Carátula de ${game.nombre}`}
+                            className="game-cover"
+                          />
+                          <div className="cover-gradient"></div>
+                        </>
+                      )}
+                    </div>
+                    <strong>{game.nombre}</strong>
+                  </li>
+                );
+              })}
             </ul>
             <button
               onClick={handleNext}
               className="arrow-button"
-              disabled={startIndex + visibleGames.length >= planeoJugar.length}
+              aria-label="Siguiente"
             >
               ▶︎
             </button>
