@@ -131,8 +131,13 @@ function Juegos() {
     }
     return indices;
   };
-  const carruselIndices = getCarruselIndices();  // Función para calcular la posición de un juego en el carrusel
-  const calculateGamePosition = (index, containerWidth, gameWidth, edgeMargin) => {
+  const carruselIndices = getCarruselIndices(); // Función para calcular la posición de un juego en el carrusel
+  const calculateGamePosition = (
+    index,
+    containerWidth,
+    gameWidth,
+    edgeMargin
+  ) => {
     if (CARRUSEL_SIZE === 1) {
       return (containerWidth - gameWidth) / 2;
     }
@@ -152,7 +157,7 @@ function Juegos() {
 
       const uniformPosition = edgeMargin + index * baseSpacing;
       let adjustment = 0;
-      
+
       for (let k = 1; k <= Math.abs(index - CENTER_INDEX); k++) {
         const stepDistance = k / maxCenterDistance;
         const stepFactor = 1.8 - stepDistance * 0.8;
@@ -170,7 +175,8 @@ function Juegos() {
       // Aplicar superposición para carruseles grandes
       if (CARRUSEL_SIZE > 7) {
         const overlapFactor = Math.min((CARRUSEL_SIZE - 7) * 0.08, 0.4);
-        const overlapAmount = (centerDistance / maxCenterDistance) * gameWidth * overlapFactor;
+        const overlapAmount =
+          (centerDistance / maxCenterDistance) * gameWidth * overlapFactor;
 
         if (index < CENTER_INDEX) {
           position += overlapAmount;
@@ -185,13 +191,13 @@ function Juegos() {
   // Función simple sin animación de desplazamiento
   const animateCarousel = (direction, callback) => {
     if (isAnimating) return;
-    
+
     setIsAnimating(true);
     setAnimationDirection(direction);
-    
+
     // Ejecutar el cambio de índice directamente
     callback();
-    
+
     // Resetear el estado después de un breve delay
     setTimeout(() => {
       setIsAnimating(false);
@@ -200,14 +206,16 @@ function Juegos() {
   };
 
   const handleNext = () => {
-    animateCarousel('right', () => {
+    animateCarousel("right", () => {
       setStartIndex((prev) => (prev + 1) % planeoJugar.length);
     });
   };
-  
+
   const handlePrevious = () => {
-    animateCarousel('left', () => {
-      setStartIndex((prev) => (prev - 1 + planeoJugar.length) % planeoJugar.length);
+    animateCarousel("left", () => {
+      setStartIndex(
+        (prev) => (prev - 1 + planeoJugar.length) % planeoJugar.length
+      );
     });
   };
 
@@ -689,10 +697,10 @@ function Juegos() {
     } else {
       // Calcular cuántas posiciones mover para centrar el juego clicado
       const positionsToMove = clickedIndex - CENTER_INDEX;
-      
+
       // Determinar dirección de la animación
-      const direction = positionsToMove > 0 ? 'right' : 'left';
-      
+      const direction = positionsToMove > 0 ? "right" : "left";
+
       // Usar la función de animación para el cambio
       animateCarousel(direction, () => {
         setStartIndex((prev) => {
@@ -786,12 +794,17 @@ function Juegos() {
             <ul className="planeo-jugar-list">
               {carruselIndices.map((gameIdx, i) => {
                 const game = planeoJugar[gameIdx];
-                const distance = Math.abs(i - CENTER_INDEX);                // Configuración responsive del carrusel
+                const distance = Math.abs(i - CENTER_INDEX); // Configuración responsive del carrusel
                 const { containerWidth, gameWidth, edgeMargin } =
-                  getCarruselConfig(); 
-                
+                  getCarruselConfig();
+
                 // Calcular posición usando la función centralizada
-                const position = calculateGamePosition(i, containerWidth, gameWidth, edgeMargin);// Escala basada en distancia al centro con curva suave y progresiva
+                const position = calculateGamePosition(
+                  i,
+                  containerWidth,
+                  gameWidth,
+                  edgeMargin
+                ); // Escala basada en distancia al centro con curva suave y progresiva
                 const maxDistance = Math.floor(CARRUSEL_SIZE / 2);
                 // Usar una función de easing más suave que preserve más el tamaño de los juegos cercanos al centro
                 const normalizedDistance = distance / maxDistance; // 0 a 1
@@ -799,7 +812,7 @@ function Juegos() {
                 let scale = 1.0 - easedDistance * 0.25; // Reducción máxima del 25% para mayor contraste
 
                 // Z-index basado en distancia al centro
-                const zIndex = CARRUSEL_SIZE - distance;                // Clases CSS para opacidad
+                const zIndex = CARRUSEL_SIZE - distance; // Clases CSS para opacidad
                 let className = "carrusel-far";
                 let targetOpacity = 0.7;
                 if (distance === 0) {
@@ -822,14 +835,16 @@ function Juegos() {
                       left: `${position}px`,
                       transform: `scale(calc(${scale} * var(--hover-scale, 1)))`,
                       transformOrigin: "center center",
-                      zIndex: zIndex,                      cursor: "pointer",
+                      zIndex: zIndex,
+                      cursor: "pointer",
                       width: `${gameWidth}px`,
                       // Solo transición para el hover de escala
-                      transition: "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
+                      transition:
+                        "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
                       // Variables CSS para animaciones
-                      '--scale': scale,
-                      '--target-opacity': targetOpacity,
-                      '--current-opacity': targetOpacity,
+                      "--scale": scale,
+                      "--target-opacity": targetOpacity,
+                      "--current-opacity": targetOpacity,
                     }}
                     onClick={() => handleCarouselGameClick(i, gameIdx)}
                     onMouseEnter={() => {

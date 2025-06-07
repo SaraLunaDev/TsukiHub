@@ -43,12 +43,11 @@ export default async function handler(req, res) {
             "",
             "",
             "",
-            "",
-            game.cover && game.cover.url
+            "",            game.cover && game.cover.url
               ? game.cover.url.startsWith("http")
-                ? game.cover.url
-                : `https:${game.cover.url}`
-              : game.cover_url || "",
+                ? game.cover.url.replace("t_thumb", "t_cover_big")
+                : `https:${game.cover.url.replace("t_thumb", "t_cover_big")}`
+              : game.cover_url ? game.cover_url.replace("t_thumb", "t_cover_big") : "",
             game.first_release_date
               ? new Date(game.first_release_date * 1000)
                   .toISOString()
