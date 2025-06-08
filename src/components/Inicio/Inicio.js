@@ -13,7 +13,7 @@ function Inicio() {
     tickets: "",
     emotes: "",
   });
-  // Estado para los datos filtrados
+  // Estado paraa los datos filtrados
   const [filteredData, setFilteredData] = useState({});
   // Estado para los usuarios con logros
   const [achievementUsers, setAchievementUsers] = useState({});
