@@ -6,7 +6,7 @@
   margin: 0 auto;
 }
 
-/* Secci├│n general */
+/* Sección general */
 .juegos-container section {
   margin-bottom: 25px;
 }
@@ -93,13 +93,13 @@ body {
 .juegos-container li strong,
 .planeo-jugar-list li strong {
   display: -webkit-box; /* Define un contenedor flexible */
-  line-clamp: 2; /* Limita a dos l├¡neas visibles */
-  -webkit-box-orient: vertical; /* Establece la orientaci├│n vertical */
+  line-clamp: 2; /* Limita a dos líneas visibles */
+  -webkit-box-orient: vertical; /* Establece la orientación vertical */
   overflow: hidden; /* Oculta el contenido excedente */
   text-overflow: ellipsis; /* Agrega "..." al texto truncado */
-  white-space: normal; /* Permite el uso de varias l├¡neas */
-  line-height: 1.2em; /* Ajusta la altura de las l├¡neas */
-  max-height: 2.4em; /* Limita la altura total (2 l├¡neas * line-height) */
+  white-space: normal; /* Permite el uso de varias líneas */
+  line-height: 1.2em; /* Ajusta la altura de las líneas */
+  max-height: 2.4em; /* Limita la altura total (2 líneas * line-height) */
 }
 
 .game-details,
@@ -156,7 +156,7 @@ body {
 
 /* Fecha debajo de las estrellas en los juegos pasados */
 .game-date {
-  font-size: 0.9em; /* Tama├▒o de fuente m├ís peque├▒o */
+  font-size: 0.9em; /* Tamaño de fuente más pequeño */
   color: var(--text-2);
   margin-top: 20px; /* Espaciado entre las estrellas y la fecha */
   text-align: center; /* Centra la fecha */
@@ -180,11 +180,11 @@ body {
   height: 24px;
   box-shadow: none;
   object-fit: contain;
-  margin: 0; /* Resetea m├írgenes */
+  margin: 0; /* Resetea márgenes */
   padding: 0; /* Resetea padding */
 }
 
-/* Flechas de navegaci├│n */
+/* Flechas de navegación */
 .arrow-button {
   background: none;
   border: none;
@@ -209,7 +209,7 @@ body {
   color: var(--text-2);
 }
 
-/* Contenedores de categor├¡as */
+/* Contenedores de categorías */
 .categories-row {
   display: flex;
   gap: 20px;
@@ -217,7 +217,7 @@ body {
 }
 
 .category {
-  flex: 1; /* Cada categor├¡a ocupa espacio igual */
+  flex: 1; /* Cada categoría ocupa espacio igual */
 }
 
 .category-jugando {
@@ -230,7 +230,7 @@ body {
   flex: 1;
 }
 
-/* Contenedor para el selector de p├íginas */
+/* Contenedor para el selector de páginas */
 .pagination-container {
   display: flex;
   justify-content: center;
@@ -269,11 +269,11 @@ body {
   padding-bottom: 20px;
 }
 
-/* Bot├│n de filtro */
+/* Botón de filtro */
 .filter-container {
   position: relative;
   display: flex; /* Cambiado a flex para alinear contenido */
-  justify-content: flex-end; /* Al├¡nea el contenido a la derecha */
+  justify-content: flex-end; /* Alínea el contenido a la derecha */
   align-items: flex-start;
   width: 100%; /* Asegura que ocupe todo el ancho disponible */
 }
@@ -294,10 +294,10 @@ body {
 .juegos-container li:hover,
 .planeo-jugar-list li:hover,
 .category-jugando li:hover {
-  transform: scale(1.05); /* Aumenta ligeramente el tama├▒o */
+  transform: scale(1.05); /* Aumenta ligeramente el tamaño */
 }
 
-/* Hover espec├¡fico para carrusel - escala con brightness manteniendo posicionamiento */
+/* Hover específico para carrusel - escala con brightness manteniendo posicionamiento */
 .category-planeo-jugar li {
   --hover-scale: 1; /* Variable CSS para controlar escala del hover */
 }
@@ -351,7 +351,7 @@ body {
   font-size: 1em;
 }
 
-/* Ajusta la posici├│n de los botones, estrellas y fecha */
+/* Ajusta la posición de los botones, estrellas y fecha */
 .game-extra .stars-container,
 .game-extra .game-date,
 .game-extra .game-buttons {
@@ -385,7 +385,7 @@ body {
   border-radius: 20px;
 }
 
-/* Cuadro de b├║squeda */
+/* Cuadro de búsqueda */
 .search-input {
   padding: 10px;
   width: 100%;
@@ -471,7 +471,7 @@ body {
   align-items: center;
   z-index: 1000;
   opacity: 0;
-  animation: fadeIn 0.3s forwards; /* Animaci├│n de entrada */
+  animation: fadeIn 0.3s forwards; /* Animación de entrada */
 }
 
 /* Contenido del popup */
@@ -483,12 +483,12 @@ body {
   text-align: center;
   box-shadow: var(--box-shadow);
   position: relative;
-  transform: scale(0.9); /* Tama├▒o inicial m├ís peque├▒o */
+  transform: scale(0.9); /* Tamaño inicial más pequeño */
   opacity: 0; /* Inicialmente invisible */
-  animation: popupIn 0.3s forwards; /* Animaci├│n de entrada */
+  animation: popupIn 0.3s forwards; /* Animación de entrada */
 }
 
-/* Bot├│n de cerrar */
+/* Botón de cerrar */
 .close-button {
   position: absolute;
   top: 10px;
@@ -505,7 +505,7 @@ body {
   color: var(--color-clear);
 }
 
-/* Animaci├│n de entrada del overlay */
+/* Animación de entrada del overlay */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -515,14 +515,14 @@ body {
   }
 }
 
-/* Animaci├│n de entrada del popup */
+/* Animación de entrada del popup */
 @keyframes popupIn {
   from {
-    transform: scale(0.9); /* Empieza un poco m├ís peque├▒o */
+    transform: scale(0.9); /* Empieza un poco más pequeño */
     opacity: 0;
   }
   to {
-    transform: scale(1); /* Tama├▒o normal */
+    transform: scale(1); /* Tamaño normal */
     opacity: 1;
   }
 }
@@ -532,7 +532,7 @@ body {
   display: flex;
   align-items: stretch;
   gap: 20px;
-  height: 100%; /* Aseg├║rate de que ocupe el alto completo */
+  height: 100%; /* Asegúrate de que ocupe el alto completo */
 }
 
 .section-null{
@@ -564,7 +564,7 @@ body {
   color: var(--color-mid)
 }
 
-/* Informaci├│n general */
+/* Información general */
 .popup-info p {
   margin: 5px 0;
   line-height: 1.4;
@@ -658,11 +658,11 @@ body {
 }
 
 .game-meta-column span {
-  color: var(--text-2); /* Aplica el color espec├¡fico al contenido */
+  color: var(--text-2); /* Aplica el color específico al contenido */
   font-size: 0.9em;
 }
 
-/* Estilo para el spinner de g├®neros */
+/* Estilo para el spinner de géneros */
 .spinner-generos {
   max-width: 160px;
   min-width: 100px;
@@ -710,11 +710,11 @@ body {
   text-align: left;
 }
 
-/* Nueva secci├│n para los botones de juego */
+/* Nueva sección para los botones de juego */
 .cover-wrapper {
   position: relative;
   display: block;
-  height: 190px; /* Altura m├íxima de la imagen */
+  height: 190px; /* Altura máxima de la imagen */
   overflow: hidden; /* Oculta el recorte superior */
   height: 32px; /* Reserva espacio para la fecha o badge */
 }
@@ -912,7 +912,7 @@ li:hover .game-cover.has-youtube {
 .planeo-jugar-list li .cover-wrapper {
   position: relative;
   display: block;
-  height: 190px; /* Altura m├íxima de la imagen */
+  height: 190px; /* Altura máxima de la imagen */
   overflow: hidden; /* Oculta el recorte superior */
 }
 
@@ -942,7 +942,7 @@ li:hover .game-cover.has-youtube {
   opacity: 0;
 }
 
-/* --- SOLO JUEGOS JUGADOS: gradiente y recorte de car├ítula al hover --- */
+/* --- SOLO JUEGOS JUGADOS: gradiente y recorte de carátula al hover --- */
 .category-pasado li:hover .cover-gradient {
   opacity: 1 !important;
 }
@@ -966,7 +966,7 @@ li:hover .game-cover.has-youtube {
   object-position: center center !important;
 }
 
-/* Ajuste de tama├▒o para la estrella de la nota en el popup */
+/* Ajuste de tamaño para la estrella de la nota en el popup */
 .popup-info .nota-estrella {
   width: 20px !important;
   height: 20px !important;
@@ -979,7 +979,7 @@ li:hover .game-cover.has-youtube {
   padding: 0;
 }
 
-/* Popup a├▒adir recomendaci├│n IGDB */
+/* Popup añadir recomendación IGDB */
 .popup-add-recommendation {
   max-width: 650px;
   min-width: 420px;
@@ -1134,7 +1134,7 @@ li:hover .game-cover.has-youtube {
   line-height: 1;
 }
 
-/* Centrar Planeo Jugar y mantener el bot├│n a la derecha */
+/* Centrar Planeo Jugar y mantener el botón a la derecha */
 .category-header {
   display: flex;
   align-items: flex-start;
@@ -1163,7 +1163,7 @@ li:hover .game-cover.has-youtube {
   margin-top: -20px;
 }
 
-/* Nuevas reglas para centrar el t├¡tulo en la secci├│n Planeo Jugar */
+/* Nuevas reglas para centrar el título en la sección Planeo Jugar */
 .category-planeo-jugar .category-header {
   display: flex;
   align-items: center;
@@ -1193,7 +1193,7 @@ li:hover .game-cover.has-youtube {
   flex-shrink: 0;
 }
 
-/* Si el bot├│n cambia de tama├▒o din├ímicamente, puedes actualizar --add-btn-width con JS */
+/* Si el botón cambia de tamaño dinámicamente, puedes actualizar --add-btn-width con JS */
 @media (min-width: 0px) {
   .category-planeo-jugar .category-header::before {
     content: '';
@@ -1211,9 +1211,9 @@ li:hover .game-cover.has-youtube {
 /* --- Carrusel infinito Planeo Jugar --- */
 .category-planeo-jugar .planeo-jugar-list {
   position: relative;
-  width: 900px; /* Expandido +140px total para m├íximo espacio (760 + 140) */
+  width: 900px; /* Expandido +140px total para máximo espacio (760 + 140) */
   height: 280px; /* Altura fija para mantener el layout */
-  margin: 0 auto; /* Centrado autom├ítico */
+  margin: 0 auto; /* Centrado automático */
   padding-right: 12px;
   overflow: visible;
   display: block; /* Cambiar de flex a block para posicionamiento absoluto */
@@ -1226,7 +1226,7 @@ li:hover .game-cover.has-youtube {
   padding: 6px;
   text-align: center;
   overflow: visible;
-  width: 140px; /* Ancho fijo para c├ílculos */
+  width: 140px; /* Ancho fijo para cálculos */
   height: 250px; /* Altura fija */
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
               transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
@@ -1259,8 +1259,8 @@ li:hover .game-cover.has-youtube {
 /* Responsive: ajustar ancho del contenedor */
 @media (max-width: 1100px) {
   .category-planeo-jugar .planeo-jugar-list {
-    width: 780px; /* Expandido +140px total para m├íximo espacio (640 + 140) */
-    margin: 0 auto; /* Centrado autom├ítico */
+    width: 780px; /* Expandido +140px total para máximo espacio (640 + 140) */
+    margin: 0 auto; /* Centrado automático */
   }
   .category-planeo-jugar .planeo-jugar-list li {
     width: 120px;
@@ -1268,8 +1268,8 @@ li:hover .game-cover.has-youtube {
 }
 @media (max-width: 800px) {
   .category-planeo-jugar .planeo-jugar-list {
-    width: 660px; /* Expandido +140px total para m├íximo espacio (520 + 140) */
-    margin: 0 auto; /* Centrado autom├ítico */
+    width: 660px; /* Expandido +140px total para máximo espacio (520 + 140) */
+    margin: 0 auto; /* Centrado automático */
   }
   .category-planeo-jugar .planeo-jugar-list li {
     width: 100px;
