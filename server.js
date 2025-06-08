@@ -2,7 +2,8 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const fetch = require("node-fetch");
+// Patch fetch for Node.js compatibility
+const fetch = global.fetch || ((...args) => import('node-fetch').then(({default: fetch}) => fetch(...args)));
 const { google } = require("googleapis");
 
 // Load .env variables
