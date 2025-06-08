@@ -3,7 +3,10 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 // Patch fetch for Node.js compatibility
-const fetch = global.fetch || ((...args) => import('node-fetch').then(({default: fetch}) => fetch(...args)));
+const fetch =
+  global.fetch ||
+  ((...args) =>
+    import("node-fetch").then(({ default: fetch }) => fetch(...args)));
 const { google } = require("googleapis");
 
 // Load .env variables
@@ -38,13 +41,11 @@ app.post("/api/igdb-search", async (req, res) => {
     });
     const igdbText = await igdbResp.text();
     if (igdbResp.status !== 200) {
-      return res
-        .status(500)
-        .json({
-          error: "IGDB API error",
-          status: igdbResp.status,
-          body: igdbText,
-        });
+      return res.status(500).json({
+        error: "IGDB API error",
+        status: igdbResp.status,
+        body: igdbText,
+      });
     }
     const igdbData = JSON.parse(igdbText);
     res.json({ results: igdbData });
