@@ -901,6 +901,12 @@ li:hover .game-cover.has-youtube {
   opacity: 0;
   border-radius: 8px;
   background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.0) 30%);
+  transition: opacity 0.3s ease;
+}
+
+/* Gradiente invertido para juegos recomendados */
+.category-planeo-jugar .planeo-jugar-list li .cover-gradient {
+  background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.0) 40%);
 }
 
 .juegos-container li:hover .cover-gradient,
@@ -934,32 +940,68 @@ li:hover .game-cover.has-youtube {
   transition: none !important;
 }
 
-.juegos-container li:hover .game-date-hover {
+.juegos-container li .recomendador-name-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.75em;
+  padding: 6px;
+  border-radius: 10px 10px 0 0;
+  z-index: 15;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
   opacity: 1;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.0) 100%);
+  transition: none !important;
 }
 
-.juegos-container li:hover .dropeado-badge {
-  opacity: 0;
+/* Avatar styles within the recomendador overlay */
+.juegos-container li .recomendador-name-overlay .recomendador-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+/* Username styles within the recomendador overlay */
+.juegos-container li .recomendador-name-overlay .recomendador-username {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+  flex-shrink: 1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.juegos-container li:hover .game-date-hover {
+  opacity: 1;
 }
 
 /* --- SOLO JUEGOS JUGADOS: gradiente y recorte de carátula al hover --- */
 .category-pasado li:hover .cover-gradient {
   opacity: 1 !important;
 }
+
 .category-pasado li:hover img.game-cover {
   height: 160px !important;
   object-position: bottom center !important;
 }
 
-/* NUNCA aplicar gradiente ni recorte en otras secciones */
+/* NUNCA aplicar gradiente ni recorte en otras secciones (excluyendo el carrusel) */
 .category-jugando li:hover .cover-gradient,
-.category-planeo-jugar li:hover .cover-gradient,
-.juegos-container li:hover .cover-gradient:not(.category-pasado li .cover-gradient),
-.planeo-jugar-list li:hover .cover-gradient {
+.juegos-container li:hover .cover-gradient:not(.category-pasado li .cover-gradient):not(.category-planeo-jugar .planeo-jugar-list li .cover-gradient) {
   opacity: 0 !important;
 }
 .category-jugando li:hover img.game-cover,
-.category-planeo-jugar li:hover img.game-cover,
 .juegos-container li:hover img.game-cover:not(.category-pasado li img.game-cover),
 .planeo-jugar-list li:hover img.game-cover {
   height: 190px !important;
@@ -1107,6 +1149,7 @@ li:hover .game-cover.has-youtube {
 }
 
 .add-recommendation-button {
+  width: 140px;;
   background: var(--color-mid);
   color: var(--text);
   border: none;
@@ -1116,7 +1159,7 @@ li:hover .game-cover.has-youtube {
   letter-spacing: 0.5px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 6px 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1142,28 +1185,7 @@ li:hover .game-cover.has-youtube {
   width: 100%;
 }
 
-.planeo-jugar-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  position: relative;
-  padding-bottom: 20px;
-}
-
-.planeo-jugar-list {
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: center;
-  width: auto;
-  margin: 0 auto;
-}
-
-.add-recommendation-button {
-  margin-top: -20px;
-}
-
-/* Nuevas reglas para centrar el título en la sección Planeo Jugar */
+/* --- NUEVO: Espaciadores para centrar el header aunque el botón esté oculto --- */
 .category-planeo-jugar .category-header {
   display: flex;
   align-items: center;
@@ -1171,37 +1193,36 @@ li:hover .game-cover.has-youtube {
   width: 100%;
   position: relative;
 }
-.category-planeo-jugar .category-header::before {
-  content: '';
-  display: inline-block;
-  margin-left: 140px;
+.category-planeo-jugar .category-header .header-spacer {
+  width: 140px; /* Igual que el botón */
+  min-width: 140px;
+  max-width: 140px;
+  flex-shrink: 0;
+  display: block;
   height: 1px;
-  visibility: hidden;
-  pointer-events: none;
 }
-.category-planeo-jugar .header-juegos {
+.category-planeo-jugar .category-header .header-juegos {
   flex: 1;
   text-align: center;
   margin: 0;
   position: relative;
 }
-.category-planeo-jugar .add-recommendation-button {
-  width: 140px;
+.category-planeo-jugar .category-header .add-recommendation-button {
   padding-top: 6px;
   padding-bottom: 6px;
   margin-left: 0;
   flex-shrink: 0;
 }
 
+/* Cuando el botón no está visible, el espaciador derecho ocupa su lugar */
+.category-planeo-jugar .category-header .add-recommendation-button:not(:visible) + .header-spacer {
+  display: block;
+}
+
 /* Si el botón cambia de tamaño dinámicamente, puedes actualizar --add-btn-width con JS */
 @media (min-width: 0px) {
   .category-planeo-jugar .category-header::before {
-    content: '';
-    display: inline-block;
-    width: calc(var(--add-btn-width, 0px));
-    height: 1px;
-    visibility: hidden;
-    pointer-events: none;
+    display: none !important;
   }
   .category-planeo-jugar .add-recommendation-button {
     --add-btn-width: auto;
@@ -1227,33 +1248,19 @@ li:hover .game-cover.has-youtube {
   text-align: center;
   overflow: visible;
   width: 140px; /* Ancho fijo para cálculos */
-  height: 250px; /* Altura fija */
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
+  height: 250px; /* Altura fija */  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
               transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.4s ease-out,
               filter 0.4s ease-out;
-  will-change: transform, z-index, filter, opacity;
+  will-change: transform, z-index, filter;
 }
 .category-planeo-jugar .planeo-jugar-list li.carrusel-center {
   box-shadow: 0 8px 32px #000a, var(--box-shadow);
   filter: drop-shadow(0 4px 16px #0008) brightness(1.05);
-  opacity: 1;
   z-index: 100;
 }
-.category-planeo-jugar .planeo-jugar-list li.carrusel-adjacent {
-  opacity: 0.95;
-  filter: brightness(0.98);
-  z-index: 90;
-}
-.category-planeo-jugar .planeo-jugar-list li.carrusel-next {
-  opacity: 0.85;
+.category-planeo-jugar .planeo-jugar-list li.carrusel-distant {
+  /* Distant games get subtle dimming - overlay handles the main distance effect */
   filter: brightness(0.92);
-  z-index: 80;
-}
-.category-planeo-jugar .planeo-jugar-list li.carrusel-far {
-  opacity: 0.7;
-  filter: brightness(0.85);
-  z-index: 70;
 }
 
 /* Responsive: ajustar ancho del contenedor */
@@ -1274,4 +1281,157 @@ li:hover .game-cover.has-youtube {
   .category-planeo-jugar .planeo-jugar-list li {
     width: 100px;
   }
+}
+
+/* Estilos para el nuevo botón de alternancia */
+.toggle-planeo-btn {
+  width: 140px;
+  background: var(--color-mid);
+  color: var(--text);
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  cursor: pointer;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-left: 8px;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.toggle-planeo-btn:hover {
+  background: var(--color-clear);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+}
+
+/* Recomendador: estilos para mostrar avatar y nombre permanentemente */
+.recomendador-hover-info {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 0.25s;
+  z-index: 3;
+}
+.recomendador-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  border: 2px solid #fff;
+  background: #222;
+  object-fit: cover;
+}
+.recomendador-nombre-gradient {
+  margin-left: 10px;
+  padding: 4px 12px 4px 8px;
+  border-radius: 0 16px 16px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.85) 80%, rgba(0,0,0,0.0) 100%);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  white-space: nowrap;
+  opacity: 1;
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+
+/* CSS específico para el fade del carrusel con mayor especificidad */
+.category-planeo-jugar .planeo-jugar-list li .cover-gradient {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  z-index: 10 !important;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: 8px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.0) 40%);
+  transition: opacity 0.3s ease;
+}
+
+.category-planeo-jugar .planeo-jugar-list li:hover .cover-gradient {
+  opacity: 1 !important;
+}
+
+/* Mostrar gradiente siempre para juegos recomendados */
+.category-planeo-jugar .planeo-jugar-list li .cover-gradient {
+  opacity: 1 !important;
+}
+
+/* Color overlay for distant carousel games */
+.category-planeo-jugar .planeo-jugar-list li .distance-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: 8px;
+  background-color: var(--dark-2);
+  transition: opacity 0.4s ease-out;
+}
+
+/* Distance overlay opacity levels - now handled dynamically via inline styles */
+.category-planeo-jugar .planeo-jugar-list li.carrusel-center .distance-overlay {
+  opacity: 0; /* Center game always has no overlay */
+}
+/* Remove discrete distance classes - opacity now calculated dynamically */
+
+/* Campo de comentario en popup de recomendación */
+.popup-comment-section {
+  margin-bottom: 18px;
+}
+
+.popup-comment-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--text-2);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background-color: var(--edit-text);
+  resize: vertical;
+  min-height: 60px;
+  max-height: 120px;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.popup-comment-textarea:focus {
+  outline: none;
+  border-color: var(--color-mid);
+}
+
+.popup-comment-textarea::placeholder {
+  color: var(--text-2);
+  font-style: italic;
+}
+
+/* Estilo para la sección de comentarios del recomendador */
+.recommender-comment-section {
+  margin-top: 12px;
+  padding: 2px;
+  border-radius: 8px;
+}
+
+.recommender-comment {
+  margin: 4px 0 0 0;
+  padding: 8px;
+  border-radius: 6px;
+  font-style: italic;
+  color: var(--text-2);
 }

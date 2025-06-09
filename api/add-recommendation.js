@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
-  const { game, user } = req.body;
+  const { game, user, comment } = req.body;
   if (!game || !user) return res.status(400).json({ error: "Missing data" });
 
   // Carga las variables de entorno
@@ -64,7 +64,9 @@ export default async function handler(req, res) {
                   .map((p) => p.name.replace(/,/g, "-%-"))
                   .join("-%-")
               : game.platforms_string || "",
-            game.summary || game.description || "",
+            game.summary?.replace(/,/g, "-%-") ||
+              game.description?.replace(/,/g, "-%-") ||
+              "",
             game.involved_companies && Array.isArray(game.involved_companies)
               ? game.involved_companies.some((c) => c.developer)
                 ? game.involved_companies
@@ -89,6 +91,7 @@ export default async function handler(req, res) {
               : game.publishers_string || "",
             game.id || game.igdb_id || "",
             user,
+            comment?.replace(/,/g, "-%-") || "", // Añadir comentario como nueva columna
           ],
         ],
       },

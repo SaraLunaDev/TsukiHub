@@ -35,6 +35,30 @@ function Juegos() {
   const gamesPerPage = 18;
   // Juego seleccionado para mostrar en el popup
   const [selectedGame, setSelectedGame] = useState(null);
+  // Estado para alternar entre Planeo Jugar y Recomendaciones
+  const [planeoView, setPlaneoView] = useState("planeo jugar"); // "planeo jugar" o "recomendado"
+  // Estado para mapeo de usuarios (ID -> nombre)
+  const [users, setUsers] = useState([]);
+
+  // Resetea el startIndex al cambiar de vista para evitar desbordes
+  useEffect(() => {
+    console.log(
+      "planeoView changed to:",
+      planeoView,
+      "resetting startIndex to 0"
+    );
+    setStartIndex(0);
+  }, [planeoView]);
+
+  // Debug: Log when startIndex changes
+  useEffect(() => {
+    console.log(
+      "startIndex changed to:",
+      startIndex,
+      "planeoView:",
+      planeoView
+    );
+  }, [startIndex]);
 
   // Maneja el click en un juego para mostrar el popup
   const handleGameClick = (game) => {
@@ -45,7 +69,6 @@ function Juegos() {
   const closePopup = () => {
     setSelectedGame(null);
   };
-
   // Normaliza cadenas para búsquedas (elimina acentos y caracteres especiales)
   const normalizeString = (str) => {
     return str
@@ -53,7 +76,102 @@ function Juegos() {
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9]/g, "")
       .toLowerCase();
+  }; // Obtiene el nombre de usuario a partir del ID
+  const getUserName = (userId) => {
+    if (!userId) return "";
+
+    // Normalizar el ID para comparación (convertir a string)
+    const normalizedUserId = String(userId).trim();
+    const user = users.find(([id]) => String(id).trim() === normalizedUserId);
+    const userName = user ? user[1] : normalizedUserId;
+
+    return userName; // Si no encuentra el nombre, muestra el ID
   };
+  // Genera un avatar por defecto con las iniciales del usuario
+  const generateDefaultAvatar = (initials, userId) => {
+    // Generar un color basado en el user ID para que sea consistente
+    const hash = userId.split("").reduce((acc, char) => {
+      return char.charCodeAt(0) + ((acc << 5) - acc);
+    }, 0);
+    const hue = Math.abs(hash) % 360;
+
+    // Crear un avatar simple con SVG
+    const svg = `
+      <svg width="28" height="28" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="14" cy="14" r="14" fill="hsl(${hue}, 60%, 60%)"/>
+        <text x="14" y="19" font-family="Arial, sans-serif" font-size="11" 
+              fill="white" text-anchor="middle" font-weight="bold">${initials}</text>
+      </svg>
+    `;
+
+    return `data:image/svg+xml;base64,${btoa(svg)}`;
+  };
+  // Obtiene el avatar de usuario a partir del ID
+  const getUserAvatar = (userId) => {
+    if (!userId) return null;
+
+    // Normalizar el ID para comparación (convertir a string)
+    const normalizedUserId = String(userId).trim(); // Primero intentar desde datos de Twitch en localStorage
+    try {
+      const twitchUser = JSON.parse(localStorage.getItem("twitchUser") || "{}");
+      if (
+        String(twitchUser.id).trim() === normalizedUserId &&
+        twitchUser.image
+      ) {
+        return twitchUser.image;
+      }
+    } catch (error) {
+      // Silently handle localStorage errors
+    } // Intentar desde cache de userData de otros componentes
+    try {
+      const cachedUserData = localStorage.getItem("userData");
+      if (cachedUserData) {
+        const userData = JSON.parse(cachedUserData);
+        const matchingUser = userData.find(
+          (user) => String(user.id).trim() === normalizedUserId
+        );
+        if (matchingUser) {
+          // Intentar diferentes propiedades para el avatar
+          const avatar =
+            matchingUser.pfp ||
+            matchingUser.avatar ||
+            matchingUser.image ||
+            matchingUser.profilePicture;
+          if (avatar) {
+            return avatar;
+          }
+        }
+      }
+    } catch (error) {
+      // Silently handle localStorage errors
+    } // Generar avatar por defecto usando las iniciales del nombre de usuario
+    const userName = getUserName(normalizedUserId);
+    if (userName && userName !== normalizedUserId) {
+      // Si tenemos un nombre real, generar avatar con iniciales
+      const initials = userName
+        .split(" ")
+        .map((word) => word[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
+      const avatarUrl = generateDefaultAvatar(initials, normalizedUserId);
+      return avatarUrl;
+    }
+
+    // Si no se encuentra avatar ni nombre, retornar null
+    return null;
+  };
+
+  /**
+   * SISTEMA DE MAPEO DE USUARIOS:
+   * - Los IDs de usuario de Twitch se almacenan en la columna P del Google Sheet
+   * - Se crea un mapeo [userId, userName] para convertir IDs a nombres legibles
+   * - Se intenta obtener nombres desde:
+   *   1. Usuario de Twitch logueado actualmente
+   *   2. Cache de userData de otros componentes
+   *   3. Como fallback, se muestra el ID directamente
+   * - Al hacer nuevas recomendaciones, se actualiza el mapeo automáticamente
+   */
 
   // Obtiene los juegos a mostrar en la página actual de "pasado"
   const paginatedGames = filteredGames.slice(
@@ -94,14 +212,15 @@ function Juegos() {
   }, [searchQuery, pasado]); // Carrusel infinito y escalado para Planeo Jugar
   const CARRUSEL_SIZE = 9;
   const CENTER_INDEX = Math.floor(CARRUSEL_SIZE / 2);
-
   // Hook para detectar el tamaño de la pantalla
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   useEffect(() => {
     const handleResize = () => setScreenWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []); // Configuración responsive del carrusel
+  }, []);
+
+  // Configuración responsive del carrusel
   const getCarruselConfig = () => {
     if (screenWidth <= 800) {
       return { containerWidth: 660, gameWidth: 100, edgeMargin: 0 }; // +140px total (520 + 140) CSS centering only
@@ -110,25 +229,40 @@ function Juegos() {
     } else {
       return { containerWidth: 900, gameWidth: 140, edgeMargin: 0 }; // +140px total (760 + 140) CSS centering only
     }
-  };
-
-  // Calcula los índices de los 7 juegos a mostrar, centrando el carrusel
+  }; // Calcula los índices de los 7 juegos a mostrar, centrando el carrusel
   const getCarruselIndices = () => {
-    if (planeoJugar.length === 0) return [];
+    // Usar la lista de juegos apropiada según el estado actual
+    const gamesList =
+      planeoView === "planeo jugar"
+        ? planeoJugar
+        : games.filter((g) => g.estado === "recomendado");
+
+    if (gamesList.length === 0) return [];
     let indices = [];
     let base = startIndex;
-    // Si hay menos de 7 juegos, repite para llenar
-    if (planeoJugar.length < CARRUSEL_SIZE) {
+    console.log(
+      "getCarruselIndices - planeoView:",
+      planeoView,
+      "startIndex:",
+      startIndex,
+      "gamesList.length:",
+      gamesList.length
+    );
+    // Si hay menos de 9 juegos, repite para llenar pero respeta el startIndex
+    if (gamesList.length < CARRUSEL_SIZE) {
       for (let i = 0; i < CARRUSEL_SIZE; i++) {
-        indices.push(i % planeoJugar.length);
+        let idx = (base + i) % gamesList.length;
+        if (idx < 0) idx += gamesList.length;
+        indices.push(idx);
       }
     } else {
       for (let i = 0; i < CARRUSEL_SIZE; i++) {
-        let idx = (base + i) % planeoJugar.length;
-        if (idx < 0) idx += planeoJugar.length;
+        let idx = (base + i) % gamesList.length;
+        if (idx < 0) idx += gamesList.length;
         indices.push(idx);
       }
     }
+    console.log("getCarruselIndices - calculated indices:", indices);
     return indices;
   };
   const carruselIndices = getCarruselIndices(); // Función para calcular la posición de un juego en el carrusel
@@ -204,18 +338,38 @@ function Juegos() {
       setAnimationDirection(null);
     }, 100);
   };
-
   const handleNext = () => {
+    const gamesList =
+      planeoView === "planeo jugar"
+        ? planeoJugar
+        : games.filter((g) => g.estado === "recomendado");
+    console.log(
+      "handleNext called - planeoView:",
+      planeoView,
+      "gamesList.length:",
+      gamesList.length
+    );
+    if (!gamesList.length) return;
+    console.log("Moving to next game, current startIndex:", startIndex);
     animateCarousel("right", () => {
-      setStartIndex((prev) => (prev + 1) % planeoJugar.length);
+      setStartIndex((prev) => (prev + 1) % gamesList.length);
     });
   };
-
   const handlePrevious = () => {
+    const gamesList =
+      planeoView === "planeo jugar"
+        ? planeoJugar
+        : games.filter((g) => g.estado === "recomendado");
+    console.log(
+      "handlePrevious called - planeoView:",
+      planeoView,
+      "gamesList.length:",
+      gamesList.length
+    );
+    if (!gamesList.length) return;
+    console.log("Moving to previous game, current startIndex:", startIndex);
     animateCarousel("left", () => {
-      setStartIndex(
-        (prev) => (prev - 1 + planeoJugar.length) % planeoJugar.length
-      );
+      setStartIndex((prev) => (prev - 1 + gamesList.length) % gamesList.length);
     });
   };
 
@@ -228,13 +382,13 @@ function Juegos() {
     if (!sheetUrl) {
       console.error("La URL del Google Sheet no está configurada en .env");
       return;
-    }
-    // Descarga y procesa los datos del sheet
+    } // Descarga y procesa los datos del sheet
     const fetchGames = async (silentUpdate = false) => {
       try {
         const response = await fetch(sheetUrl);
         const data = await response.text();
         const rows = data.split("\n");
+        const userMap = new Map();
         const parsedData = rows.slice(1).map((row) => {
           const [
             nombre,
@@ -251,9 +405,105 @@ function Juegos() {
             resumen,
             desarrolladores,
             publicadores,
-            id,
-            votos,
-          ] = row.split(",");
+            igdbId,
+            usuario,
+            comentario,
+          ] = row.split(","); // Construir mapeo de usuarios desde datos existentes
+          // Para usuarios que ya tengan juegos con nombres conocidos, intentar obtener el nombre
+          const trimmedUsuario = usuario?.trim();
+          if (trimmedUsuario && trimmedUsuario !== "") {
+            // Si es un ID numérico y no tenemos el mapeo, usar el ID como placeholder
+            if (!userMap.has(trimmedUsuario)) {
+              console.log(`[fetchGames] Processing user ID: ${trimmedUsuario}`);
+              // Intentar obtener el nombre desde localStorage de Twitch si coincide el ID
+              try {
+                const twitchUser = JSON.parse(
+                  localStorage.getItem("twitchUser") || "{}"
+                );
+                console.log(`[fetchGames] Twitch user data:`, twitchUser);
+
+                if (
+                  String(twitchUser.id).trim() === trimmedUsuario &&
+                  twitchUser.name
+                ) {
+                  console.log(
+                    `[fetchGames] Found Twitch mapping: ${trimmedUsuario} -> ${twitchUser.name}`
+                  );
+                  userMap.set(trimmedUsuario, twitchUser.name);
+                } else {
+                  // Intentar obtener el nombre desde cache de otros componentes
+                  const cachedUserData = localStorage.getItem("userData");
+                  if (cachedUserData) {
+                    try {
+                      const userData = JSON.parse(cachedUserData);
+                      console.log(`[fetchGames] Cached user data:`, userData);
+                      const matchingUser = userData.find(
+                        (user) => String(user.id).trim() === trimmedUsuario
+                      );
+                      if (matchingUser) {
+                        console.log(
+                          `[fetchGames] Found matching user in cache:`,
+                          matchingUser
+                        );
+                        console.log(
+                          `[fetchGames] User properties:`,
+                          Object.keys(matchingUser)
+                        );
+
+                        // Intentar diferentes propiedades para el nombre
+                        const userName =
+                          matchingUser.nombre ||
+                          matchingUser.name ||
+                          matchingUser.displayName ||
+                          matchingUser.username;
+                        if (userName) {
+                          console.log(
+                            `[fetchGames] Found cached mapping: ${trimmedUsuario} -> ${userName}`
+                          );
+                          userMap.set(trimmedUsuario, userName);
+                        } else {
+                          console.log(
+                            `[fetchGames] User found but no name property available. Properties:`,
+                            Object.keys(matchingUser)
+                          );
+                          userMap.set(trimmedUsuario, trimmedUsuario);
+                        }
+                      } else {
+                        console.log(
+                          `[fetchGames] No matching user found in cache for ${trimmedUsuario}`
+                        );
+                        // Debug: mostrar algunos usuarios para comparar IDs
+                        console.log(
+                          `[fetchGames] Sample user IDs from cache:`,
+                          userData
+                            .slice(0, 5)
+                            .map((u) => `${u.id} (${typeof u.id})`)
+                        );
+                        userMap.set(trimmedUsuario, trimmedUsuario);
+                      }
+                    } catch (error) {
+                      console.log(
+                        `[fetchGames] Error parsing cached user data:`,
+                        error
+                      );
+                      userMap.set(trimmedUsuario, trimmedUsuario);
+                    }
+                  } else {
+                    console.log(
+                      `[fetchGames] No cached user data found, using ID as fallback for ${trimmedUsuario}`
+                    );
+                    userMap.set(trimmedUsuario, trimmedUsuario);
+                  }
+                }
+              } catch (error) {
+                console.log(
+                  `[fetchGames] Error processing user ${trimmedUsuario}:`,
+                  error
+                );
+                userMap.set(trimmedUsuario, trimmedUsuario);
+              }
+            }
+          }
           return {
             nombre: nombre?.trim(),
             estado: estado?.trim().toLowerCase(),
@@ -269,23 +519,55 @@ function Juegos() {
             resumen: resumen?.trim(),
             desarrolladores: desarrolladores?.trim(),
             publicadores: publicadores?.trim(),
+            igdbId: igdbId?.trim(),
+            usuario: trimmedUsuario,
+            comentario: comentario?.trim(),
           };
         });
+        const uniqueUsers = Array.from(userMap.entries());
+
+        // Debug: Log del mapeo final de usuarios
+        console.log(`[fetchGames] Final user mapping:`, uniqueUsers);
+        console.log(`[fetchGames] Total users mapped: ${uniqueUsers.length}`);
+
         const cachedData = localStorage.getItem("juegosData");
         const cachedParsedData = cachedData ? JSON.parse(cachedData) : null;
-        if (JSON.stringify(parsedData) !== JSON.stringify(cachedParsedData)) {
-          localStorage.setItem("juegosData", JSON.stringify(parsedData));
+        const newData = JSON.stringify({
+          games: parsedData,
+          users: uniqueUsers,
+        });
+
+        if (newData !== JSON.stringify(cachedParsedData)) {
+          localStorage.setItem("juegosData", newData);
           setGames(parsedData);
+          setUsers(uniqueUsers);
+          console.log(`[fetchGames] Updated games and users state`);
+        } else {
+          console.log(
+            `[fetchGames] No changes detected, skipping state update`
+          );
         }
       } catch (error) {
         console.error("Error al cargar los datos:", error);
       }
-    };
-    // Carga los datos desde el caché si existen
+    }; // Carga los datos desde el caché si existen
     const loadGamesFromCache = () => {
       const cachedData = localStorage.getItem("juegosData");
       if (cachedData) {
-        setGames(JSON.parse(cachedData));
+        try {
+          const parsedData = JSON.parse(cachedData);
+          // Compatibilidad con cache anterior (sin usuarios)
+          if (parsedData.games && parsedData.users) {
+            setGames(parsedData.games);
+            setUsers(parsedData.users);
+          } else if (Array.isArray(parsedData)) {
+            // Cache anterior: solo array de juegos
+            setGames(parsedData);
+            setUsers([]); // Se llenará al cargar desde sheet
+          }
+        } catch (error) {
+          console.error("Error al cargar cache:", error);
+        }
       }
     };
     loadGamesFromCache();
@@ -305,7 +587,6 @@ function Juegos() {
     setPlaneoJugar(planeoJugarGames);
     setOriginalPlaneoJugar(planeoJugarGames);
   }, [games]);
-
   // Separa y ordena los juegos en "jugando", "planeo jugar" y "pasado/dropeado"
   useEffect(() => {
     setJugando(
@@ -326,6 +607,21 @@ function Juegos() {
         ),
         false
       )
+    ); // Debug: Log recommended games
+    const recomendados = games.filter((g) => g.estado === "recomendado");
+    console.log("Total games:", games.length);
+    console.log("Recommended games found:", recomendados.length);
+    console.log(
+      "Recommended games:",
+      recomendados.map((g) => g.nombre)
+    );
+    console.log(
+      "Recommended games with users:",
+      recomendados.map((g) => ({
+        nombre: g.nombre,
+        usuario: g.usuario,
+        igdbId: g.igdbId,
+      }))
     );
   }, [games]);
 
@@ -607,7 +903,6 @@ function Juegos() {
       setDateTo(max.toISOString().slice(0, 10));
     }
   }, [pasado]);
-
   // Estado para el popup de añadir recomendación
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [searchIGDB, setSearchIGDB] = useState("");
@@ -616,6 +911,7 @@ function Juegos() {
   const [igdbError, setIgdbError] = useState("");
   const [selectedIGDB, setSelectedIGDB] = useState(null);
   const [addStatus, setAddStatus] = useState(""); // Nuevo: feedback para el usuario
+  const [commentText, setCommentText] = useState(""); // Estado para el comentario
 
   // Buscar en IGDB cuando cambia el input (con debounce de 5s)
   useEffect(() => {
@@ -690,13 +986,39 @@ function Juegos() {
   }, [searchIGDB, showAddPopup]);
   // Función para centrar un juego específico del carrusel
   const handleCarouselGameClick = (clickedIndex, gameIndex) => {
+    console.log(
+      "handleCarouselGameClick called - clickedIndex:",
+      clickedIndex,
+      "gameIndex:",
+      gameIndex,
+      "CENTER_INDEX:",
+      CENTER_INDEX
+    );
+    // Usar la lista de juegos apropiada según el estado actual
+    const gamesList =
+      planeoView === "planeo jugar"
+        ? planeoJugar
+        : games.filter((g) => g.estado === "recomendado");
+    console.log(
+      "gamesList.length:",
+      gamesList.length,
+      "planeoView:",
+      planeoView
+    );
+
     // Si es el juego central, abrir el popup de detalles
     if (clickedIndex === CENTER_INDEX) {
-      const game = planeoJugar[gameIndex];
+      const game = gamesList[gameIndex];
+      console.log("Opening popup for game:", game?.nombre);
       handleGameClick(game);
     } else {
       // Calcular cuántas posiciones mover para centrar el juego clicado
       const positionsToMove = clickedIndex - CENTER_INDEX;
+      console.log(
+        "Moving",
+        positionsToMove,
+        "positions to center the clicked game"
+      );
 
       // Determinar dirección de la animación
       const direction = positionsToMove > 0 ? "right" : "left";
@@ -706,13 +1028,14 @@ function Juegos() {
         setStartIndex((prev) => {
           let newIndex = prev + positionsToMove;
 
-          // Aplicar wrapping circular
+          // Aplicar wrapping circular usando la longitud correcta de la lista
           if (newIndex < 0) {
-            newIndex = planeoJugar.length + newIndex;
-          } else if (newIndex >= planeoJugar.length) {
-            newIndex = newIndex % planeoJugar.length;
+            newIndex = gamesList.length + newIndex;
+          } else if (newIndex >= gamesList.length) {
+            newIndex = newIndex % gamesList.length;
           }
 
+          console.log("New startIndex:", newIndex);
           return newIndex;
         });
       });
@@ -722,6 +1045,20 @@ function Juegos() {
   // Estado para controlar las animaciones del carrusel
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationDirection, setAnimationDirection] = useState(null); // 'left', 'right', 'click'
+  // Corrige startIndex si la lista activa cambia de tamaño o está vacía
+  useEffect(() => {
+    const gamesList =
+      planeoView === "planeo jugar"
+        ? planeoJugar
+        : games.filter((g) => g.estado === "recomendado");
+    if (!gamesList.length) {
+      setStartIndex(0);
+      return;
+    }
+    if (startIndex >= gamesList.length || startIndex < 0 || isNaN(startIndex)) {
+      setStartIndex(0);
+    }
+  }, [planeoView, planeoJugar, games, startIndex]);
 
   // Renderizado principal del componente
   return (
@@ -763,24 +1100,60 @@ function Juegos() {
               justifyContent: "space-between",
             }}
           >
-            <h2 className="header-juegos">Planeo Jugar</h2>
             {(() => {
               let twitchUser = null;
               try {
                 twitchUser = JSON.parse(localStorage.getItem("twitchUser"));
               } catch {}
-              if (twitchUser && twitchUser.name) {
-                return (
+              // Div invisible a la izquierda
+              const leftSpacer = <div className="header-spacer" />;
+              // Div invisible a la derecha (ocupa el lugar del botón si no está visible)
+              const rightSpacer = <div className="header-spacer" />;
+              // Botón Recomendar (solo si logueado y en planeo jugar)
+              const recommendBtn =
+                planeoView === "recomendado" &&
+                twitchUser &&
+                twitchUser.name ? (
                   <button
                     className="add-recommendation-button"
                     onClick={() => setShowAddPopup(true)}
                   >
-                    {" "}
                     + Recomendar
                   </button>
+                ) : (
+                  rightSpacer
                 );
-              }
-              return null;
+              // Layout: [spacer] [header] [recomendar o spacer]
+              return (
+                <>
+                  {leftSpacer}
+                  <h2
+                    className="header-juegos toggle-header-btn"
+                    style={{
+                      flex: 1,
+                      textAlign: "center",
+                      margin: 0,
+                      cursor: "pointer",
+                      userSelect: "none",
+                    }}
+                    onClick={() =>
+                      setPlaneoView((prev) =>
+                        prev === "planeo jugar" ? "recomendado" : "planeo jugar"
+                      )
+                    }
+                    title={
+                      planeoView === "planeo jugar"
+                        ? "Ver Recomendaciones"
+                        : "Ver Planeo Jugar"
+                    }
+                  >
+                    {planeoView === "planeo jugar"
+                      ? "Planeo Jugar"
+                      : "Recomendaciones"}
+                  </h2>
+                  {recommendBtn}
+                </>
+              );
             })()}
           </div>
           <div className="planeo-jugar-container" ref={containerRef}>
@@ -792,8 +1165,15 @@ function Juegos() {
               ◀︎
             </button>{" "}
             <ul className="planeo-jugar-list">
+              {" "}
               {carruselIndices.map((gameIdx, i) => {
-                const game = planeoJugar[gameIdx];
+                // Mostrar juegos según el estado seleccionado
+                const gamesList =
+                  planeoView === "planeo jugar"
+                    ? planeoJugar
+                    : games.filter((g) => g.estado === "recomendado");
+                if (!gamesList.length) return null;
+                const game = gamesList[gameIdx % gamesList.length];
                 const distance = Math.abs(i - CENTER_INDEX); // Configuración responsive del carrusel
                 const { containerWidth, gameWidth, edgeMargin } =
                   getCarruselConfig();
@@ -809,22 +1189,20 @@ function Juegos() {
                 // Usar una función de easing más suave que preserve más el tamaño de los juegos cercanos al centro
                 const normalizedDistance = distance / maxDistance; // 0 a 1
                 const easedDistance = Math.pow(normalizedDistance, 2); // Curva más suave para reducción progresiva
-                let scale = 1.0 - easedDistance * 0.25; // Reducción máxima del 25% para mayor contraste
+                let scale = 1.0 - easedDistance * 0.25; // Reducción máxima del 25% para mayor contraste                // Z-index basado en distancia al centro
+                const zIndex = CARRUSEL_SIZE - distance;
 
-                // Z-index basado en distancia al centro
-                const zIndex = CARRUSEL_SIZE - distance; // Clases CSS para opacidad
-                let className = "carrusel-far";
-                let targetOpacity = 0.7;
-                if (distance === 0) {
-                  className = "carrusel-center";
-                  targetOpacity = 1;
-                } else if (distance <= Math.ceil(CARRUSEL_SIZE / 4)) {
-                  className = "carrusel-adjacent";
-                  targetOpacity = 0.95;
-                } else if (distance <= Math.ceil(CARRUSEL_SIZE / 2)) {
-                  className = "carrusel-next";
-                  targetOpacity = 0.85;
-                }
+                // Calcular opacidad dinámicamente basada en la distancia al centro
+                // Función matemática: opacity = distance / maxDistance * 0.99
+                // Centro (distance = 0) = opacity 0, Más lejano (distance = maxDistance) = opacity 0.99
+                const distanceOpacity =
+                  distance === 0
+                    ? 0
+                    : Math.min((distance / maxDistance) * 0.5, 0.5);
+
+                // Simplificar className - solo necesitamos identificar si es centro o no
+                const className =
+                  distance === 0 ? "carrusel-center" : "carrusel-distant";
 
                 return (
                   <li
@@ -843,26 +1221,20 @@ function Juegos() {
                         "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
                       // Variables CSS para animaciones
                       "--scale": scale,
-                      "--target-opacity": targetOpacity,
-                      "--current-opacity": targetOpacity,
                     }}
                     onClick={() => handleCarouselGameClick(i, gameIdx)}
-                    onMouseEnter={() => {
+                    onMouseEnter={(e) => {
                       // Aumentar escala al pasar el mouse
-                      const gameElement = document.querySelector(
-                        `.planeo-jugar-list li:nth-child(${i + 1})`
-                      );
+                      const gameElement = e.currentTarget;
                       if (gameElement) {
                         gameElement.style.transform = `scale(calc(${scale} * 1.1))`;
                         gameElement.style.transition =
                           "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)";
                       }
                     }}
-                    onMouseLeave={() => {
+                    onMouseLeave={(e) => {
                       // Restablecer escala al quitar el mouse
-                      const gameElement = document.querySelector(
-                        `.planeo-jugar-list li:nth-child(${i + 1})`
-                      );
+                      const gameElement = e.currentTarget;
                       if (gameElement) {
                         gameElement.style.transform = `scale(calc(${scale}))`;
                         gameElement.style.transition =
@@ -870,6 +1242,7 @@ function Juegos() {
                       }
                     }}
                   >
+                    {" "}
                     <div className="cover-wrapper">
                       {game.caratula && (
                         <>
@@ -880,8 +1253,45 @@ function Juegos() {
                           />
                           <div className="cover-gradient"></div>
                         </>
-                      )}
+                      )}{" "}
+                      {/* Mostrar avatar y nombre del recomendador si estamos en recomendaciones */}
+                      {(() => {
+                        if (planeoView !== "recomendado" || !game.usuario)
+                          return null;
+
+                        const userId = game.usuario;
+                        const userName = getUserName(userId);
+                        const avatar = getUserAvatar(userId);
+
+                        // Solo mostrar overlay si tenemos avatar válido O nombre válido (no igual al ID)
+                        const hasValidAvatar = avatar !== null;
+                        const hasValidUsername =
+                          userName && userName !== String(userId).trim();
+
+                        if (!hasValidAvatar && !hasValidUsername) {
+                          return null; // Ocultar completamente si no hay datos válidos
+                        }
+
+                        return (
+                          <div className="recomendador-name-overlay">
+                            {hasValidAvatar && (
+                              <img
+                                src={avatar}
+                                alt={`Avatar de ${userName}`}
+                                className="recomendador-avatar"
+                              />
+                            )}
+                            <span className="recomendador-username">
+                              {userName}
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </div>
+                    <div
+                      className="distance-overlay"
+                      style={{ opacity: distanceOpacity }}
+                    ></div>
                     <strong>{game.nombre}</strong>
                   </li>
                 );
@@ -1222,12 +1632,27 @@ function Juegos() {
                         <strong>⌛ </strong> {selectedGame.horas}
                         {" h"}
                       </p>
-                    )}
+                    )}{" "}
                     {selectedGame.fecha && (
                       <p>
                         <strong>📅 </strong> {selectedGame.fecha}
                       </p>
                     )}
+                    {/* Mostrar comentario del recomendador si existe */}
+                    {selectedGame.comentario &&
+                      selectedGame.comentario.trim() !== "" &&
+                      selectedGame.usuario && (
+                        <div className="recommender-comment-section">
+                          <p>
+                            <strong>
+                              💬 {getUserName(selectedGame.usuario)}:
+                            </strong>
+                          </p>
+                          <p className="recommender-comment">
+                            {selectedGame.comentario.replace(/-%-/g, ", ")}
+                          </p>
+                        </div>
+                      )}
                   </div>
                   {/* Columna de metadatos */}
                   <div className="game-meta-column">
@@ -1352,8 +1777,21 @@ function Juegos() {
                     <div className="igdb-result-date">{game.releaseDate}</div>
                   </div>
                 </div>
-              ))}
+              ))}{" "}
             </div>
+            {/* Campo de comentario - solo visible si hay un juego seleccionado */}
+            {selectedIGDB && (
+              <div className="popup-comment-section">
+                <textarea
+                  className="popup-comment-textarea"
+                  placeholder="Algo que me quieras decir sobre este juego..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  maxLength={500}
+                  rows={3}
+                />
+              </div>
+            )}
             <button
               className="add-recommendation-confirm"
               disabled={!selectedIGDB}
@@ -1364,7 +1802,7 @@ function Juegos() {
                 try {
                   twitchUser = JSON.parse(localStorage.getItem("twitchUser"));
                 } catch {}
-                if (!twitchUser || !twitchUser.name) {
+                if (!twitchUser || !twitchUser.id) {
                   setAddStatus(
                     "Debes iniciar sesión con Twitch para recomendar."
                   );
@@ -1376,8 +1814,9 @@ function Juegos() {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                      user: twitchUser.name,
+                      user: twitchUser.id,
                       game: selectedIGDB.raw,
+                      comment: commentText.trim(), // Enviar comentario
                     }),
                   });
                   const data = await res.json();
@@ -1385,13 +1824,29 @@ function Juegos() {
                     setAddStatus("Error al añadir recomendación");
                   } else {
                     setAddStatus("¡Recomendación añadida!");
-                    // Actualiza la lista de juegos recomendados
+
+                    // Actualizar el mapeo de usuarios con el nuevo usuario
+                    if (twitchUser.id && twitchUser.name) {
+                      setUsers((prevUsers) => {
+                        const userExists = prevUsers.find(
+                          ([id]) => id === twitchUser.id
+                        );
+                        if (!userExists) {
+                          return [
+                            ...prevUsers,
+                            [twitchUser.id, twitchUser.name],
+                          ];
+                        }
+                        return prevUsers;
+                      });
+                    } // Actualiza la lista de juegos recomendados
                     setTimeout(() => {
                       setShowAddPopup(false);
                       setSearchIGDB("");
                       setSelectedIGDB(null);
                       setIgdbResults([]);
                       setAddStatus("");
+                      setCommentText(""); // Limpiar comentario
                     }, 2000);
                   }
                 } catch (error) {
