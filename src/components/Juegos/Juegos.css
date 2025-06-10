@@ -1254,8 +1254,8 @@ li:hover .game-cover.has-youtube {
   will-change: transform, z-index, filter;
 }
 .category-planeo-jugar .planeo-jugar-list li.carrusel-center {
-  box-shadow: 0 8px 32px #000a, var(--box-shadow);
-  filter: drop-shadow(0 4px 16px #0008) brightness(1.05);
+  /* box-shadow: 0 8px 32px #000a, var(--box-shadow);
+     filter: drop-shadow(0 4px 16px #0008) brightness(1.05); */
   z-index: 100;
 }
 .category-planeo-jugar .planeo-jugar-list li.carrusel-distant {
@@ -1419,19 +1419,4 @@ li:hover .game-cover.has-youtube {
 .popup-comment-textarea::placeholder {
   color: var(--text-2);
   font-style: italic;
-}
-
-/* Estilo para la sección de comentarios del recomendador */
-.recommender-comment-section {
-  margin-top: 12px;
-  padding: 2px;
-  border-radius: 8px;
-}
-
-.recommender-comment {
-  margin: 4px 0 0 0;
-  padding: 8px;
-  border-radius: 6px;
-  font-style: italic;
-  color: var(--text-2);
 }
