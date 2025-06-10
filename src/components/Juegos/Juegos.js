@@ -36,14 +36,9 @@ function Juegos() {
   // Juego seleccionado para mostrar en el popup
   const [selectedGame, setSelectedGame] = useState(null);
   // Estado para alternar entre Planeo Jugar y Recomendaciones
-  const [planeoView, setPlaneoView] = useState("planeo jugar"); // "planeo jugar" o "recomendado"  // Estado para mapeo de usuarios (ID -> nombre)
+  const [planeoView, setPlaneoView] = useState("planeo jugar"); // "planeo jugar" o "recomendado"
+  // Estado para mapeo de usuarios (ID -> nombre)
   const [users, setUsers] = useState([]);
-
-  // Sistema de caché en memoria para datos de usuarios de Twitch
-  // NUNCA usa localStorage - siempre obtiene datos frescos de la API
-  const userCacheRef = useRef(new Map()); // Map<userId, {userData, fetchedAt}>
-  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
-  const pendingUserRequestsRef = useRef(new Set()); // Para evitar requests duplicados
 
   // Resetea el startIndex al cambiar de vista para evitar desbordes
   useEffect(() => {
@@ -73,147 +68,25 @@ function Juegos() {
   // Cierra el popup de detalles
   const closePopup = () => {
     setSelectedGame(null);
-  }; // Normaliza cadenas para búsquedas (elimina acentos y caracteres especiales)
+  };
+  // Normaliza cadenas para búsquedas (elimina acentos y caracteres especiales)
   const normalizeString = (str) => {
     return str
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9]/g, "")
       .toLowerCase();
-  };
+  }; // Obtiene el nombre de usuario a partir del ID
+  const getUserName = (userId) => {
+    if (!userId) return "";
 
-  // Función para obtener datos de usuarios desde la API de Twitch
-  const fetchTwitchUsers = async (userIds) => {
-    if (!userIds || userIds.length === 0) return [];
-
-    try {
-      console.log(`[fetchTwitchUsers] Fetching data for users:`, userIds);
-
-      const response = await fetch("/api/twitch-users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userIds }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log(`[fetchTwitchUsers] Received data:`, data);
-
-      return data.users || [];
-    } catch (error) {
-      console.error(`[fetchTwitchUsers] Error:`, error);
-      return [];
-    }
-  };
-
-  // Función para obtener datos de usuario (con caché en memoria)
-  const getUserData = async (userId) => {
-    if (!userId) return null;
-
+    // Normalizar el ID para comparación (convertir a string)
     const normalizedUserId = String(userId).trim();
-    const now = Date.now();
+    const user = users.find(([id]) => String(id).trim() === normalizedUserId);
+    const userName = user ? user[1] : normalizedUserId;
 
-    // Verificar caché en memoria
-    const cached = userCacheRef.current.get(normalizedUserId);
-    if (cached && now - cached.fetchedAt < CACHE_DURATION) {
-      console.log(
-        `[getUserData] Using cached data for user ${normalizedUserId}`
-      );
-      return cached.userData;
-    }
-
-    // Verificar si ya hay un request en progreso para este usuario
-    if (pendingUserRequestsRef.current.has(normalizedUserId)) {
-      console.log(
-        `[getUserData] Request already pending for user ${normalizedUserId}`
-      );
-      return null;
-    }
-
-    // Marcar como request en progreso
-    pendingUserRequestsRef.current.add(normalizedUserId);
-
-    try {
-      // Obtener datos frescos de la API de Twitch
-      const users = await fetchTwitchUsers([normalizedUserId]);
-      const userData = users.find((user) => user.id === normalizedUserId);
-
-      if (userData) {
-        // Guardar en caché en memoria (NO en localStorage)
-        userCacheRef.current.set(normalizedUserId, {
-          userData,
-          fetchedAt: now,
-        });
-
-        console.log(
-          `[getUserData] Cached fresh data for user ${normalizedUserId}:`,
-          userData
-        );
-        return userData;
-      } else {
-        console.log(`[getUserData] No data found for user ${normalizedUserId}`);
-        return null;
-      }
-    } catch (error) {
-      console.error(
-        `[getUserData] Error fetching user ${normalizedUserId}:`,
-        error
-      );
-      return null;
-    } finally {
-      // Remover de requests pendientes
-      pendingUserRequestsRef.current.delete(normalizedUserId);
-    }
+    return userName; // Si no encuentra el nombre, muestra el ID
   };
-
-  // Función para obtener múltiples usuarios de forma eficiente
-  const getUsersData = async (userIds) => {
-    if (!userIds || userIds.length === 0) return [];
-
-    const uniqueUserIds = [...new Set(userIds.map((id) => String(id).trim()))];
-    const now = Date.now();
-    const uncachedUserIds = [];
-    const results = [];
-
-    // Separar usuarios cacheados de los que necesitan ser obtenidos
-    for (const userId of uniqueUserIds) {
-      const cached = userCacheRef.current.get(userId);
-      if (cached && now - cached.fetchedAt < CACHE_DURATION) {
-        results.push(cached.userData);
-      } else {
-        uncachedUserIds.push(userId);
-      }
-    }
-
-    // Obtener usuarios no cacheados de la API
-    if (uncachedUserIds.length > 0) {
-      try {
-        const freshUsers = await fetchTwitchUsers(uncachedUserIds);
-
-        // Guardar en caché y agregar a resultados
-        for (const userData of freshUsers) {
-          userCacheRef.current.set(userData.id, {
-            userData,
-            fetchedAt: now,
-          });
-          results.push(userData);
-        }
-
-        console.log(
-          `[getUsersData] Fetched and cached ${freshUsers.length} users`
-        );
-      } catch (error) {
-        console.error(`[getUsersData] Error fetching users:`, error);
-      }
-    }
-    return results;
-  };
-
   // Genera un avatar por defecto con las iniciales del usuario
   const generateDefaultAvatar = (initials, userId) => {
     // Generar un color basado en el user ID para que sea consistente
@@ -233,45 +106,45 @@ function Juegos() {
 
     return `data:image/svg+xml;base64,${btoa(svg)}`;
   };
-
-  // Obtiene el nombre de usuario a partir del ID (usando caché en memoria y API de Twitch)
-  const getUserName = (userId) => {
-    if (!userId) return "";
-
-    const normalizedUserId = String(userId).trim();
-
-    // Verificar caché en memoria primero
-    const cached = userCacheRef.current.get(normalizedUserId);
-    if (cached) {
-      return (
-        cached.userData.display_name ||
-        cached.userData.login ||
-        normalizedUserId
-      );
-    }
-
-    // Si no está en caché, verificar en el estado users (mapeo básico)
-    const user = users.find(([id]) => String(id).trim() === normalizedUserId);
-    if (user && user[1]) {
-      return user[1];
-    }
-
-    // Como último recurso, devolver el ID
-    return normalizedUserId;
-  };
-  // Obtiene el avatar de usuario a partir del ID (usando caché en memoria y API de Twitch)
+  // Obtiene el avatar de usuario a partir del ID
   const getUserAvatar = (userId) => {
     if (!userId) return null;
 
-    const normalizedUserId = String(userId).trim();
-
-    // Verificar caché en memoria primero
-    const cached = userCacheRef.current.get(normalizedUserId);
-    if (cached && cached.userData.profile_image_url) {
-      return cached.userData.profile_image_url;
-    }
-
-    // Generar avatar por defecto usando las iniciales del nombre de usuario
+    // Normalizar el ID para comparación (convertir a string)
+    const normalizedUserId = String(userId).trim(); // Primero intentar desde datos de Twitch en localStorage
+    try {
+      const twitchUser = JSON.parse(localStorage.getItem("twitchUser") || "{}");
+      if (
+        String(twitchUser.id).trim() === normalizedUserId &&
+        twitchUser.image
+      ) {
+        return twitchUser.image;
+      }
+    } catch (error) {
+      // Silently handle localStorage errors
+    } // Intentar desde cache de userData de otros componentes
+    try {
+      const cachedUserData = localStorage.getItem("userData");
+      if (cachedUserData) {
+        const userData = JSON.parse(cachedUserData);
+        const matchingUser = userData.find(
+          (user) => String(user.id).trim() === normalizedUserId
+        );
+        if (matchingUser) {
+          // Intentar diferentes propiedades para el avatar
+          const avatar =
+            matchingUser.pfp ||
+            matchingUser.avatar ||
+            matchingUser.image ||
+            matchingUser.profilePicture;
+          if (avatar) {
+            return avatar;
+          }
+        }
+      }
+    } catch (error) {
+      // Silently handle localStorage errors
+    } // Generar avatar por defecto usando las iniciales del nombre de usuario
     const userName = getUserName(normalizedUserId);
     if (userName && userName !== normalizedUserId) {
       // Si tenemos un nombre real, generar avatar con iniciales
@@ -281,67 +154,23 @@ function Juegos() {
         .join("")
         .toUpperCase()
         .slice(0, 2);
-      return generateDefaultAvatar(initials, normalizedUserId);
+      const avatarUrl = generateDefaultAvatar(initials, normalizedUserId);
+      return avatarUrl;
     }
 
     // Si no se encuentra avatar ni nombre, retornar null
     return null;
   };
 
-  // Función para obtener datos de usuario de forma reactiva (con efecto de carga)
-  const useUserData = (userId) => {
-    const [userData, setUserData] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-
-    useEffect(() => {
-      if (!userId) {
-        setUserData(null);
-        return;
-      }
-
-      const normalizedUserId = String(userId).trim();
-
-      // Verificar caché primero
-      const cached = userCacheRef.current.get(normalizedUserId);
-      const now = Date.now();
-
-      if (cached && now - cached.fetchedAt < CACHE_DURATION) {
-        setUserData(cached.userData);
-        return;
-      }
-
-      // Si no está en caché, cargar de forma asíncrona
-      if (!pendingUserRequestsRef.current.has(normalizedUserId)) {
-        setIsLoading(true);
-        getUserData(normalizedUserId)
-          .then((data) => {
-            setUserData(data);
-            setIsLoading(false);
-          })
-          .catch((error) => {
-            console.error(
-              `[useUserData] Error loading user ${normalizedUserId}:`,
-              error
-            );
-            setIsLoading(false);
-          });
-      }
-    }, [userId]);
-
-    return { userData, isLoading };
-  };
   /**
-   * NUEVO SISTEMA DE USUARIOS CON API DE TWITCH:
-   * - NUNCA usa localStorage para obtener datos de usuarios
-   * - SIEMPRE consulta la API de Twitch para datos actualizados
-   * - Usa caché en memoria temporal (5 minutos) para rendimiento
-   * - Los IDs de usuario se almacenan en la columna P del Google Sheet
-   * - Al obtener datos de usuario:
-   *   1. Verifica caché en memoria (temporal)
-   *   2. Si no está cacheado, hace llamada a API de Twitch
-   *   3. Guarda resultado en caché en memoria (NO localStorage)
-   *   4. Como fallback muestra el ID si la API falla
-   * - El mapeo básico [userId, userName] se mantiene solo como fallback
+   * SISTEMA DE MAPEO DE USUARIOS:
+   * - Los IDs de usuario de Twitch se almacenan en la columna P del Google Sheet
+   * - Se crea un mapeo [userId, userName] para convertir IDs a nombres legibles
+   * - Se intenta obtener nombres desde:
+   *   1. Usuario de Twitch logueado actualmente
+   *   2. Cache de userData de otros componentes
+   *   3. Como fallback, se muestra el ID directamente
+   * - Al hacer nuevas recomendaciones, se actualiza el mapeo automáticamente
    */
 
   // Obtiene los juegos a mostrar en la página actual de "pasado"
@@ -560,12 +389,6 @@ function Juegos() {
         const data = await response.text();
         const rows = data.split("\n");
         const userMap = new Map();
-        const userIdsToFetch = new Set(); // IDs de usuarios para buscar en API
-
-        console.log(
-          `[fetchGames] Starting to process ${rows.length - 1} games`
-        );
-
         const parsedData = rows.slice(1).map((row) => {
           const [
             nombre,
@@ -585,19 +408,102 @@ function Juegos() {
             igdbId,
             usuario,
             comentario,
-          ] = row.split(",");
-
+          ] = row.split(","); // Construir mapeo de usuarios desde datos existentes
+          // Para usuarios que ya tengan juegos con nombres conocidos, intentar obtener el nombre
           const trimmedUsuario = usuario?.trim();
           if (trimmedUsuario && trimmedUsuario !== "") {
-            // Agregar ID para búsqueda posterior en API
-            userIdsToFetch.add(trimmedUsuario);
-
-            // Mapeo temporal solo para fallback (no usa localStorage)
+            // Si es un ID numérico y no tenemos el mapeo, usar el ID como placeholder
             if (!userMap.has(trimmedUsuario)) {
-              userMap.set(trimmedUsuario, trimmedUsuario); // ID como placeholder
+              console.log(`[fetchGames] Processing user ID: ${trimmedUsuario}`);
+              // Intentar obtener el nombre desde localStorage de Twitch si coincide el ID
+              try {
+                const twitchUser = JSON.parse(
+                  localStorage.getItem("twitchUser") || "{}"
+                );
+                console.log(`[fetchGames] Twitch user data:`, twitchUser);
+
+                if (
+                  String(twitchUser.id).trim() === trimmedUsuario &&
+                  twitchUser.name
+                ) {
+                  console.log(
+                    `[fetchGames] Found Twitch mapping: ${trimmedUsuario} -> ${twitchUser.name}`
+                  );
+                  userMap.set(trimmedUsuario, twitchUser.name);
+                } else {
+                  // Intentar obtener el nombre desde cache de otros componentes
+                  const cachedUserData = localStorage.getItem("userData");
+                  if (cachedUserData) {
+                    try {
+                      const userData = JSON.parse(cachedUserData);
+                      console.log(`[fetchGames] Cached user data:`, userData);
+                      const matchingUser = userData.find(
+                        (user) => String(user.id).trim() === trimmedUsuario
+                      );
+                      if (matchingUser) {
+                        console.log(
+                          `[fetchGames] Found matching user in cache:`,
+                          matchingUser
+                        );
+                        console.log(
+                          `[fetchGames] User properties:`,
+                          Object.keys(matchingUser)
+                        );
+
+                        // Intentar diferentes propiedades para el nombre
+                        const userName =
+                          matchingUser.nombre ||
+                          matchingUser.name ||
+                          matchingUser.displayName ||
+                          matchingUser.username;
+                        if (userName) {
+                          console.log(
+                            `[fetchGames] Found cached mapping: ${trimmedUsuario} -> ${userName}`
+                          );
+                          userMap.set(trimmedUsuario, userName);
+                        } else {
+                          console.log(
+                            `[fetchGames] User found but no name property available. Properties:`,
+                            Object.keys(matchingUser)
+                          );
+                          userMap.set(trimmedUsuario, trimmedUsuario);
+                        }
+                      } else {
+                        console.log(
+                          `[fetchGames] No matching user found in cache for ${trimmedUsuario}`
+                        );
+                        // Debug: mostrar algunos usuarios para comparar IDs
+                        console.log(
+                          `[fetchGames] Sample user IDs from cache:`,
+                          userData
+                            .slice(0, 5)
+                            .map((u) => `${u.id} (${typeof u.id})`)
+                        );
+                        userMap.set(trimmedUsuario, trimmedUsuario);
+                      }
+                    } catch (error) {
+                      console.log(
+                        `[fetchGames] Error parsing cached user data:`,
+                        error
+                      );
+                      userMap.set(trimmedUsuario, trimmedUsuario);
+                    }
+                  } else {
+                    console.log(
+                      `[fetchGames] No cached user data found, using ID as fallback for ${trimmedUsuario}`
+                    );
+                    userMap.set(trimmedUsuario, trimmedUsuario);
+                  }
+                }
+              } catch (error) {
+                console.log(
+                  `[fetchGames] Error processing user ${trimmedUsuario}:`,
+                  error
+                );
+                userMap.set(trimmedUsuario, trimmedUsuario);
+              }
             }
           }
-
           return {
             nombre: nombre?.trim(),
             estado: estado?.trim().toLowerCase(),
@@ -618,47 +524,17 @@ function Juegos() {
             comentario: comentario?.trim(),
           };
         });
-
-        // Obtener datos actualizados de usuarios desde la API de Twitch
-        const userIdsArray = Array.from(userIdsToFetch);
-        console.log(
-          `[fetchGames] Fetching data for ${userIdsArray.length} unique users:`,
-          userIdsArray
-        );
-
-        if (userIdsArray.length > 0) {
-          try {
-            const twitchUsers = await getUsersData(userIdsArray);
-            console.log(
-              `[fetchGames] Received ${twitchUsers.length} users from API`
-            );
-
-            // Actualizar mapeo con datos reales de la API
-            twitchUsers.forEach((userData) => {
-              const displayName = userData.display_name || userData.login;
-              userMap.set(userData.id, displayName);
-              console.log(
-                `[fetchGames] Updated mapping: ${userData.id} -> ${displayName}`
-              );
-            });
-          } catch (error) {
-            console.error(
-              `[fetchGames] Error fetching user data from API:`,
-              error
-            );
-            // Continúa con IDs como fallback
-          }
-        }
-
         const uniqueUsers = Array.from(userMap.entries());
-        console.log(`[fetchGames] Final user mapping:`, uniqueUsers);
 
-        // Solo usar localStorage para caché de juegos (NO para datos de usuario)
+        // Debug: Log del mapeo final de usuarios
+        console.log(`[fetchGames] Final user mapping:`, uniqueUsers);
+        console.log(`[fetchGames] Total users mapped: ${uniqueUsers.length}`);
+
         const cachedData = localStorage.getItem("juegosData");
         const cachedParsedData = cachedData ? JSON.parse(cachedData) : null;
         const newData = JSON.stringify({
           games: parsedData,
-          users: uniqueUsers, // Solo para fallback - los datos reales están en memoria
+          users: uniqueUsers,
         });
 
         if (newData !== JSON.stringify(cachedParsedData)) {
@@ -702,38 +578,6 @@ function Juegos() {
     }, 60000);
     return () => clearInterval(intervalId);
   }, []);
-
-  // Efecto para precargar datos de usuarios cuando se cargan los juegos
-  useEffect(() => {
-    if (games.length === 0) return;
-
-    // Extraer todos los IDs de usuario únicos de los juegos
-    const userIds = games
-      .map((game) => game.usuario)
-      .filter(Boolean)
-      .filter((id) => String(id).trim() !== "")
-      .map((id) => String(id).trim());
-
-    const uniqueUserIds = [...new Set(userIds)];
-
-    if (uniqueUserIds.length > 0) {
-      console.log(
-        `[preloadUserData] Preloading data for ${uniqueUserIds.length} users:`,
-        uniqueUserIds
-      );
-
-      // Precargar datos de usuarios de forma asíncrona
-      getUsersData(uniqueUserIds)
-        .then((userData) => {
-          console.log(
-            `[preloadUserData] Preloaded ${userData.length} users successfully`
-          );
-        })
-        .catch((error) => {
-          console.error(`[preloadUserData] Error preloading user data:`, error);
-        });
-    }
-  }, [games]);
 
   // Separa los juegos en "planeo jugar" al cargar datos
   useEffect(() => {
