@@ -902,8 +902,7 @@ function Juegos() {
       setDateFrom(min.toISOString().slice(0, 10));
       setDateTo(max.toISOString().slice(0, 10));
     }
-  }, [pasado]);
-  // Estado para el popup de añadir recomendación
+  }, [pasado]);  // Estado para el popup de añadir recomendación
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [searchIGDB, setSearchIGDB] = useState("");
   const [igdbResults, setIgdbResults] = useState([]);
@@ -912,6 +911,71 @@ function Juegos() {
   const [selectedIGDB, setSelectedIGDB] = useState(null);
   const [addStatus, setAddStatus] = useState(""); // Nuevo: feedback para el usuario
   const [commentText, setCommentText] = useState(""); // Estado para el comentario
+  
+  // Estados para validación de usuario autorizado
+  const [userValidated, setUserValidated] = useState(false);
+  const [userValidating, setUserValidating] = useState(false);
+  const [validationError, setValidationError] = useState("");
+
+  // Función para validar si el usuario actual está autorizado
+  const validateCurrentUser = async () => {
+    let twitchUser = null;
+    try {
+      twitchUser = JSON.parse(localStorage.getItem("twitchUser"));
+    } catch {}
+
+    if (!twitchUser || !twitchUser.id) {
+      setValidationError("Debes iniciar sesión con Twitch para recomendar juegos.");
+      return false;
+    }
+
+    setUserValidating(true);
+    setValidationError("");
+
+    try {
+      const response = await fetch('/api/validate-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: twitchUser.id }),
+      });
+
+      const data = await response.json();
+
+      if (data.authorized) {
+        setUserValidated(true);
+        setValidationError("");
+        return true;
+      } else {
+        setValidationError(data.message || "Usuario no autorizado para añadir recomendaciones.");
+        return false;
+      }
+    } catch (error) {
+      console.error('[validateCurrentUser] Error:', error);
+      setValidationError("Error al validar usuario. Inténtalo de nuevo.");
+      return false;
+    } finally {
+      setUserValidating(false);
+    }
+  };
+  // Función modificada para abrir el popup con validación
+  const handleOpenAddPopup = async () => {
+    const isValid = await validateCurrentUser();
+    if (isValid) {
+      setShowAddPopup(true);
+    }
+  };
+
+  // Función para cerrar el popup y limpiar estados
+  const handleCloseAddPopup = () => {
+    setShowAddPopup(false);
+    setSearchIGDB("");
+    setSelectedIGDB(null);
+    setIgdbResults([]);
+    setAddStatus("");
+    setCommentText("");
+    setUserValidated(false);
+    setValidationError("");
+  };
 
   // Buscar en IGDB cuando cambia el input (con debounce de 5s)
   useEffect(() => {
@@ -1108,17 +1172,17 @@ function Juegos() {
               // Div invisible a la izquierda
               const leftSpacer = <div className="header-spacer" />;
               // Div invisible a la derecha (ocupa el lugar del botón si no está visible)
-              const rightSpacer = <div className="header-spacer" />;
-              // Botón Recomendar (solo si logueado y en planeo jugar)
+              const rightSpacer = <div className="header-spacer" />;              // Botón Recomendar (solo si logueado y en planeo jugar)
               const recommendBtn =
                 planeoView === "recomendado" &&
                 twitchUser &&
                 twitchUser.name ? (
                   <button
                     className="add-recommendation-button"
-                    onClick={() => setShowAddPopup(true)}
+                    onClick={handleOpenAddPopup}
+                    disabled={userValidating}
                   >
-                    + Recomendar
+                    {userValidating ? "Validando..." : "+ Recomendar"}
                   </button>
                 ) : (
                   rightSpacer
@@ -1153,9 +1217,25 @@ function Juegos() {
                   </h2>
                   {recommendBtn}
                 </>
-              );
-            })()}
+              );            })()}
           </div>
+          
+          {/* Mensaje de error de validación */}
+          {validationError && (
+            <div style={{
+              background: '#ff4444',
+              color: 'white',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              margin: '10px 0',
+              textAlign: 'center',
+              fontSize: '14px',
+              fontWeight: '600'
+            }}>
+              {validationError}
+            </div>
+          )}
+          
           <div className="planeo-jugar-container" ref={containerRef}>
             <button
               onClick={handlePrevious}
@@ -1723,14 +1803,13 @@ function Juegos() {
       )}
       {/* Popup para añadir recomendación */}
       {showAddPopup && (
-        <div className="popup-overlay" onClick={() => setShowAddPopup(false)}>
+        <div className="popup-overlay" onClick={handleCloseAddPopup}>
           <div
             className="popup-content popup-add-recommendation"
             onClick={(e) => e.stopPropagation()}
-          >
-            <button
+          >            <button
               className="close-button"
-              onClick={() => setShowAddPopup(false)}
+              onClick={handleCloseAddPopup}
             >
               ✖
             </button>
@@ -1838,15 +1917,9 @@ function Juegos() {
                           ];
                         }
                         return prevUsers;
-                      });
-                    } // Actualiza la lista de juegos recomendados
+                      });                    } // Actualiza la lista de juegos recomendados
                     setTimeout(() => {
-                      setShowAddPopup(false);
-                      setSearchIGDB("");
-                      setSelectedIGDB(null);
-                      setIgdbResults([]);
-                      setAddStatus("");
-                      setCommentText(""); // Limpiar comentario
+                      handleCloseAddPopup();
                     }, 2000);
                   }
                 } catch (error) {
