@@ -1430,3 +1430,7 @@ li:hover .game-cover.has-youtube {
   margin-left: 20px !important;
   color: var(--text-2);
 }
+
+.header-juegos.toggle-header-btn:hover {
+  color: var(--color-mid) !important;
+}
