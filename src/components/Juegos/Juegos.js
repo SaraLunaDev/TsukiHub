@@ -911,12 +911,11 @@ function Juegos() {
   const [selectedIGDB, setSelectedIGDB] = useState(null);
   const [addStatus, setAddStatus] = useState(""); // Nuevo: feedback para el usuario
   const [commentText, setCommentText] = useState(""); // Estado para el comentario
-  
-  // Estados para validación de usuario autorizado
+    // Estados para validación de usuario autorizado
   const [userValidated, setUserValidated] = useState(false);
   const [userValidating, setUserValidating] = useState(false);
-  const [validationError, setValidationError] = useState("");
-
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   // Función para validar si el usuario actual está autorizado
   const validateCurrentUser = async () => {
     let twitchUser = null;
@@ -925,12 +924,13 @@ function Juegos() {
     } catch {}
 
     if (!twitchUser || !twitchUser.id) {
-      setValidationError("Debes iniciar sesión con Twitch para recomendar juegos.");
+      setErrorMessage("Debes iniciar sesión con Twitch para recomendar juegos.");
+      setShowErrorPopup(true);
       return false;
     }
 
     setUserValidating(true);
-    setValidationError("");
+    setErrorMessage("");
 
     try {
       const response = await fetch('/api/validate-user', {
@@ -943,15 +943,17 @@ function Juegos() {
 
       if (data.authorized) {
         setUserValidated(true);
-        setValidationError("");
+        setErrorMessage("");
         return true;
       } else {
-        setValidationError(data.message || "Usuario no autorizado para añadir recomendaciones.");
+        setErrorMessage(data.message || "Usuario no autorizado para añadir recomendaciones.");
+        setShowErrorPopup(true);
         return false;
       }
     } catch (error) {
       console.error('[validateCurrentUser] Error:', error);
-      setValidationError("Error al validar usuario. Inténtalo de nuevo.");
+      setErrorMessage("Error al validar usuario. Inténtalo de nuevo.");
+      setShowErrorPopup(true);
       return false;
     } finally {
       setUserValidating(false);
@@ -964,7 +966,6 @@ function Juegos() {
       setShowAddPopup(true);
     }
   };
-
   // Función para cerrar el popup y limpiar estados
   const handleCloseAddPopup = () => {
     setShowAddPopup(false);
@@ -974,7 +975,7 @@ function Juegos() {
     setAddStatus("");
     setCommentText("");
     setUserValidated(false);
-    setValidationError("");
+    setErrorMessage("");
   };
 
   // Buscar en IGDB cuando cambia el input (con debounce de 5s)
@@ -1219,22 +1220,6 @@ function Juegos() {
                 </>
               );            })()}
           </div>
-          
-          {/* Mensaje de error de validación */}
-          {validationError && (
-            <div style={{
-              background: '#ff4444',
-              color: 'white',
-              padding: '12px 16px',
-              borderRadius: '8px',
-              margin: '10px 0',
-              textAlign: 'center',
-              fontSize: '14px',
-              fontWeight: '600'
-            }}>
-              {validationError}
-            </div>
-          )}
           
           <div className="planeo-jugar-container" ref={containerRef}>
             <button
@@ -1938,10 +1923,58 @@ function Juegos() {
               >
                 {addStatus}
               </div>
-            )}
+            )}          </div>
+        </div>
+      )}
+      
+      {/* Popup de error de validación */}
+      {showErrorPopup && (
+        <div className="popup-overlay" onClick={() => setShowErrorPopup(false)}>
+          <div
+            className="popup-content"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: '400px',
+              textAlign: 'center',
+              padding: '32px',
+              borderRadius: '16px'
+            }}
+          >
+            <div style={{ 
+              fontSize: '48px', 
+              color: '#ff4444', 
+              marginBottom: '16px' 
+            }}>
+              ⚠️
+            </div>
+            <h2 style={{ 
+              color: '#ff4444', 
+              marginBottom: '16px',
+              fontSize: '20px'
+            }}>
+              Acceso Denegado
+            </h2>
+            <p style={{ 
+              marginBottom: '24px',
+              lineHeight: '1.5',
+              color: 'var(--text)'
+            }}>
+              {errorMessage}
+            </p>
+            <button
+              className="add-recommendation-confirm"
+              onClick={() => setShowErrorPopup(false)}
+              style={{
+                background: '#ff4444',
+                width: '120px'
+              }}
+            >
+              Entendido
+            </button>
           </div>
         </div>
       )}
+      
     </div>
   );
 }

@@ -1,11 +1,81 @@
 import { google } from "googleapis";
 
+// Función para obtener usuarios autorizados desde Google Sheet UserData
+const getAuthorizedUsers = async () => {
+  try {
+    const userDataUrl = process.env.REACT_APP_USERDATA_SHEET_URL;
+    if (!userDataUrl) {
+      throw new Error("REACT_APP_USERDATA_SHEET_URL not configured");
+    }
+
+    const response = await fetch(userDataUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch user data: ${response.status}`);
+    }
+
+    const data = await response.text();
+    const rows = data.split("\n");
+
+    // Asumiendo que la primera columna contiene los IDs de usuario
+    const authorizedUserIds = rows
+      .slice(1) // Omitir header
+      .map((row) => {
+        const columns = row.split(",");
+        return columns[0]?.trim(); // Primera columna = ID de usuario
+      })
+      .filter((id) => id && id !== ""); // Filtrar IDs vacíos
+
+    console.log(
+      `[getAuthorizedUsers] Found ${authorizedUserIds.length} authorized users:`,
+      authorizedUserIds
+    );
+    return authorizedUserIds;
+  } catch (error) {
+    console.error("[getAuthorizedUsers] Error:", error);
+    return [];
+  }
+};
+
+// Función para validar si un usuario está autorizado
+const isUserAuthorized = async (userId) => {
+  if (!userId) return false;
+
+  const authorizedUsers = await getAuthorizedUsers();
+  const isAuthorized = authorizedUsers.includes(String(userId).trim());
+
+  console.log(
+    `[isUserAuthorized] Checking user ${userId}: ${
+      isAuthorized ? "AUTHORIZED" : "NOT AUTHORIZED"
+    }`
+  );
+  return isAuthorized;
+};
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
-  }
-  const { game, user, comment } = req.body;
+  }  const { game, user, comment } = req.body;
   if (!game || !user) return res.status(400).json({ error: "Missing data" });
+
+  // VALIDACIÓN: Verificar si el usuario está autorizado en la base de datos UserData
+  console.log(`[add-recommendation] Validating user: ${user}`);
+  const authorized = await isUserAuthorized(user);
+
+  if (!authorized) {
+    console.log(
+      `[add-recommendation] User ${user} is NOT AUTHORIZED to add recommendations`
+    );
+    return res.status(403).json({
+      error: "User not authorized",
+      message:
+        "Solo usuarios registrados en la base de datos pueden añadir recomendaciones",
+      userId: user,
+    });
+  }
+
+  console.log(
+    `[add-recommendation] User ${user} is AUTHORIZED, proceeding with recommendation`
+  );
 
   // Carga las variables de entorno
   const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
