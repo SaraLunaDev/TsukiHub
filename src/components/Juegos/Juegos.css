@@ -1431,6 +1431,9 @@ li:hover .game-cover.has-youtube {
   color: var(--text-2);
 }
 
+.header-juegos.toggle-header-btn {
+  transition: color 0.2s;
+}
 .header-juegos.toggle-header-btn:hover {
   color: var(--color-mid) !important;
 }
