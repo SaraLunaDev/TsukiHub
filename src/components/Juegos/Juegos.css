@@ -1420,3 +1420,13 @@ li:hover .game-cover.has-youtube {
   color: var(--text-2);
   font-style: italic;
 }
+
+.recommender-comment-section{
+  margin-top: 10px;;
+}
+
+.recommender-comment {
+  font-size: 0.8em !important;
+  margin-left: 20px !important;
+  color: var(--text-2);
+}

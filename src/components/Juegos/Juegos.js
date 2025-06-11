@@ -36,9 +36,10 @@ function Juegos() {
   // Juego seleccionado para mostrar en el popup
   const [selectedGame, setSelectedGame] = useState(null);
   // Estado para alternar entre Planeo Jugar y Recomendaciones
-  const [planeoView, setPlaneoView] = useState("planeo jugar"); // "planeo jugar" o "recomendado"
-  // Estado para mapeo de usuarios (ID -> nombre)
+  const [planeoView, setPlaneoView] = useState("planeo jugar"); // "planeo jugar" o "recomendado"  // Estado para mapeo de usuarios (ID -> nombre)
   const [users, setUsers] = useState([]);
+  // Estado para datos completos de usuarios desde UserData
+  const [userDataComplete, setUserDataComplete] = useState([]);
 
   // Resetea el startIndex al cambiar de vista para evitar desbordes
   useEffect(() => {
@@ -76,12 +77,23 @@ function Juegos() {
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9]/g, "")
       .toLowerCase();
-  }; // Obtiene el nombre de usuario a partir del ID
+  }; // Obtiene el nombre de usuario a partir del ID desde UserData
   const getUserName = (userId) => {
     if (!userId) return "";
 
     // Normalizar el ID para comparación (convertir a string)
     const normalizedUserId = String(userId).trim();
+
+    // Buscar en los datos completos de UserData primero
+    const userFromUserData = userDataComplete.find(
+      (user) => String(user.id).trim() === normalizedUserId
+    );
+
+    if (userFromUserData && userFromUserData.nombre) {
+      return userFromUserData.nombre;
+    }
+
+    // Fallback al mapeo de usuarios del sheet de juegos
     const user = users.find(([id]) => String(id).trim() === normalizedUserId);
     const userName = user ? user[1] : normalizedUserId;
 
@@ -105,13 +117,23 @@ function Juegos() {
     `;
 
     return `data:image/svg+xml;base64,${btoa(svg)}`;
-  };
-  // Obtiene el avatar de usuario a partir del ID
+  }; // Obtiene el avatar de usuario a partir del ID desde UserData
   const getUserAvatar = (userId) => {
     if (!userId) return null;
 
     // Normalizar el ID para comparación (convertir a string)
-    const normalizedUserId = String(userId).trim(); // Primero intentar desde datos de Twitch en localStorage
+    const normalizedUserId = String(userId).trim();
+
+    // Buscar en los datos completos de UserData primero
+    const userFromUserData = userDataComplete.find(
+      (user) => String(user.id).trim() === normalizedUserId
+    );
+
+    if (userFromUserData && userFromUserData.pfp) {
+      return userFromUserData.pfp;
+    }
+
+    // Fallback: intentar desde datos de Twitch en localStorage
     try {
       const twitchUser = JSON.parse(localStorage.getItem("twitchUser") || "{}");
       if (
@@ -122,7 +144,9 @@ function Juegos() {
       }
     } catch (error) {
       // Silently handle localStorage errors
-    } // Intentar desde cache de userData de otros componentes
+    }
+
+    // Fallback: intentar desde cache de userData de otros componentes
     try {
       const cachedUserData = localStorage.getItem("userData");
       if (cachedUserData) {
@@ -144,7 +168,9 @@ function Juegos() {
       }
     } catch (error) {
       // Silently handle localStorage errors
-    } // Generar avatar por defecto usando las iniciales del nombre de usuario
+    }
+
+    // Generar avatar por defecto usando las iniciales del nombre de usuario
     const userName = getUserName(normalizedUserId);
     if (userName && userName !== normalizedUserId) {
       // Si tenemos un nombre real, generar avatar con iniciales
@@ -372,9 +398,51 @@ function Juegos() {
       setStartIndex((prev) => (prev - 1 + gamesList.length) % gamesList.length);
     });
   };
-
   // URL del Google Sheet (debe estar en .env)
   const sheetUrl = process.env.REACT_APP_JUEGOS_SHEET_URL;
+  const userDataSheetUrl = process.env.REACT_APP_USERDATA_SHEET_URL;
+
+  // Carga y cachea los datos del UserData Sheet
+  useEffect(() => {
+    if (!userDataSheetUrl) {
+      console.error("La URL del UserData Sheet no está configurada en .env");
+      return;
+    }
+
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(userDataSheetUrl);
+        const data = await response.text();
+        const rows = data.split("\n");
+        const headerRow = rows[0].split(",");
+        const bodyRows = rows.slice(1);
+
+        const parsedUserData = bodyRows.map((row) => {
+          const columns = row.split(",");
+          const obj = {};
+          headerRow.forEach((header, index) => {
+            obj[header] = columns[index] || "";
+          });
+          return obj;
+        });
+
+        console.log(
+          `[fetchUserData] Loaded ${parsedUserData.length} users from UserData`
+        );
+        setUserDataComplete(parsedUserData);
+
+        // Actualizar cache en localStorage para otros componentes
+        localStorage.setItem("userData", JSON.stringify(parsedUserData));
+      } catch (error) {
+        console.error("Error al cargar datos del UserData:", error);
+      }
+    };
+
+    fetchUserData();
+    // Actualizar cada 5 minutos
+    const intervalId = setInterval(fetchUserData, 300000);
+    return () => clearInterval(intervalId);
+  }, [userDataSheetUrl]);
 
   // Carga y cachea los datos de Google Sheet
   useEffect(() => {
@@ -385,11 +453,14 @@ function Juegos() {
     } // Descarga y procesa los datos del sheet
     const fetchGames = async (silentUpdate = false) => {
       try {
+        console.log(
+          `[fetchGames] Fetching data from sheet (silentUpdate: ${silentUpdate})`
+        );
         const response = await fetch(sheetUrl);
         const data = await response.text();
         const rows = data.split("\n");
         const userMap = new Map();
-        const parsedData = rows.slice(1).map((row) => {
+        const parsedData = rows.slice(1).map((row, index) => {
           const [
             nombre,
             estado,
@@ -408,7 +479,16 @@ function Juegos() {
             igdbId,
             usuario,
             comentario,
-          ] = row.split(","); // Construir mapeo de usuarios desde datos existentes
+          ] = row.split(",");
+
+          // Debug: Log de juegos recomendados para detectar cambios
+          if (estado?.trim().toLowerCase() === "recomendado") {
+            console.log(
+              `[fetchGames] Recommended game ${
+                index + 1
+              }: "${nombre?.trim()}" - Resumen: "${resumen?.trim()}" - Comentario: "${comentario?.trim()}"`
+            );
+          } // Construir mapeo de usuarios desde datos existentes
           // Para usuarios que ya tengan juegos con nombres conocidos, intentar obtener el nombre
           const trimmedUsuario = usuario?.trim();
           if (trimmedUsuario && trimmedUsuario !== "") {
@@ -530,18 +610,76 @@ function Juegos() {
         console.log(`[fetchGames] Final user mapping:`, uniqueUsers);
         console.log(`[fetchGames] Total users mapped: ${uniqueUsers.length}`);
 
+        // Función para comparar datos de manera más robusta
+        const compareGameData = (newGames, cachedGames) => {
+          if (!cachedGames || !cachedGames.games) return false;
+          if (newGames.length !== cachedGames.games.length) return false;
+
+          // Comparar cada juego individualmente
+          for (let i = 0; i < newGames.length; i++) {
+            const newGame = newGames[i];
+            const cachedGame = cachedGames.games[i];
+
+            // Comparar propiedades principales que pueden cambiar
+            const keysToCompare = [
+              "nombre",
+              "estado",
+              "resumen",
+              "comentario",
+              "caratula",
+              "nota",
+              "horas",
+            ];
+            for (const key of keysToCompare) {
+              if (
+                (newGame[key] || "").trim() !== (cachedGame[key] || "").trim()
+              ) {
+                console.log(
+                  `[fetchGames] Change detected in game "${newGame.nombre}" - ${key}: "${cachedGame[key]}" -> "${newGame[key]}"`
+                );
+                return false;
+              }
+            }
+          }
+          return true;
+        };
+
         const cachedData = localStorage.getItem("juegosData");
         const cachedParsedData = cachedData ? JSON.parse(cachedData) : null;
-        const newData = JSON.stringify({
-          games: parsedData,
-          users: uniqueUsers,
-        });
 
-        if (newData !== JSON.stringify(cachedParsedData)) {
-          localStorage.setItem("juegosData", newData);
+        // Usar comparación robusta en lugar de JSON.stringify
+        const dataHasChanged = !compareGameData(parsedData, cachedParsedData);
+
+        // También verificar si han pasado más de 2 minutos desde la última actualización
+        const lastUpdate = localStorage.getItem("juegosDataLastUpdate");
+        const now = Date.now();
+        const timeSinceLastUpdate = lastUpdate
+          ? now - parseInt(lastUpdate)
+          : Infinity;
+        const forceUpdate = timeSinceLastUpdate > 120000; // 2 minutos
+
+        if (dataHasChanged || forceUpdate || !silentUpdate) {
+          const newDataToStore = {
+            games: parsedData,
+            users: uniqueUsers,
+            lastUpdate: now,
+          };
+
+          localStorage.setItem("juegosData", JSON.stringify(newDataToStore));
+          localStorage.setItem("juegosDataLastUpdate", now.toString());
           setGames(parsedData);
           setUsers(uniqueUsers);
-          console.log(`[fetchGames] Updated games and users state`);
+
+          console.log(
+            `[fetchGames] Updated games and users state - Reason: ${
+              dataHasChanged
+                ? "Data changed"
+                : forceUpdate
+                ? "Force update"
+                : "Initial load"
+            }`
+          );
+          console.log(`[fetchGames] Total games loaded: ${parsedData.length}`);
         } else {
           console.log(
             `[fetchGames] No changes detected, skipping state update`
@@ -902,7 +1040,7 @@ function Juegos() {
       setDateFrom(min.toISOString().slice(0, 10));
       setDateTo(max.toISOString().slice(0, 10));
     }
-  }, [pasado]);  // Estado para el popup de añadir recomendación
+  }, [pasado]); // Estado para el popup de añadir recomendación
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [searchIGDB, setSearchIGDB] = useState("");
   const [igdbResults, setIgdbResults] = useState([]);
@@ -911,7 +1049,7 @@ function Juegos() {
   const [selectedIGDB, setSelectedIGDB] = useState(null);
   const [addStatus, setAddStatus] = useState(""); // Nuevo: feedback para el usuario
   const [commentText, setCommentText] = useState(""); // Estado para el comentario
-    // Estados para validación de usuario autorizado
+  // Estados para validación de usuario autorizado
   const [userValidated, setUserValidated] = useState(false);
   const [userValidating, setUserValidating] = useState(false);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
@@ -924,7 +1062,9 @@ function Juegos() {
     } catch {}
 
     if (!twitchUser || !twitchUser.id) {
-      setErrorMessage("Debes iniciar sesión con Twitch para recomendar juegos.");
+      setErrorMessage(
+        "Debes iniciar sesión con Twitch para recomendar juegos."
+      );
       setShowErrorPopup(true);
       return false;
     }
@@ -933,9 +1073,9 @@ function Juegos() {
     setErrorMessage("");
 
     try {
-      const response = await fetch('/api/validate-user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/validate-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: twitchUser.id }),
       });
 
@@ -946,12 +1086,14 @@ function Juegos() {
         setErrorMessage("");
         return true;
       } else {
-        setErrorMessage(data.message || "Usuario no autorizado para añadir recomendaciones.");
+        setErrorMessage(
+          data.message || "Usuario no autorizado para añadir recomendaciones."
+        );
         setShowErrorPopup(true);
         return false;
       }
     } catch (error) {
-      console.error('[validateCurrentUser] Error:', error);
+      console.error("[validateCurrentUser] Error:", error);
       setErrorMessage("Error al validar usuario. Inténtalo de nuevo.");
       setShowErrorPopup(true);
       return false;
@@ -1106,10 +1248,31 @@ function Juegos() {
       });
     }
   };
-
   // Estado para controlar las animaciones del carrusel
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationDirection, setAnimationDirection] = useState(null); // 'left', 'right', 'click'
+
+  // Función para limpiar el cache y forzar una actualización
+  const clearCacheAndRefresh = () => {
+    console.log("[clearCacheAndRefresh] Clearing cache and forcing refresh");
+    localStorage.removeItem("juegosData");
+    localStorage.removeItem("juegosDataLastUpdate");
+    localStorage.removeItem("userData");
+    window.location.reload();
+  };
+
+  // Detectar Ctrl+F5 para limpiar cache
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.ctrlKey && event.key === "F5") {
+        event.preventDefault();
+        clearCacheAndRefresh();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
   // Corrige startIndex si la lista activa cambia de tamaño o está vacía
   useEffect(() => {
     const gamesList =
@@ -1173,7 +1336,7 @@ function Juegos() {
               // Div invisible a la izquierda
               const leftSpacer = <div className="header-spacer" />;
               // Div invisible a la derecha (ocupa el lugar del botón si no está visible)
-              const rightSpacer = <div className="header-spacer" />;              // Botón Recomendar (solo si logueado y en planeo jugar)
+              const rightSpacer = <div className="header-spacer" />; // Botón Recomendar (solo si logueado y en planeo jugar)
               const recommendBtn =
                 planeoView === "recomendado" &&
                 twitchUser &&
@@ -1218,9 +1381,10 @@ function Juegos() {
                   </h2>
                   {recommendBtn}
                 </>
-              );            })()}
+              );
+            })()}
           </div>
-          
+
           <div className="planeo-jugar-container" ref={containerRef}>
             <button
               onClick={handlePrevious}
@@ -1721,16 +1885,21 @@ function Juegos() {
                   </div>
                   {/* Columna de metadatos */}
                   <div className="game-meta-column">
+                    {" "}
                     {selectedGame.desarrolladores && (
                       <p>
                         <strong>Desarrolladores:</strong>{" "}
-                        <span>{selectedGame.desarrolladores}</span>
+                        <span>
+                          {selectedGame.desarrolladores.replace(/-%-/g, ", ")}
+                        </span>
                       </p>
                     )}
                     {selectedGame.publicadores && (
                       <p>
                         <strong>Publicadores:</strong>{" "}
-                        <span>{selectedGame.publicadores}</span>
+                        <span>
+                          {selectedGame.publicadores.replace(/-%-/g, ", ")}
+                        </span>
                       </p>
                     )}
                     {selectedGame["Fecha de Lanzamiento"] && (
@@ -1792,10 +1961,9 @@ function Juegos() {
           <div
             className="popup-content popup-add-recommendation"
             onClick={(e) => e.stopPropagation()}
-          >            <button
-              className="close-button"
-              onClick={handleCloseAddPopup}
-            >
+          >
+            {" "}
+            <button className="close-button" onClick={handleCloseAddPopup}>
               ✖
             </button>
             <h2 className="popup-add-title"></h2>
@@ -1902,7 +2070,8 @@ function Juegos() {
                           ];
                         }
                         return prevUsers;
-                      });                    } // Actualiza la lista de juegos recomendados
+                      });
+                    } // Actualiza la lista de juegos recomendados
                     setTimeout(() => {
                       handleCloseAddPopup();
                     }, 2000);
@@ -1923,10 +2092,11 @@ function Juegos() {
               >
                 {addStatus}
               </div>
-            )}          </div>
+            )}{" "}
+          </div>
         </div>
       )}
-      
+
       {/* Popup de error de validación */}
       {showErrorPopup && (
         <div className="popup-overlay" onClick={() => setShowErrorPopup(false)}>
@@ -1934,39 +2104,45 @@ function Juegos() {
             className="popup-content"
             onClick={(e) => e.stopPropagation()}
             style={{
-              maxWidth: '400px',
-              textAlign: 'center',
-              padding: '32px',
-              borderRadius: '16px'
+              maxWidth: "400px",
+              textAlign: "center",
+              padding: "32px",
+              borderRadius: "16px",
             }}
           >
-            <div style={{ 
-              fontSize: '48px', 
-              color: '#ff4444', 
-              marginBottom: '16px' 
-            }}>
+            <div
+              style={{
+                fontSize: "48px",
+                color: "#ff4444",
+                marginBottom: "16px",
+              }}
+            >
               ⚠️
             </div>
-            <h2 style={{ 
-              color: '#ff4444', 
-              marginBottom: '16px',
-              fontSize: '20px'
-            }}>
+            <h2
+              style={{
+                color: "#ff4444",
+                marginBottom: "16px",
+                fontSize: "20px",
+              }}
+            >
               Acceso Denegado
             </h2>
-            <p style={{ 
-              marginBottom: '24px',
-              lineHeight: '1.5',
-              color: 'var(--text)'
-            }}>
+            <p
+              style={{
+                marginBottom: "24px",
+                lineHeight: "1.5",
+                color: "var(--text)",
+              }}
+            >
               {errorMessage}
             </p>
             <button
               className="add-recommendation-confirm"
               onClick={() => setShowErrorPopup(false)}
               style={{
-                background: '#ff4444',
-                width: '120px'
+                background: "#ff4444",
+                width: "120px",
               }}
             >
               Entendido
@@ -1974,7 +2150,6 @@ function Juegos() {
           </div>
         </div>
       )}
-      
     </div>
   );
 }

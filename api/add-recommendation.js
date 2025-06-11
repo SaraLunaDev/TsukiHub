@@ -51,10 +51,22 @@ const isUserAuthorized = async (userId) => {
   return isAuthorized;
 };
 
+// Función para limpiar texto para CSV (eliminar saltos de línea y reemplazar comas)
+const cleanTextForCSV = (text) => {
+  if (!text) return "";
+  return text
+    .replace(/\r\n/g, " ") // Reemplazar saltos de línea Windows
+    .replace(/\n/g, " ") // Reemplazar saltos de línea Unix
+    .replace(/\r/g, " ") // Reemplazar retornos de carro
+    .replace(/,/g, "-%-") // Reemplazar comas
+    .trim(); // Eliminar espacios al inicio y final
+};
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
-  }  const { game, user, comment } = req.body;
+  }
+  const { game, user, comment } = req.body;
   if (!game || !user) return res.status(400).json({ error: "Missing data" });
 
   // VALIDACIÓN: Verificar si el usuario está autorizado en la base de datos UserData
@@ -107,7 +119,7 @@ export default async function handler(req, res) {
       requestBody: {
         values: [
           [
-            game.name || game.title || "",
+            cleanTextForCSV(game.name || game.title || ""),
             "Recomendado",
             "",
             "",
@@ -127,41 +139,53 @@ export default async function handler(req, res) {
                   .split("T")[0]
               : game.release_date || "",
             game.genres && Array.isArray(game.genres)
-              ? game.genres.map((g) => g.name.replace(/,/g, "-%-")).join("-%-")
-              : game.genres_string || "",
+              ? game.genres
+                  .map((g) => cleanTextForCSV(g.name).replace(/-%-/g, " "))
+                  .join("-%-")
+              : cleanTextForCSV(game.genres_string || ""),
             game.platforms && Array.isArray(game.platforms)
               ? game.platforms
-                  .map((p) => p.name.replace(/,/g, "-%-"))
+                  .map((p) => cleanTextForCSV(p.name).replace(/-%-/g, " "))
                   .join("-%-")
-              : game.platforms_string || "",
-            game.summary?.replace(/,/g, "-%-") ||
-              game.description?.replace(/,/g, "-%-") ||
-              "",
+              : cleanTextForCSV(game.platforms_string || ""),
+            cleanTextForCSV(game.summary || game.description || ""),
             game.involved_companies && Array.isArray(game.involved_companies)
               ? game.involved_companies.some((c) => c.developer)
                 ? game.involved_companies
                     .filter((c) => c.developer && c.company?.name)
-                    .map((c) => c.company.name.replace(/,/g, " "))
+                    .map((c) =>
+                      cleanTextForCSV(c.company.name).replace(/-%-/g, " ")
+                    )
                     .join("-%-")
                 : game.involved_companies
-                    .map((c) => c.company?.name?.replace(/,/g, " "))
+                    .map((c) =>
+                      c.company?.name
+                        ? cleanTextForCSV(c.company.name).replace(/-%-/g, " ")
+                        : ""
+                    )
                     .filter(Boolean)
                     .join("-%-")
-              : game.developers_string || "",
+              : cleanTextForCSV(game.developers_string || ""),
             game.involved_companies && Array.isArray(game.involved_companies)
               ? game.involved_companies.some((c) => c.publisher)
                 ? game.involved_companies
                     .filter((c) => c.publisher && c.company?.name)
-                    .map((c) => c.company.name.replace(/,/g, " "))
+                    .map((c) =>
+                      cleanTextForCSV(c.company.name).replace(/-%-/g, " ")
+                    )
                     .join("-%-")
                 : game.involved_companies
-                    .map((c) => c.company?.name?.replace(/,/g, " "))
+                    .map((c) =>
+                      c.company?.name
+                        ? cleanTextForCSV(c.company.name).replace(/-%-/g, " ")
+                        : ""
+                    )
                     .filter(Boolean)
                     .join("-%-")
-              : game.publishers_string || "",
+              : cleanTextForCSV(game.publishers_string || ""),
             game.id || game.igdb_id || "",
             user,
-            comment?.replace(/,/g, "-%-") || "", // Añadir comentario como nueva columna
+            cleanTextForCSV(comment || ""), // Añadir comentario limpio como nueva columna
           ],
         ],
       },
