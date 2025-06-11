@@ -248,7 +248,7 @@ function Inicio() {
     const message = isRed
       ? "Escribe un mensaje para mantener tu racha"
       : isBlue
-      ? "Usaste 50 tickets para congelar tu racha"
+      ? "Usaste 25 tickets para congelar tu racha"
       : "";
 
     if (message) {
