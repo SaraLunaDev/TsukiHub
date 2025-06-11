@@ -14,10 +14,30 @@ const TWITCH_AUTH_URL =
 export default function TwitchAuthButton({ onLogin, user }) {
   const [loading, setLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isDeveloperMode, setIsDeveloperMode] = useState(() => {
+    // Cargar el estado del modo desarrollador desde localStorage
+    const saved = localStorage.getItem("developerMode");
+    return saved === "true";
+  });
   const avatarRef = React.useRef(null);
 
+  // Constante para el ID del administrador
+  const ADMIN_USER_ID = "173916175";
   const handleLogin = () => {
     window.location.href = TWITCH_AUTH_URL;
+  }; // Función para alternar el modo desarrollador
+  const toggleDeveloperMode = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const newMode = !isDeveloperMode;
+    setIsDeveloperMode(newMode);
+    localStorage.setItem("developerMode", newMode.toString());
+    console.log(`Modo cambiado a: ${newMode ? "Developer" : "User"}`);
+
+    // Recargar la página automáticamente para mostrar los cambios
+    setTimeout(() => {
+      window.location.reload();
+    }, 100); // Pequeño delay para asegurar que localStorage se guarde
   };
 
   // Solo cierra el menú si el click NO es sobre el avatar ni el menú inline
@@ -119,6 +139,9 @@ export default function TwitchAuthButton({ onLogin, user }) {
       return saved ? JSON.parse(saved) : null;
     })();
   if (userData) {
+    // Verificar si el usuario actual es el administrador
+    const isAdmin = userData && String(userData.id) === ADMIN_USER_ID;
+
     return (
       <div className="twitch-inline-user" style={{ position: "relative" }}>
         <div ref={avatarRef} style={{ display: "flex", alignItems: "center" }}>
@@ -130,10 +153,40 @@ export default function TwitchAuthButton({ onLogin, user }) {
             onClick={() => setMenuOpen((v) => !v)}
             tabIndex={0}
             aria-label="Mostrar menú de usuario"
-          />
+          />{" "}
           {menuOpen && (
             <>
-              <span className="twitch-inline-name">{userData.name}</span>
+              <span className="twitch-inline-name">{userData.name}</span>{" "}
+              {isAdmin && (
+                <button
+                  type="button"
+                  className="admin-mode-toggle"
+                  onClick={toggleDeveloperMode}
+                  title={`Modo: ${
+                    isDeveloperMode ? "Developer" : "User"
+                  } - Click para cambiar`}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    fontSize: "20px",
+                    cursor: "pointer",
+                    marginLeft: "8px",
+                    marginRight: "8px",
+                    padding: "2px 4px",
+                    borderRadius: "3px",
+                    transition: "transform 0.2s, background 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = "scale(1.2)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = "scale(1)";
+                    e.target.style.background = "none";
+                  }}
+                >
+                  {isDeveloperMode ? "⚙️" : "🧸"}
+                </button>
+              )}
               <button
                 className="twitch-logout-inline"
                 onClick={() => {

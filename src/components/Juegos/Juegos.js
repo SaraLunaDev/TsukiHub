@@ -40,6 +40,31 @@ function Juegos() {
   const [users, setUsers] = useState([]);
   // Estado para datos completos de usuarios desde UserData
   const [userDataComplete, setUserDataComplete] = useState([]);
+  // Estado para el modo desarrollador
+  const [isDeveloperMode, setIsDeveloperMode] = useState(() => {
+    const saved = localStorage.getItem("developerMode");
+    return saved === "true";
+  }); // Estados para el popup de edición de juegos
+  const [showEditPopup, setShowEditPopup] = useState(false);
+  const [editingGame, setEditingGame] = useState(null);
+  const [editFormData, setEditFormData] = useState({}); // Estado para plataformas disponibles para el spinner de plataforma
+  const [availablePlatforms, setAvailablePlatforms] = useState([]);
+
+  // DEBUG: Agregar log para verificar el estado del modo desarrollador
+  useEffect(() => {
+    console.log("isDeveloperMode:", isDeveloperMode);
+  }, [isDeveloperMode]);
+
+  // Escuchar cambios en el localStorage para el modo desarrollador
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const saved = localStorage.getItem("developerMode");
+      setIsDeveloperMode(saved === "true");
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   // Resetea el startIndex al cambiar de vista para evitar desbordes
   useEffect(() => {
@@ -442,25 +467,36 @@ function Juegos() {
     // Actualizar cada 5 minutos
     const intervalId = setInterval(fetchUserData, 300000);
     return () => clearInterval(intervalId);
-  }, [userDataSheetUrl]);
+  }, [userDataSheetUrl]); // Carga y cachea los datos de Google Sheet con sistema de cache simplificado  // Función de hash simple compatible con Unicode
+  const createSimpleHash = (data) => {
+    const str = JSON.stringify(data);
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash.toString();
+  };
 
-  // Carga y cachea los datos de Google Sheet
   useEffect(() => {
     const sheetUrl = process.env.REACT_APP_JUEGOS_SHEET_URL;
     if (!sheetUrl) {
       console.error("La URL del Google Sheet no está configurada en .env");
       return;
-    } // Descarga y procesa los datos del sheet
-    const fetchGames = async (silentUpdate = false) => {
+    }
+
+    // Función simple para cargar datos desde el sheet
+    const fetchGames = async () => {
       try {
-        console.log(
-          `[fetchGames] Fetching data from sheet (silentUpdate: ${silentUpdate})`
-        );
+        console.log("[fetchGames] Fetching data from sheet");
+
         const response = await fetch(sheetUrl);
         const data = await response.text();
         const rows = data.split("\n");
         const userMap = new Map();
-        const parsedData = rows.slice(1).map((row, index) => {
+
+        const parsedData = rows.slice(1).map((row) => {
           const [
             nombre,
             estado,
@@ -481,109 +517,16 @@ function Juegos() {
             comentario,
           ] = row.split(",");
 
-          // Debug: Log de juegos recomendados para detectar cambios
-          if (estado?.trim().toLowerCase() === "recomendado") {
-            console.log(
-              `[fetchGames] Recommended game ${
-                index + 1
-              }: "${nombre?.trim()}" - Resumen: "${resumen?.trim()}" - Comentario: "${comentario?.trim()}"`
-            );
-          } // Construir mapeo de usuarios desde datos existentes
-          // Para usuarios que ya tengan juegos con nombres conocidos, intentar obtener el nombre
+          // Construir mapeo de usuarios
           const trimmedUsuario = usuario?.trim();
-          if (trimmedUsuario && trimmedUsuario !== "") {
-            // Si es un ID numérico y no tenemos el mapeo, usar el ID como placeholder
-            if (!userMap.has(trimmedUsuario)) {
-              console.log(`[fetchGames] Processing user ID: ${trimmedUsuario}`);
-              // Intentar obtener el nombre desde localStorage de Twitch si coincide el ID
-              try {
-                const twitchUser = JSON.parse(
-                  localStorage.getItem("twitchUser") || "{}"
-                );
-                console.log(`[fetchGames] Twitch user data:`, twitchUser);
-
-                if (
-                  String(twitchUser.id).trim() === trimmedUsuario &&
-                  twitchUser.name
-                ) {
-                  console.log(
-                    `[fetchGames] Found Twitch mapping: ${trimmedUsuario} -> ${twitchUser.name}`
-                  );
-                  userMap.set(trimmedUsuario, twitchUser.name);
-                } else {
-                  // Intentar obtener el nombre desde cache de otros componentes
-                  const cachedUserData = localStorage.getItem("userData");
-                  if (cachedUserData) {
-                    try {
-                      const userData = JSON.parse(cachedUserData);
-                      console.log(`[fetchGames] Cached user data:`, userData);
-                      const matchingUser = userData.find(
-                        (user) => String(user.id).trim() === trimmedUsuario
-                      );
-                      if (matchingUser) {
-                        console.log(
-                          `[fetchGames] Found matching user in cache:`,
-                          matchingUser
-                        );
-                        console.log(
-                          `[fetchGames] User properties:`,
-                          Object.keys(matchingUser)
-                        );
-
-                        // Intentar diferentes propiedades para el nombre
-                        const userName =
-                          matchingUser.nombre ||
-                          matchingUser.name ||
-                          matchingUser.displayName ||
-                          matchingUser.username;
-                        if (userName) {
-                          console.log(
-                            `[fetchGames] Found cached mapping: ${trimmedUsuario} -> ${userName}`
-                          );
-                          userMap.set(trimmedUsuario, userName);
-                        } else {
-                          console.log(
-                            `[fetchGames] User found but no name property available. Properties:`,
-                            Object.keys(matchingUser)
-                          );
-                          userMap.set(trimmedUsuario, trimmedUsuario);
-                        }
-                      } else {
-                        console.log(
-                          `[fetchGames] No matching user found in cache for ${trimmedUsuario}`
-                        );
-                        // Debug: mostrar algunos usuarios para comparar IDs
-                        console.log(
-                          `[fetchGames] Sample user IDs from cache:`,
-                          userData
-                            .slice(0, 5)
-                            .map((u) => `${u.id} (${typeof u.id})`)
-                        );
-                        userMap.set(trimmedUsuario, trimmedUsuario);
-                      }
-                    } catch (error) {
-                      console.log(
-                        `[fetchGames] Error parsing cached user data:`,
-                        error
-                      );
-                      userMap.set(trimmedUsuario, trimmedUsuario);
-                    }
-                  } else {
-                    console.log(
-                      `[fetchGames] No cached user data found, using ID as fallback for ${trimmedUsuario}`
-                    );
-                    userMap.set(trimmedUsuario, trimmedUsuario);
-                  }
-                }
-              } catch (error) {
-                console.log(
-                  `[fetchGames] Error processing user ${trimmedUsuario}:`,
-                  error
-                );
-                userMap.set(trimmedUsuario, trimmedUsuario);
-              }
-            }
+          if (
+            trimmedUsuario &&
+            trimmedUsuario !== "" &&
+            !userMap.has(trimmedUsuario)
+          ) {
+            userMap.set(trimmedUsuario, trimmedUsuario);
           }
+
           return {
             nombre: nombre?.trim(),
             estado: estado?.trim().toLowerCase(),
@@ -606,115 +549,148 @@ function Juegos() {
         });
         const uniqueUsers = Array.from(userMap.entries());
 
-        // Debug: Log del mapeo final de usuarios
-        console.log(`[fetchGames] Final user mapping:`, uniqueUsers);
-        console.log(`[fetchGames] Total users mapped: ${uniqueUsers.length}`);
+        // Crear hash simple para comparar cambios (compatible con Unicode)
+        const currentHash = createSimpleHash(parsedData);
 
-        // Función para comparar datos de manera más robusta
-        const compareGameData = (newGames, cachedGames) => {
-          if (!cachedGames || !cachedGames.games) return false;
-          if (newGames.length !== cachedGames.games.length) return false;
-
-          // Comparar cada juego individualmente
-          for (let i = 0; i < newGames.length; i++) {
-            const newGame = newGames[i];
-            const cachedGame = cachedGames.games[i];
-
-            // Comparar propiedades principales que pueden cambiar
-            const keysToCompare = [
-              "nombre",
-              "estado",
-              "resumen",
-              "comentario",
-              "caratula",
-              "nota",
-              "horas",
-            ];
-            for (const key of keysToCompare) {
-              if (
-                (newGame[key] || "").trim() !== (cachedGame[key] || "").trim()
-              ) {
-                console.log(
-                  `[fetchGames] Change detected in game "${newGame.nombre}" - ${key}: "${cachedGame[key]}" -> "${newGame[key]}"`
-                );
-                return false;
-              }
-            }
-          }
-          return true;
+        // Guardar en cache
+        const cacheData = {
+          games: parsedData,
+          users: uniqueUsers,
+          hash: currentHash,
+          lastUpdate: Date.now(),
         };
 
-        const cachedData = localStorage.getItem("juegosData");
-        const cachedParsedData = cachedData ? JSON.parse(cachedData) : null;
+        localStorage.setItem("juegosData", JSON.stringify(cacheData));
 
-        // Usar comparación robusta en lugar de JSON.stringify
-        const dataHasChanged = !compareGameData(parsedData, cachedParsedData);
+        // Actualizar estado
+        setGames(parsedData);
+        setUsers(uniqueUsers);
 
-        // También verificar si han pasado más de 2 minutos desde la última actualización
-        const lastUpdate = localStorage.getItem("juegosDataLastUpdate");
-        const now = Date.now();
-        const timeSinceLastUpdate = lastUpdate
-          ? now - parseInt(lastUpdate)
-          : Infinity;
-        const forceUpdate = timeSinceLastUpdate > 120000; // 2 minutos
-
-        if (dataHasChanged || forceUpdate || !silentUpdate) {
-          const newDataToStore = {
-            games: parsedData,
-            users: uniqueUsers,
-            lastUpdate: now,
-          };
-
-          localStorage.setItem("juegosData", JSON.stringify(newDataToStore));
-          localStorage.setItem("juegosDataLastUpdate", now.toString());
-          setGames(parsedData);
-          setUsers(uniqueUsers);
-
-          console.log(
-            `[fetchGames] Updated games and users state - Reason: ${
-              dataHasChanged
-                ? "Data changed"
-                : forceUpdate
-                ? "Force update"
-                : "Initial load"
-            }`
-          );
-          console.log(`[fetchGames] Total games loaded: ${parsedData.length}`);
-        } else {
-          console.log(
-            `[fetchGames] No changes detected, skipping state update`
-          );
-        }
+        console.log(
+          `[fetchGames] Data loaded and cached - ${parsedData.length} games`
+        );
       } catch (error) {
         console.error("Error al cargar los datos:", error);
       }
-    }; // Carga los datos desde el caché si existen
-    const loadGamesFromCache = () => {
+    };
+
+    // Cargar desde cache si existe, sino crear cache
+    const loadFromCacheOrCreate = () => {
       const cachedData = localStorage.getItem("juegosData");
+
       if (cachedData) {
         try {
-          const parsedData = JSON.parse(cachedData);
-          // Compatibilidad con cache anterior (sin usuarios)
-          if (parsedData.games && parsedData.users) {
-            setGames(parsedData.games);
-            setUsers(parsedData.users);
-          } else if (Array.isArray(parsedData)) {
-            // Cache anterior: solo array de juegos
-            setGames(parsedData);
-            setUsers([]); // Se llenará al cargar desde sheet
+          const cache = JSON.parse(cachedData);
+          if (cache.games && cache.users) {
+            console.log("[loadFromCacheOrCreate] Loading from cache");
+            setGames(cache.games);
+            setUsers(cache.users);
+
+            // Verificar cambios en segundo plano
+            checkForUpdatesInBackground();
+          } else {
+            throw new Error("Invalid cache format");
           }
         } catch (error) {
-          console.error("Error al cargar cache:", error);
+          console.log("[loadFromCacheOrCreate] Cache invalid, creating new");
+          localStorage.removeItem("juegosData");
+          fetchGames();
         }
+      } else {
+        console.log("[loadFromCacheOrCreate] No cache exists, creating new");
+        fetchGames();
       }
     };
-    loadGamesFromCache();
-    fetchGames();
-    // Actualiza los datos cada minuto
-    const intervalId = setInterval(() => {
-      fetchGames(true);
-    }, 60000);
-    return () => clearInterval(intervalId);
+
+    // Verificar cambios en segundo plano
+    const checkForUpdatesInBackground = async () => {
+      try {
+        console.log("[checkForUpdatesInBackground] Checking for updates");
+
+        const response = await fetch(sheetUrl);
+        const data = await response.text();
+        const rows = data.split("\n");
+
+        const currentData = rows.slice(1).map((row) => {
+          const [
+            nombre,
+            estado,
+            youtube,
+            nota,
+            horas,
+            plataforma,
+            fecha,
+            caratula,
+            fechaLanzamiento,
+            géneros,
+            plataformas,
+            resumen,
+            desarrolladores,
+            publicadores,
+            igdbId,
+            usuario,
+            comentario,
+          ] = row.split(",");
+
+          return {
+            nombre: nombre?.trim(),
+            estado: estado?.trim().toLowerCase(),
+            youtube: youtube?.trim(),
+            nota: nota?.trim(),
+            horas: horas?.trim(),
+            plataforma: plataforma?.trim(),
+            fecha: fecha?.trim(),
+            caratula: caratula?.trim(),
+            "Fecha de Lanzamiento": fechaLanzamiento?.trim(),
+            géneros: géneros?.trim(),
+            plataformas: plataformas?.trim(),
+            resumen: resumen?.trim(),
+            desarrolladores: desarrolladores?.trim(),
+            publicadores: publicadores?.trim(),
+            igdbId: igdbId?.trim(),
+            usuario: usuario?.trim(),
+            comentario: comentario?.trim(),
+          };
+        });
+        const newHash = createSimpleHash(currentData);
+        const cachedData = JSON.parse(localStorage.getItem("juegosData"));
+
+        if (cachedData.hash !== newHash) {
+          console.log(
+            "[checkForUpdatesInBackground] Changes detected, updating cache and data"
+          );
+
+          const userMap = new Map();
+          currentData.forEach((game) => {
+            if (game.usuario && !userMap.has(game.usuario)) {
+              userMap.set(game.usuario, game.usuario);
+            }
+          });
+
+          const uniqueUsers = Array.from(userMap.entries());
+
+          const updatedCache = {
+            games: currentData,
+            users: uniqueUsers,
+            hash: newHash,
+            lastUpdate: Date.now(),
+          };
+
+          localStorage.setItem("juegosData", JSON.stringify(updatedCache));
+          setGames(currentData);
+          setUsers(uniqueUsers);
+        } else {
+          console.log("[checkForUpdatesInBackground] No changes detected");
+        }
+      } catch (error) {
+        console.error(
+          "[checkForUpdatesInBackground] Error checking for updates:",
+          error
+        );
+      }
+    };
+
+    loadFromCacheOrCreate();
   }, []);
 
   // Separa los juegos en "planeo jugar" al cargar datos
@@ -950,13 +926,12 @@ function Juegos() {
       a.localeCompare(b, "es", { sensitivity: "base" })
     );
   };
-  const uniqueGenres = getUniqueGenres(games);
-  // Calcula la lista única de plataformas presentes en los juegos cargados
+  const uniqueGenres = getUniqueGenres(games); // Calcula la lista única de plataformas presentes en los juegos cargados
   const getUniquePlatforms = (gamesList) => {
     const platformSet = new Set();
     gamesList.forEach((game) => {
-      if (game.plataforma) {
-        game.plataforma.split("-%-").forEach((p) => {
+      if (game.plataformas) {
+        game.plataformas.split("-%-").forEach((p) => {
           const trimmed = p.trim();
           if (trimmed) platformSet.add(trimmed);
         });
@@ -1249,30 +1224,8 @@ function Juegos() {
     }
   };
   // Estado para controlar las animaciones del carrusel
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false); // Estado para controlar animaciones
   const [animationDirection, setAnimationDirection] = useState(null); // 'left', 'right', 'click'
-
-  // Función para limpiar el cache y forzar una actualización
-  const clearCacheAndRefresh = () => {
-    console.log("[clearCacheAndRefresh] Clearing cache and forcing refresh");
-    localStorage.removeItem("juegosData");
-    localStorage.removeItem("juegosDataLastUpdate");
-    localStorage.removeItem("userData");
-    window.location.reload();
-  };
-
-  // Detectar Ctrl+F5 para limpiar cache
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.ctrlKey && event.key === "F5") {
-        event.preventDefault();
-        clearCacheAndRefresh();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
   // Corrige startIndex si la lista activa cambia de tamaño o está vacía
   useEffect(() => {
     const gamesList =
@@ -1287,16 +1240,410 @@ function Juegos() {
       setStartIndex(0);
     }
   }, [planeoView, planeoJugar, games, startIndex]);
+  // Función auxiliar para convertir fecha de DD/MM/YYYY a YYYY-MM-DD
+  const convertDateToISO = (dateStr) => {
+    if (!dateStr) return "";
+    // Si ya está en formato ISO (YYYY-MM-DD), devolverlo tal como está
+    if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return dateStr;
+    // Si está en formato DD/MM/YYYY, convertirlo
+    if (dateStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+      const [day, month, year] = dateStr.split("/");
+      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+    return dateStr;
+  };
+
+  // Función auxiliar para limpiar los separadores -%-
+  const cleanSeparators = (str) => {
+    return str ? str.replace(/-%-/g, ", ") : "";
+  }; // Funciones para manejar la edición de juegos
+  const handleEditGame = (game) => {
+    setEditingGame(game);
+
+    const platformsString = cleanSeparators(game.plataformas || "");
+    const selectedPlatforms = getSelectedItems(platformsString);
+
+    // Determinar la plataforma a preseleccionar
+    let selectedPlatform = game.plataforma || "";
+
+    // Si la plataforma actual no está en las plataformas disponibles o está vacía,
+    // intentar preseleccionar una plataforma válida
+    if (!selectedPlatform || !selectedPlatforms.includes(selectedPlatform)) {
+      // Priorizar ciertas plataformas si están disponibles
+      const preferredPlatforms = [
+        "Wii",
+        "Nintendo Switch",
+        "PlayStation 5",
+        "Xbox Series X/S",
+        "PC",
+      ];
+      selectedPlatform =
+        preferredPlatforms.find((platform) =>
+          selectedPlatforms.includes(platform)
+        ) ||
+        selectedPlatforms[0] ||
+        "";
+    }
+
+    setEditFormData({
+      nombre: game.nombre || "",
+      estado: game.estado || "",
+      nota: game.nota || "",
+      horas: game.horas || "",
+      fecha: convertDateToISO(game.fecha || ""),
+      youtube: game.youtube || "",
+      caratula: game.caratula || "",
+      resumen: cleanSeparators(game.resumen || ""),
+      géneros: cleanSeparators(game.géneros || ""),
+      plataformas: platformsString,
+      plataforma: selectedPlatform, // Usar la plataforma inteligentemente seleccionada
+      desarrolladores: cleanSeparators(game.desarrolladores || ""),
+      publicadores: cleanSeparators(game.publicadores || ""),
+      "Fecha de Lanzamiento": convertDateToISO(
+        game["Fecha de Lanzamiento"] || ""
+      ),
+      comentario: cleanSeparators(game.comentario || ""),
+      usuario: game.usuario || "",
+      // Campos para identificación única de la fila
+      originalNombre: game.nombre || "",
+      originalEstado: game.estado || "",
+      originalFecha: game.fecha || "",
+      originalUsuario: game.usuario || "",
+    });
+
+    // Inicializar plataformas disponibles
+    setAvailablePlatforms(selectedPlatforms);
+
+    setShowEditPopup(true);
+  };
+  const handleCloseEditPopup = () => {
+    setShowEditPopup(false);
+    setEditingGame(null);
+    setEditFormData({});
+    setAvailablePlatforms([]);
+    closeAllDropdowns();
+  };
+
+  // Helper functions for multi-select genres and platforms
+  const getSelectedItems = (itemsString) => {
+    if (!itemsString) return [];
+    return itemsString
+      .split(", ")
+      .map((item) => item.trim())
+      .filter((item) => item);
+  };
+  const handleItemToggle = (field, item, isSelected) => {
+    const currentItems = getSelectedItems(editFormData[field] || "");
+    let newItems;
+
+    if (isSelected) {
+      // Remove item
+      newItems = currentItems.filter((currentItem) => currentItem !== item);
+    } else {
+      // Add item
+      newItems = [...currentItems, item];
+    }
+
+    const newValue = newItems.join(", ");
+    handleEditFormChange(field, newValue);
+
+    // Si se modifican las plataformas, actualizar las plataformas disponibles
+    if (field === "plataformas") {
+      updateAvailablePlatforms(newValue);
+    }
+  };
+  // Función para actualizar las plataformas disponibles para el spinner de plataforma
+  const updateAvailablePlatforms = (platformsString) => {
+    const selectedPlatforms = getSelectedItems(platformsString);
+    setAvailablePlatforms(selectedPlatforms);
+
+    // Si la plataforma actual no está en las plataformas seleccionadas, aplicar lógica inteligente
+    const currentPlatform = editFormData.plataforma || "";
+    if (currentPlatform && !selectedPlatforms.includes(currentPlatform)) {
+      // Aplicar la misma lógica inteligente que en handleEditGame
+      const preferredPlatforms = [
+        "Wii",
+        "Nintendo Switch",
+        "PlayStation 5",
+        "Xbox Series X/S",
+        "PC",
+      ];
+      const newSelectedPlatform =
+        preferredPlatforms.find((platform) =>
+          selectedPlatforms.includes(platform)
+        ) ||
+        selectedPlatforms[0] ||
+        "";
+      handleEditFormChange("plataforma", newSelectedPlatform);
+    }
+  };
+
+  // State for dropdown visibility
+  const [openDropdowns, setOpenDropdowns] = useState({});
+
+  const toggleDropdown = (dropdownName) => {
+    setOpenDropdowns((prev) => ({
+      ...prev,
+      [dropdownName]: !prev[dropdownName],
+    }));
+  };
+
+  const closeAllDropdowns = () => {
+    setOpenDropdowns({});
+  };
+
+  const handleEditFormChange = (field, value) => {
+    setEditFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+  const handleSaveEdit = async () => {
+    const sheetUrl = process.env.REACT_APP_JUEGOS_SHEET_URL;
+
+    try {
+      // Validar que el usuario esté autorizado (solo admin)
+      let twitchUser = null;
+      try {
+        twitchUser = JSON.parse(localStorage.getItem("twitchUser"));
+      } catch {}
+
+      if (!twitchUser || !twitchUser.id) {
+        setErrorMessage("Debes iniciar sesión con Twitch para editar juegos.");
+        setShowErrorPopup(true);
+        return;
+      }
+
+      // Solo el admin puede editar
+      const ADMIN_USER_ID = "173916175";
+      if (String(twitchUser.id).trim() !== ADMIN_USER_ID) {
+        setErrorMessage("Solo el administrador puede editar juegos.");
+        setShowErrorPopup(true);
+        return;
+      }
+
+      console.log("Guardando cambios:", editFormData);
+
+      // Mostrar indicador de carga
+      const originalText =
+        document.querySelector(".edit-save-button")?.textContent;
+      const saveButton = document.querySelector(".edit-save-button");
+      if (saveButton) {
+        saveButton.textContent = "Guardando...";
+        saveButton.disabled = true;
+      } // Enviar datos al API
+      console.log("[handleSaveEdit] Sending request to /api/edit-game");
+      console.log("[handleSaveEdit] Request data:", {
+        gameData: editFormData,
+        userId: twitchUser.id,
+        originalIdentifiers: {
+          nombre: editFormData.originalNombre,
+          estado: editFormData.originalEstado,
+          fecha: editFormData.originalFecha,
+          usuario: editFormData.originalUsuario,
+        },
+      });
+
+      const response = await fetch("/api/edit-game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameData: editFormData,
+          userId: twitchUser.id,
+          originalIdentifiers: {
+            nombre: editFormData.originalNombre,
+            estado: editFormData.originalEstado,
+            fecha: editFormData.originalFecha,
+            usuario: editFormData.originalUsuario,
+          },
+        }),
+      });
+
+      console.log("[handleSaveEdit] Response status:", response.status);
+      console.log("[handleSaveEdit] Response ok:", response.ok);
+
+      const data = await response.json();
+      console.log("[handleSaveEdit] Response data:", data);
+      if (response.ok && data.success) {
+        // Éxito - actualizar datos locales
+        console.log("Juego actualizado exitosamente:", data);
+
+        // Cerrar popup inmediatamente
+        handleCloseEditPopup();
+
+        // Limpiar cache para forzar actualización
+        localStorage.removeItem("juegosData");
+
+        // Forzar actualización inmediata de datos sin recargar la página
+        console.log("[handleSaveEdit] Forcing immediate data refresh");
+
+        // Ejecutar fetchGames para obtener datos frescos
+        setTimeout(async () => {
+          try {
+            const response = await fetch(sheetUrl);
+            const data = await response.text();
+            const rows = data.split("\n");
+            const userMap = new Map();
+
+            const parsedData = rows
+              .slice(1)
+              .map((row) => {
+                if (!row.trim()) return null; // Skip empty rows
+
+                const [
+                  nombre,
+                  estado,
+                  youtube,
+                  nota,
+                  horas,
+                  plataforma,
+                  fecha,
+                  caratula,
+                  fechaLanzamiento,
+                  géneros,
+                  plataformas,
+                  resumen,
+                  desarrolladores,
+                  publicadores,
+                  igdbId,
+                  usuario,
+                  comentario,
+                ] = row.split(",");
+
+                const trimmedUsuario = usuario?.trim();
+                if (
+                  trimmedUsuario &&
+                  trimmedUsuario !== "" &&
+                  !userMap.has(trimmedUsuario)
+                ) {
+                  userMap.set(trimmedUsuario, trimmedUsuario);
+                }
+
+                return {
+                  nombre: nombre?.trim(),
+                  estado: estado?.trim().toLowerCase(),
+                  youtube: youtube?.trim(),
+                  nota: nota?.trim(),
+                  horas: horas?.trim(),
+                  plataforma: plataforma?.trim(),
+                  fecha: fecha?.trim(),
+                  caratula: caratula?.trim(),
+                  "Fecha de Lanzamiento": fechaLanzamiento?.trim(),
+                  géneros: géneros?.trim(),
+                  plataformas: plataformas?.trim(),
+                  resumen: resumen?.trim(),
+                  desarrolladores: desarrolladores?.trim(),
+                  publicadores: publicadores?.trim(),
+                  igdbId: igdbId?.trim(),
+                  usuario: trimmedUsuario,
+                  comentario: comentario?.trim(),
+                };
+              })
+              .filter((game) => game !== null);
+            const uniqueUsers = Array.from(userMap.entries());
+            const currentHash = createSimpleHash(parsedData);
+
+            const cacheData = {
+              games: parsedData,
+              users: uniqueUsers,
+              hash: currentHash,
+              lastUpdate: Date.now(),
+            };
+
+            localStorage.setItem("juegosData", JSON.stringify(cacheData));
+            setGames(parsedData);
+            setUsers(uniqueUsers);
+
+            console.log(
+              `[handleSaveEdit] Successfully refreshed data - ${parsedData.length} games loaded`
+            );
+          } catch (error) {
+            console.error("[handleSaveEdit] Error refreshing data:", error);
+          }
+        }, 500); // Small delay to ensure Google Sheets has processed the update
+      } else {
+        // Error del servidor
+        console.error("Error al guardar:", data);
+        console.error("Response status:", response.status);
+        console.error("Response statusText:", response.statusText);
+
+        let errorMessage = "Error al guardar los cambios";
+        if (data.message) {
+          errorMessage = data.message;
+        } else if (data.error) {
+          errorMessage = data.error;
+        } else if (response.status === 403) {
+          errorMessage =
+            "Acceso denegado - Solo el administrador puede editar juegos";
+        } else if (response.status === 404) {
+          errorMessage = "Juego no encontrado en la base de datos";
+        } else if (response.status === 500) {
+          errorMessage =
+            "Error del servidor - " +
+            (data.details || data.error || "Error interno");
+        }
+
+        setErrorMessage(errorMessage);
+        setShowErrorPopup(true);
+      }
+    } catch (error) {
+      console.error("Error en handleSaveEdit:", error);
+      setErrorMessage("Error de conexión al guardar los cambios");
+      setShowErrorPopup(true);
+    } finally {
+      // Restaurar botón
+      const saveButton = document.querySelector(".edit-save-button");
+      if (saveButton) {
+        saveButton.textContent = "Guardar Cambios";
+        saveButton.disabled = false;
+      }
+    }
+  }; // Función para exponer gestión de cache (útil para debugging)
+  window.debugJuegosCache = {
+    clear: () => {
+      console.log("[DEBUG] Clearing games cache");
+      localStorage.removeItem("juegosData");
+      window.location.reload();
+    },
+    info: () => {
+      const cached = localStorage.getItem("juegosData");
+      console.log("[DEBUG] Cache info:", {
+        hasCachedData: !!cached,
+        lastUpdate: cached ? JSON.parse(cached).lastUpdate : "Never",
+        cacheSize: cached ? (cached.length / 1024).toFixed(2) + " KB" : "0 KB",
+        gamesCount: games.length,
+        usersCount: users.length,
+      });
+    },
+    forceRefresh: () => {
+      console.log("[DEBUG] Forcing cache refresh");
+      localStorage.removeItem("juegosData");
+      window.location.reload();
+    },
+  };
 
   // Renderizado principal del componente
   return (
     <div className="juegos-container">
       <div className="categories-row">
         <section className="category-jugando">
-          <h2 className="header-juegos">Jugando</h2>
+          <h2 className="header-juegos">Jugando</h2>{" "}
           <ul>
             {jugando.map((game, index) => (
               <li key={index}>
+                {/* Botón de edición en modo desarrollador */}
+                {isDeveloperMode && (
+                  <button
+                    className="edit-game-button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditGame(game);
+                    }}
+                    title="Editar juego"
+                  >
+                    ✏️
+                  </button>
+                )}
                 <div className="cover-wrapper">
                   {game.caratula && (
                     <>
@@ -1472,6 +1819,19 @@ function Juegos() {
                     }}
                   >
                     {" "}
+                    {/* Botón de edición en modo desarrollador */}
+                    {isDeveloperMode && (
+                      <button
+                        className="edit-game-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditGame(game);
+                        }}
+                        title="Editar juego"
+                      >
+                        ✏️
+                      </button>
+                    )}
                     <div className="cover-wrapper">
                       {game.caratula && (
                         <>
@@ -1707,6 +2067,19 @@ function Juegos() {
                 (game.nota && game.nota !== "");
               return (
                 <li key={index}>
+                  {/* Botón de edición en modo desarrollador */}
+                  {isDeveloperMode && (
+                    <button
+                      className="edit-game-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditGame(game);
+                      }}
+                      title="Editar juego"
+                    >
+                      ✏️
+                    </button>
+                  )}
                   {/* Badges row y línea separadora */}
                   {showBadges && (
                     <>
@@ -2093,6 +2466,308 @@ function Juegos() {
                 {addStatus}
               </div>
             )}{" "}
+          </div>
+        </div>
+      )}
+
+      {/* Popup para editar juego */}
+      {showEditPopup && (
+        <div className="popup-overlay" onClick={handleCloseEditPopup}>
+          <div
+            className="popup-content popup-edit-game"
+            onClick={(e) => {
+              e.stopPropagation();
+              // Close dropdowns when clicking outside them but inside the popup
+              if (!e.target.closest(".edit-multiselect-spinner")) {
+                closeAllDropdowns();
+              }
+            }}
+          >
+            <button className="close-button" onClick={handleCloseEditPopup}>
+              ✖
+            </button>
+            <h2 className="popup-edit-title">Editar Juego</h2>
+            <div className="edit-form-container">
+              {/* Primera fila: Nombre y Estado */}
+              <div className="edit-form-row">
+                <div className="edit-form-field">
+                  <label>Nombre</label>
+                  <input
+                    type="text"
+                    className="edit-input"
+                    value={editFormData.nombre || ""}
+                    onChange={(e) =>
+                      handleEditFormChange("nombre", e.target.value)
+                    }
+                  />
+                </div>{" "}
+                <div className="edit-form-field">
+                  <label>Estado</label>{" "}
+                  <select
+                    className="edit-select"
+                    value={editFormData.estado || ""}
+                    onChange={(e) =>
+                      handleEditFormChange("estado", e.target.value)
+                    }
+                  >
+                    <option value="jugando">Jugando</option>
+                    <option value="planeo jugar">Planeo Jugar</option>
+                    <option value="pasado">Pasado</option>
+                    <option value="dropeado">Dropeado</option>
+                    <option value="recomendado">Recomendado</option>
+                  </select>
+                </div>
+              </div>{" "}
+              {/* Segunda fila: Nota y Horas */}
+              <div className="edit-form-row">
+                <div className="edit-form-field">
+                  <label>Nota ({editFormData.nota || "0"})</label>
+                  <input
+                    type="range"
+                    className="edit-slider"
+                    min="0"
+                    max="10"
+                    step="0.5"
+                    value={editFormData.nota || "0"}
+                    onChange={(e) =>
+                      handleEditFormChange("nota", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="edit-form-field">
+                  <label>Horas</label>
+                  <input
+                    type="number"
+                    className="edit-input"
+                    min="0"
+                    step="0.1"
+                    value={editFormData.horas || ""}
+                    onChange={(e) =>
+                      handleEditFormChange("horas", e.target.value)
+                    }
+                  />
+                </div>
+              </div>
+              {/* Tercera fila: Fecha */}
+              <div className="edit-form-row">
+                <div className="edit-form-field">
+                  <label>Fecha</label>
+                  <input
+                    type="date"
+                    className="edit-input"
+                    value={editFormData.fecha || ""}
+                    onChange={(e) =>
+                      handleEditFormChange("fecha", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="edit-form-field">
+                  <label>Fecha de Lanzamiento</label>
+                  <input
+                    type="date"
+                    className="edit-input"
+                    value={editFormData["Fecha de Lanzamiento"] || ""}
+                    onChange={(e) =>
+                      handleEditFormChange(
+                        "Fecha de Lanzamiento",
+                        e.target.value
+                      )
+                    }
+                  />
+                </div>
+              </div>{" "}
+              {/* Cuarta fila: URL de YouTube */}
+              <div className="edit-form-field-full">
+                <label>YouTube</label>
+                <input
+                  type="url"
+                  className="edit-input"
+                  value={editFormData.youtube || ""}
+                  onChange={(e) =>
+                    handleEditFormChange("youtube", e.target.value)
+                  }
+                />
+              </div>
+              {/* Quinta fila: Carátula */}
+              <div className="edit-form-field-full">
+                <label>Carátula (URL)</label>
+                <input
+                  type="url"
+                  className="edit-input"
+                  value={editFormData.caratula || ""}
+                  onChange={(e) =>
+                    handleEditFormChange("caratula", e.target.value)
+                  }
+                />
+              </div>{" "}
+              {/* Spinner de Plataforma (selección única) */}
+              <div className="edit-form-field-full">
+                <label>Plataforma Jugada</label>
+                <select
+                  className="edit-select"
+                  value={editFormData.plataforma || ""}
+                  onChange={(e) =>
+                    handleEditFormChange("plataforma", e.target.value)
+                  }
+                >
+                  {availablePlatforms.map((platform) => (
+                    <option key={platform} value={platform}>
+                      {platform}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {/* Sexta fila: Géneros y Plataformas */}
+              <div className="edit-form-row">
+                {" "}
+                <div className="edit-form-field">
+                  <label>Géneros</label>
+                  <div
+                    className={`edit-multiselect-spinner ${
+                      openDropdowns.genres ? "open" : ""
+                    }`}
+                  >
+                    <div
+                      className="edit-spinner-display"
+                      onClick={() => toggleDropdown("genres")}
+                    >
+                      {getSelectedItems(editFormData.géneros || "").length > 0
+                        ? `${
+                            getSelectedItems(editFormData.géneros || "").length
+                          } seleccionados`
+                        : "Seleccionar géneros..."}
+                      <span className="edit-spinner-arrow">▼</span>
+                    </div>
+                    <div className="edit-spinner-dropdown">
+                      {uniqueGenres.map((genre) => {
+                        const selectedGenres = getSelectedItems(
+                          editFormData.géneros || ""
+                        );
+                        const isSelected = selectedGenres.includes(genre);
+                        return (
+                          <label key={genre} className="edit-spinner-option">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() =>
+                                handleItemToggle("géneros", genre, isSelected)
+                              }
+                            />
+                            <span className="edit-option-label">
+                              {translateGenre(genre)}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+                <div className="edit-form-field">
+                  <label>Plataformas</label>
+                  <div
+                    className={`edit-multiselect-spinner ${
+                      openDropdowns.platforms ? "open" : ""
+                    }`}
+                  >
+                    <div
+                      className="edit-spinner-display"
+                      onClick={() => toggleDropdown("platforms")}
+                    >
+                      {getSelectedItems(editFormData.plataformas || "").length >
+                      0
+                        ? `${
+                            getSelectedItems(editFormData.plataformas || "")
+                              .length
+                          } seleccionados`
+                        : "Seleccionar plataformas..."}
+                      <span className="edit-spinner-arrow">▼</span>
+                    </div>
+                    <div className="edit-spinner-dropdown">
+                      {uniquePlatforms.map((platform) => {
+                        const selectedPlatforms = getSelectedItems(
+                          editFormData.plataformas || ""
+                        );
+                        const isSelected = selectedPlatforms.includes(platform);
+                        return (
+                          <label key={platform} className="edit-spinner-option">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() =>
+                                handleItemToggle(
+                                  "plataformas",
+                                  platform,
+                                  isSelected
+                                )
+                              }
+                            />
+                            <span className="edit-option-label">
+                              {platform}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>{" "}
+              {/* Séptima fila: Desarrolladores y Publicadores */}
+              <div className="edit-form-row">
+                <div className="edit-form-field">
+                  <label>Desarrolladores</label>
+                  <input
+                    type="text"
+                    className="edit-input"
+                    placeholder="Separar con comas"
+                    value={editFormData.desarrolladores || ""}
+                    onChange={(e) =>
+                      handleEditFormChange("desarrolladores", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="edit-form-field">
+                  <label>Publicadores</label>
+                  <input
+                    type="text"
+                    className="edit-input"
+                    placeholder="Separar con comas"
+                    value={editFormData.publicadores || ""}
+                    onChange={(e) =>
+                      handleEditFormChange("publicadores", e.target.value)
+                    }
+                  />
+                </div>
+              </div>{" "}
+              {/* Resumen */}
+              <div className="edit-form-field-full">
+                <label>Resumen</label>
+                <textarea
+                  className="edit-textarea"
+                  rows={6}
+                  value={editFormData.resumen || ""}
+                  onChange={(e) =>
+                    handleEditFormChange("resumen", e.target.value)
+                  }
+                />
+              </div>
+              {/* Botones */}
+              <div className="edit-form-buttons">
+                <button
+                  type="button"
+                  className="edit-cancel-button"
+                  onClick={handleCloseEditPopup}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="edit-save-button"
+                  onClick={handleSaveEdit}
+                >
+                  Guardar Cambios
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

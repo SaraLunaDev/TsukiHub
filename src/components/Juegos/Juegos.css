@@ -1431,9 +1431,296 @@ li:hover .game-cover.has-youtube {
   color: var(--text-2);
 }
 
+/* Botón de edición para modo desarrollador */
+.edit-game-button {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  background: var(--clear);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 20; /* Por encima de otros elementos */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.edit-game-button:hover {
+  background: var(--mid);
+}
+
+.edit-game-button:active {
+  transform: scale(0.95);
+}
+
 .header-juegos.toggle-header-btn {
   transition: color 0.2s;
 }
 .header-juegos.toggle-header-btn:hover {
   color: var(--color-mid) !important;
+}
+
+/* Popup para editar juego */
+.popup-edit-game {
+  max-width: 800px;
+  min-width: 600px;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+  background: var(--clear);
+  padding: 32px;
+  text-align: left;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.popup-edit-title {
+  margin-bottom: 24px;
+  font-weight: 700;
+  font-size: 24px;
+  text-align: center;
+  color: var(--text);
+  border-bottom: 2px solid var(--color-mid);
+  padding-bottom: 12px;
+}
+
+.edit-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.edit-form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.edit-form-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.edit-form-field-full {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.edit-form-field label,
+.edit-form-field-full label {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.edit-input,
+.edit-select,
+.edit-textarea {
+  padding: 10px 12px;
+  border: 2px solid var(--text-2);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background-color: var(--edit-text);
+  transition: border-color 0.2s ease;
+}
+
+.edit-input:focus,
+.edit-select:focus,
+.edit-textarea:focus {
+  outline: none;
+  border-color: var(--color-mid);
+}
+
+.edit-select {
+  cursor: pointer;
+}
+
+.edit-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.edit-form-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--text-2);
+}
+
+.edit-cancel-button,
+.edit-save-button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-cancel-button {
+  background: var(--text-2);
+  color: var(--text);
+}
+
+.edit-cancel-button:hover {
+  background: var(--text-3);
+  transform: translateY(-1px);
+}
+
+.edit-save-button {
+  background: var(--color-mid);
+  color: var(--text);
+}
+
+.edit-save-button:hover {
+  background: var(--color-clear);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Slider para la nota */
+.edit-slider {
+  margin-top: 10px;;
+  height: 20px;
+  border-radius: 20px;
+  background: var(--dark-2);
+  border: var(--text-2) solid 2px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.edit-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-mid);
+  cursor: pointer;
+  border: 2px solid var(--text);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+}
+
+.edit-slider::-webkit-slider-thumb:hover {
+  background: var(--color-clear);
+  transform: scale(1.1);
+}
+
+.edit-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-mid);
+  cursor: pointer;
+  border: 2px solid var(--text);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+}
+
+.edit-slider::-moz-range-thumb:hover {
+  background: var(--color-clear);
+  transform: scale(1.1);
+}
+
+/* Multi-select spinner for genres and platforms */
+.edit-multiselect-spinner {
+  position: relative;
+  width: 100%;
+}
+
+.edit-spinner-display {
+  background: var(--edit-text);
+  border: 1px solid var(--text-2);
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 20px;
+  font-size: 14px;
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+
+.edit-spinner-display:hover {
+  border-color: var(--color-mid);
+  background: var(--dark-2);
+}
+
+.edit-spinner-arrow {
+  color: var(--text-2);
+  font-size: 12px;
+  transition: transform 0.2s ease;
+}
+
+.edit-multiselect-spinner.open .edit-spinner-arrow {
+  transform: rotate(180deg);
+}
+
+.edit-spinner-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--mid);
+  border: 1px solid var(--text-2);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-5px);
+  transition: all 0.2s ease;
+}
+
+.edit-multiselect-spinner.open .edit-spinner-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.edit-spinner-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.edit-spinner-option:hover {
+  background: var(--dark-2);
+}
+
+.edit-spinner-option input[type="checkbox"] {
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.edit-option-label {
+  cursor: pointer;
+  user-select: none;
+  flex: 1;
+}
+
+.edit-spinner-option input[type="checkbox"]:checked + .edit-option-label {
+  font-weight: 600;
+  color: var(--color-clear);
 }

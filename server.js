@@ -215,6 +215,211 @@ app.post("/api/add-recommendation", async (req, res) => {
   }
 });
 
+// --- /api/edit-game ---
+app.post("/api/edit-game", async (req, res) => {
+  console.log("[server.js] API endpoint called - LOCAL SERVER VERSION");
+  const { gameData, userId, originalIdentifiers } = req.body;
+  console.log("[server.js] Request body:", {
+    gameData: gameData?.nombre,
+    userId,
+    originalIdentifiers,
+  });
+
+  if (!gameData || !userId || !originalIdentifiers) {
+    console.log("[server.js] Missing required data");
+    return res.status(400).json({ error: "Missing required data" });
+  }
+
+  // VALIDACIÓN: Verificar si el usuario está autorizado (solo admin puede editar)
+  console.log(`[server.js] Validating user: ${userId}`);
+  const ADMIN_USER_ID = "173916175"; // El ID del administrador
+  if (String(userId).trim() !== ADMIN_USER_ID) {
+    console.log(
+      `[server.js] User ${userId} is NOT AUTHORIZED to edit games (not admin)`
+    );
+    return res.status(403).json({
+      error: "User not authorized",
+      message: "Solo el administrador puede editar juegos",
+      userId: userId,
+    });
+  }
+
+  console.log(
+    `[server.js] User ${userId} is AUTHORIZED (admin), proceeding with edit`
+  );
+
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const sheetId = process.env.GOOGLE_SHEET_ID;
+
+  if (!privateKey || !email || !sheetId) {
+    return res.status(500).json({ error: "Google credentials missing" });
+  }
+
+  const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
+  const auth = new google.auth.JWT({ email, key: privateKey, scopes: SCOPES });
+  const sheets = google.sheets({ version: "v4", auth });
+
+  try {
+    // Autorizar con Google Sheets
+    await new Promise((resolve, reject) => {
+      auth.authorize((err, tokens) => {
+        if (err) return reject(err);
+        resolve(tokens);
+      });
+    }); // Función para limpiar texto para CSV
+    const cleanTextForCSV = (text) => {
+      if (!text) return "";
+      return String(text)
+        .replace(/"/g, '""') // Escapar comillas dobles
+        .replace(/,/g, "-%-") // Reemplazar comas
+        .trim(); // Eliminar espacios al inicio y final
+    };
+
+    // Función para convertir fecha de ISO a formato dd/mm/yyyy
+    const convertISOToDate = (isoDate) => {
+      if (!isoDate) return "";
+      try {
+        const date = new Date(isoDate);
+        const day = date.getDate().toString().padStart(2, "0");
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+      } catch (error) {
+        console.error("Error converting date:", error);
+        return "";
+      }
+    };
+
+    // Función para convertir separadores de comas a -%-
+    const convertCommasToSeparators = (text) => {
+      if (!text) return "";
+      return text.replace(/,\s*/g, "-%-");
+    }; // Buscar la fila del juego a editar
+    const range = "Juegos!A:Q"; // Rango completo para buscar (hasta columna Q)
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: range,
+    });
+
+    const rows = response.data.values || [];
+    let targetRowIndex = -1;
+
+    // Buscar la fila que corresponde al juego usando múltiples criterios
+    console.log(
+      `[server.js] Searching for game with identifiers:`,
+      originalIdentifiers
+    );
+    for (let i = 1; i < rows.length; i++) {
+      // Empezar desde 1 para saltar headers
+      const row = rows[i];
+      const rowName = row[0]?.trim() || "";
+      const rowEstado = row[1]?.trim() || "";
+      const rowFecha = row[6]?.trim() || "";
+      const rowUsuario = row[15]?.trim() || "";
+
+      // Verificar si coinciden todos los criterios identificadores
+      const nameMatch = rowName === originalIdentifiers.nombre?.trim();
+      const estadoMatch =
+        rowEstado.toLowerCase() === originalIdentifiers.estado?.toLowerCase();
+      const fechaMatch = rowFecha === originalIdentifiers.fecha?.trim();
+      const usuarioMatch = rowUsuario === originalIdentifiers.usuario?.trim();
+
+      console.log(`[server.js] Row ${i + 1} comparison:`, {
+        rowName,
+        expectedName: originalIdentifiers.nombre,
+        rowEstado,
+        expectedEstado: originalIdentifiers.estado,
+        rowFecha,
+        expectedFecha: originalIdentifiers.fecha,
+        rowUsuario,
+        expectedUsuario: originalIdentifiers.usuario,
+        matches: { nameMatch, estadoMatch, fechaMatch, usuarioMatch },
+      });
+
+      if (nameMatch && estadoMatch && fechaMatch && usuarioMatch) {
+        targetRowIndex = i + 1; // +1 porque Google Sheets usa indexación basada en 1
+        console.log(`[server.js] Found matching game at row ${targetRowIndex}`);
+        break;
+      }
+    }
+
+    if (targetRowIndex === -1) {
+      console.log(`[server.js] Game not found with provided identifiers`);
+      return res.status(404).json({ error: "Game not found in spreadsheet" });
+    } // Preparar los datos actualizados
+    // Estructura de columnas correcta:
+    // [Nombre, Estado, Youtube, Nota, Horas, Plataforma, Fecha, Carátula, Fecha de Lanzamiento, Géneros, Plataformas, Resumen, Desarrolladores, Publicadores, IGDBID, Usuario, Comentario]
+
+    // Normalizar el estado a los valores correctos con mayúsculas
+    let normalizedEstado = gameData.estado || "";
+    switch (normalizedEstado.toLowerCase()) {
+      case "completado":
+      case "pasado":
+        normalizedEstado = "Pasado";
+        break;
+      case "jugando":
+        normalizedEstado = "Jugando";
+        break;
+      case "dropeado":
+        normalizedEstado = "Dropeado";
+        break;
+      case "planeo jugar":
+        normalizedEstado = "Planeo Jugar";
+        break;
+      case "recomendado":
+        normalizedEstado = "Recomendado";
+        break;
+      default:
+        normalizedEstado = gameData.estado || "";
+    }
+    const updatedValues = [
+      cleanTextForCSV(gameData.nombre || ""), // A - Nombre
+      normalizedEstado, // B - Estado
+      gameData.youtube || "", // C - Youtube
+      gameData.nota || "", // D - Nota
+      gameData.horas || "", // E - Horas
+      gameData.plataforma || "", // F - Plataforma (del spinner)
+      convertISOToDate(gameData.fecha), // G - Fecha
+      gameData.caratula || "", // H - Carátula
+      convertISOToDate(gameData["Fecha de Lanzamiento"]), // I - Fecha de Lanzamiento
+      convertCommasToSeparators(cleanTextForCSV(gameData.géneros || "")), // J - Géneros
+      convertCommasToSeparators(cleanTextForCSV(gameData.plataformas || "")), // K - Plataformas
+      convertCommasToSeparators(cleanTextForCSV(gameData.resumen || "")), // L - Resumen
+      convertCommasToSeparators(
+        cleanTextForCSV(gameData.desarrolladores || "")
+      ), // M - Desarrolladores
+      convertCommasToSeparators(cleanTextForCSV(gameData.publicadores || "")), // N - Publicadores
+      gameData.igdbId || "", // O - IGDBID
+      gameData.usuario || "", // P - Usuario
+      convertCommasToSeparators(cleanTextForCSV(gameData.comentario || "")), // Q - Comentario
+    ]; // Actualizar la fila específica
+    const updateRange = `Juegos!A${targetRowIndex}:Q${targetRowIndex}`;
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: sheetId,
+      range: updateRange,
+      valueInputOption: "USER_ENTERED",
+      requestBody: {
+        values: [updatedValues],
+      },
+    });
+    console.log(
+      `[server.js] Successfully updated game "${gameData.nombre}" at row ${targetRowIndex}`
+    );
+    res.json({
+      success: true,
+      message: `Juego "${gameData.nombre}" actualizado correctamente`,
+      updatedRow: targetRowIndex,
+    });
+  } catch (error) {
+    console.error("[server.js] Error:", error);
+    res.status(500).json({
+      error: "Error updating game",
+      details: error.message,
+    });
+  }
+});
+
 // --- /api/validate-user ---
 app.post("/api/validate-user", async (req, res) => {
   const { userId } = req.body;
