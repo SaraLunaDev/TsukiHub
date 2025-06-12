@@ -227,3 +227,28 @@
   color: var(--color-mid);
   background: none;
 }
+
+/* Botón Añadir Juego para desarrolladores */
+.add-game-button {
+  display: flex;
+  align-items: center;
+  background: var(--color-mid);
+  color: var(--text);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.add-game-button:hover {
+  background: var(--selected-button-high);
+  transform: scale(1.05);
+}
+
+.add-game-button:active {
+  transform: scale(0.98);
+}

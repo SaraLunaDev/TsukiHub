@@ -1724,3 +1724,22 @@ li:hover .game-cover.has-youtube {
   font-weight: 600;
   color: var(--color-clear);
 }
+
+/* Popup para añadir juego (desarrolladores) */
+.popup-add-game {
+  max-width: 800px;
+  min-width: 600px;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+  background: var(--clear);
+  padding: 32px;
+  text-align: left;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.add-game-form-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--text-2);
+}

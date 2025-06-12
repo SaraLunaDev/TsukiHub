@@ -1015,7 +1015,7 @@ function Juegos() {
       setDateFrom(min.toISOString().slice(0, 10));
       setDateTo(max.toISOString().slice(0, 10));
     }
-  }, [pasado]); // Estado para el popup de añadir recomendación
+  }, [pasado]);  // Estado para el popup de añadir recomendación
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [searchIGDB, setSearchIGDB] = useState("");
   const [igdbResults, setIgdbResults] = useState([]);
@@ -1029,6 +1029,23 @@ function Juegos() {
   const [userValidating, setUserValidating] = useState(false);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  // Estados para el popup de añadir juego (desarrolladores)
+  const [showAddGamePopup, setShowAddGamePopup] = useState(false);
+  const [searchGameIGDB, setSearchGameIGDB] = useState("");
+  const [gameIgdbResults, setGameIgdbResults] = useState([]);
+  const [gameIgdbLoading, setGameIgdbLoading] = useState(false);
+  const [gameIgdbError, setGameIgdbError] = useState("");
+  const [selectedGameIGDB, setSelectedGameIGDB] = useState(null);
+  const [addGameStatus, setAddGameStatus] = useState("");  const [addGameFormData, setAddGameFormData] = useState({
+    estado: "Planeo Jugar", // Estado por defecto con mayúsculas correctas
+    nota: "",
+    horas: "",
+    fecha: "",
+    youtube: "",
+    caratula: "", // Campo para la carátula
+    plataforma: "",
+  });
+  const [availableGamePlatforms, setAvailableGamePlatforms] = useState([]); // Plataformas disponibles del juego seleccionado
   // Función para validar si el usuario actual está autorizado
   const validateCurrentUser = async () => {
     let twitchUser = null;
@@ -1094,7 +1111,6 @@ function Juegos() {
     setUserValidated(false);
     setErrorMessage("");
   };
-
   // Buscar en IGDB cuando cambia el input (con debounce de 5s)
   useEffect(() => {
     if (!showAddPopup) {
@@ -1166,6 +1182,149 @@ function Juegos() {
       clearInterval(loadingInterval);
     };
   }, [searchIGDB, showAddPopup]);
+
+  // ===============================
+  // FUNCIONES PARA AÑADIR JUEGO (DESARROLLADORES)
+  // ===============================
+
+  // Escuchar evento de la navbar para abrir el popup de añadir juego
+  useEffect(() => {
+    const handleOpenAddGamePopup = () => {
+      if (isDeveloperMode) {
+        setShowAddGamePopup(true);
+      }
+    };
+
+    window.addEventListener('openAddGamePopup', handleOpenAddGamePopup);
+    return () => {
+      window.removeEventListener('openAddGamePopup', handleOpenAddGamePopup);
+    };
+  }, [isDeveloperMode]);  // Función para cerrar el popup de añadir juego y limpiar estados
+  const handleCloseAddGamePopup = () => {
+    setShowAddGamePopup(false);
+    setSearchGameIGDB("");
+    setSelectedGameIGDB(null);
+    setGameIgdbResults([]);
+    setAddGameStatus("");
+    setAvailableGamePlatforms([]);
+    setAddGameFormData({
+      estado: "Planeo Jugar",
+      nota: "",
+      horas: "",
+      fecha: "",
+      youtube: "",
+      caratula: "",
+      plataforma: "",
+    });
+  };
+
+  // Manejar cambios en el formulario de añadir juego
+  const handleAddGameFormChange = (field, value) => {
+    setAddGameFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+  // Función para manejar la selección de un juego de IGDB
+  const handleGameIGDBSelection = (game) => {
+    setSelectedGameIGDB(game);
+    
+    // Poblar automáticamente los campos con datos de IGDB
+    const platforms = game.platforms ? game.platforms.split(", ") : [];
+    setAvailableGamePlatforms(platforms);
+    
+    // Preseleccionar la primera plataforma o una plataforma preferida
+    const preferredPlatforms = [
+      "Nintendo Switch",
+      "PlayStation 5", 
+      "Xbox Series X/S",
+      "PC",
+      "PlayStation 4",
+      "Xbox One"
+    ];
+    
+    const selectedPlatform = preferredPlatforms.find(pref => 
+      platforms.some(p => p.includes(pref))
+    ) || platforms[0] || "";
+
+    setAddGameFormData(prev => ({
+      ...prev,
+      caratula: game.coverUrl || "",
+      plataforma: selectedPlatform
+    }));
+  };
+
+  // Buscar en IGDB para añadir juego cuando cambia el input (con debounce de 5s)
+  useEffect(() => {
+    if (!showAddGamePopup) {
+      setGameIgdbResults([]);
+      setGameIgdbError("");
+      return;
+    }
+    if (!searchGameIGDB.trim()) {
+      setGameIgdbResults([]);
+      setGameIgdbError("");
+      return;
+    }
+    setGameIgdbLoading(true);
+    setGameIgdbError("");
+    setGameIgdbResults([]);
+    // Mostrar puntos suspensivos mientras espera
+    let loadingInterval = null;
+    let loadingDots = 0;
+    setGameIgdbError("Cargando");
+    loadingInterval = setInterval(() => {
+      loadingDots = (loadingDots + 1) % 4;
+      setGameIgdbError("Cargando" + ".".repeat(loadingDots));
+    }, 500);
+    // Debounce de 5 segundos
+    const handler = setTimeout(() => {
+      fetch("/api/igdb-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: searchGameIGDB }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          clearInterval(loadingInterval);
+          setGameIgdbError("");
+          if (data.error) {
+            setGameIgdbError("Error al buscar en IGDB: " + data.error);
+            setGameIgdbResults([]);
+          } else {
+            const results = (data.results || []).map((game) => ({
+              id: game.id,
+              name: game.name,
+              coverUrl:
+                game.cover?.url?.replace("t_thumb", "t_cover_big") ||
+                "/static/resources/default_cover.png",
+              releaseDate: game.first_release_date
+                ? new Date(game.first_release_date * 1000).toLocaleDateString()
+                : "",
+              genres: game.genres?.map((g) => g.name).join(", ") || "",
+              platforms: game.platforms?.map((p) => p.name).join(", ") || "",
+              summary: game.summary || "",
+              companies:
+                game.involved_companies
+                  ?.map((ic) => ic.company?.name)
+                  .join(", ") || "",
+              raw: game,
+            }));
+            setGameIgdbResults(results);
+          }
+          setGameIgdbLoading(false);
+        })
+        .catch(() => {
+          clearInterval(loadingInterval);
+          setGameIgdbError("Error al buscar en IGDB");
+          setGameIgdbLoading(false);
+        });
+    }, 5000);
+    return () => {
+      clearTimeout(handler);
+      clearInterval(loadingInterval);
+    };
+  }, [searchGameIGDB, showAddGamePopup]);
   // Función para centrar un juego específico del carrusel
   const handleCarouselGameClick = (clickedIndex, gameIndex) => {
     console.log(
@@ -2811,8 +2970,7 @@ function Juegos() {
               }}
             >
               {errorMessage}
-            </p>
-            <button
+            </p>            <button
               className="add-recommendation-confirm"
               onClick={() => setShowErrorPopup(false)}
               style={{
@@ -2822,6 +2980,234 @@ function Juegos() {
             >
               Entendido
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Popup para añadir juego (desarrolladores) */}
+      {showAddGamePopup && (
+        <div className="popup-overlay" onClick={handleCloseAddGamePopup}>
+          <div
+            className="popup-content popup-add-game"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="close-button" onClick={handleCloseAddGamePopup}>
+              ✖
+            </button>
+            <h2 className="popup-add-title">Añadir Juego al Catálogo</h2>
+            
+            {/* Búsqueda IGDB */}
+            <div className="search-input-global popup-search-igdb">
+              <img
+                src="/static/resources/lupa.png"
+                alt="Lupa"
+                className="lupa-img"
+              />
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Buscar juego en IGDB..."
+                value={searchGameIGDB}
+                onChange={(e) => setSearchGameIGDB(e.target.value)}
+                autoFocus
+              />
+            </div>
+            
+            {/* Estados de carga y error */}
+            {gameIgdbLoading && (
+              <p className="popup-igdb-loading">{gameIgdbError || "Buscando..."}</p>
+            )}
+            {gameIgdbError && !gameIgdbLoading && (
+              <p className="popup-igdb-error">{gameIgdbError}</p>
+            )}
+            
+            {/* Resultados IGDB */}
+            <div className="popup-igdb-scroll">
+              {gameIgdbResults.map((game) => (
+                <div
+                  key={game.id}
+                  className={`igdb-result${
+                    selectedGameIGDB && selectedGameIGDB.id === game.id
+                      ? " selected"
+                      : ""
+                  }`}
+                  onClick={() => handleGameIGDBSelection(game)}
+                >
+                  <img
+                    src={game.coverUrl}
+                    alt={game.name}
+                    className="igdb-result-cover"
+                  />
+                  <div className="igdb-result-info">
+                    <div className="igdb-result-title">{game.name}</div>
+                    <div className="igdb-result-date">{game.releaseDate}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+              {/* Formulario de datos adicionales - solo visible si hay un juego seleccionado */}
+            {selectedGameIGDB && (
+              <div className="add-game-form-section">
+                <div className="edit-form-container">
+                  {/* Primera fila: Estado y Nota */}
+                  <div className="edit-form-row">
+                    <div className="edit-form-field">
+                      <label>Estado</label>
+                      <select
+                        className="edit-select"
+                        value={addGameFormData.estado}
+                        onChange={(e) => handleAddGameFormChange("estado", e.target.value)}
+                      >
+                        <option value="Jugando">Jugando</option>
+                        <option value="Planeo Jugar">Planeo Jugar</option>
+                        <option value="Pasado">Pasado</option>
+                        <option value="Dropeado">Dropeado</option>
+                      </select>
+                    </div>
+                    <div className="edit-form-field">
+                      <label>Nota ({addGameFormData.nota || "0"})</label>
+                      <input
+                        type="range"
+                        className="edit-slider"
+                        min="0"
+                        max="10"
+                        step="0.1"
+                        value={addGameFormData.nota || "0"}
+                        onChange={(e) => handleAddGameFormChange("nota", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Segunda fila: Horas y Fecha */}
+                  <div className="edit-form-row">
+                    <div className="edit-form-field">
+                      <label>Horas</label>
+                      <input
+                        type="number"
+                        className="edit-input"
+                        min="0"
+                        step="0.1"
+                        value={addGameFormData.horas}
+                        onChange={(e) => handleAddGameFormChange("horas", e.target.value)}
+                        placeholder="Ej: 15.5"
+                      />
+                    </div>
+                    <div className="edit-form-field">
+                      <label>Fecha</label>
+                      <input
+                        type="date"
+                        className="edit-input"
+                        value={addGameFormData.fecha}
+                        onChange={(e) => handleAddGameFormChange("fecha", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Tercera fila: YouTube y Carátula */}
+                  <div className="edit-form-row">
+                    <div className="edit-form-field">
+                      <label>YouTube</label>
+                      <input
+                        type="url"
+                        className="edit-input"
+                        value={addGameFormData.youtube}
+                        onChange={(e) => handleAddGameFormChange("youtube", e.target.value)}
+                        placeholder="https://youtube.com/..."
+                      />
+                    </div>
+                    <div className="edit-form-field">
+                      <label>Carátula (URL)</label>
+                      <input
+                        type="url"
+                        className="edit-input"
+                        value={addGameFormData.caratula}
+                        onChange={(e) => handleAddGameFormChange("caratula", e.target.value)}
+                        placeholder="URL de la carátula..."
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Cuarta fila: Plataforma Principal */}
+                  <div className="edit-form-row">
+                    <div className="edit-form-field">
+                      <label>Plataforma Principal</label>
+                      {availableGamePlatforms.length > 0 ? (
+                        <select
+                          className="edit-select"
+                          value={addGameFormData.plataforma}
+                          onChange={(e) => handleAddGameFormChange("plataforma", e.target.value)}
+                        >
+                          <option value="">Seleccionar plataforma...</option>
+                          {availableGamePlatforms.map((platform) => (
+                            <option key={platform} value={platform}>
+                              {platform}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          className="edit-input"
+                          value={addGameFormData.plataforma}
+                          onChange={(e) => handleAddGameFormChange("plataforma", e.target.value)}
+                          placeholder="Ej: Nintendo Switch"
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Botón de confirmación */}
+            <button
+              className="add-recommendation-confirm"
+              disabled={!selectedGameIGDB}
+              onClick={async () => {
+                if (!selectedGameIGDB) return;
+                setAddGameStatus("");
+                setAddGameStatus("Añadiendo juego...");
+                
+                try {
+                  const response = await fetch("/api/add-game", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      game: selectedGameIGDB.raw,
+                      formData: addGameFormData,
+                    }),
+                  });
+                  
+                  const data = await response.json();
+                  if (data.error) {
+                    setAddGameStatus("Error al añadir juego");
+                  } else {
+                    setAddGameStatus("¡Juego añadido al catálogo!");
+                    // Recargar datos después de 2 segundos
+                    setTimeout(() => {
+                      handleCloseAddGamePopup();
+                      window.location.reload();
+                    }, 2000);
+                  }
+                } catch (error) {
+                  setAddGameStatus("Error al añadir juego");
+                }
+              }}
+            >
+              Añadir al Catálogo
+            </button>
+            
+            {/* Estado de la operación */}
+            {addGameStatus && (
+              <div
+                className={
+                  "popup-add-status " +
+                  (addGameStatus.startsWith("¡") ? "success" : "error")
+                }
+              >
+                {addGameStatus}
+              </div>
+            )}
           </div>
         </div>
       )}
