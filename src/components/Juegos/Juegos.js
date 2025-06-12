@@ -3060,7 +3060,7 @@ function Juegos() {
             <button className="close-button" onClick={handleCloseAddGamePopup}>
               ✖
             </button>
-            <h2 className="popup-add-title">Añadir Juego al Catálogo</h2>
+            <h2 className="popup-add-title">Añadir Juego</h2>
 
             {/* Búsqueda IGDB */}
             <div className="search-input-global popup-search-igdb">
