@@ -1015,7 +1015,7 @@ function Juegos() {
       setDateFrom(min.toISOString().slice(0, 10));
       setDateTo(max.toISOString().slice(0, 10));
     }
-  }, [pasado]);  // Estado para el popup de añadir recomendación
+  }, [pasado]); // Estado para el popup de añadir recomendación
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [searchIGDB, setSearchIGDB] = useState("");
   const [igdbResults, setIgdbResults] = useState([]);
@@ -1036,7 +1036,8 @@ function Juegos() {
   const [gameIgdbLoading, setGameIgdbLoading] = useState(false);
   const [gameIgdbError, setGameIgdbError] = useState("");
   const [selectedGameIGDB, setSelectedGameIGDB] = useState(null);
-  const [addGameStatus, setAddGameStatus] = useState("");  const [addGameFormData, setAddGameFormData] = useState({
+  const [addGameStatus, setAddGameStatus] = useState("");
+  const [addGameFormData, setAddGameFormData] = useState({
     estado: "Planeo Jugar", // Estado por defecto con mayúsculas correctas
     nota: "",
     horas: "",
@@ -1195,11 +1196,11 @@ function Juegos() {
       }
     };
 
-    window.addEventListener('openAddGamePopup', handleOpenAddGamePopup);
+    window.addEventListener("openAddGamePopup", handleOpenAddGamePopup);
     return () => {
-      window.removeEventListener('openAddGamePopup', handleOpenAddGamePopup);
+      window.removeEventListener("openAddGamePopup", handleOpenAddGamePopup);
     };
-  }, [isDeveloperMode]);  // Función para cerrar el popup de añadir juego y limpiar estados
+  }, [isDeveloperMode]); // Función para cerrar el popup de añadir juego y limpiar estados
   const handleCloseAddGamePopup = () => {
     setShowAddGamePopup(false);
     setSearchGameIGDB("");
@@ -1220,37 +1221,40 @@ function Juegos() {
 
   // Manejar cambios en el formulario de añadir juego
   const handleAddGameFormChange = (field, value) => {
-    setAddGameFormData(prev => ({
+    setAddGameFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
   // Función para manejar la selección de un juego de IGDB
   const handleGameIGDBSelection = (game) => {
     setSelectedGameIGDB(game);
-    
+
     // Poblar automáticamente los campos con datos de IGDB
     const platforms = game.platforms ? game.platforms.split(", ") : [];
     setAvailableGamePlatforms(platforms);
-    
+
     // Preseleccionar la primera plataforma o una plataforma preferida
     const preferredPlatforms = [
       "Nintendo Switch",
-      "PlayStation 5", 
+      "PlayStation 5",
       "Xbox Series X/S",
       "PC",
       "PlayStation 4",
-      "Xbox One"
+      "Xbox One",
     ];
-    
-    const selectedPlatform = preferredPlatforms.find(pref => 
-      platforms.some(p => p.includes(pref))
-    ) || platforms[0] || "";
 
-    setAddGameFormData(prev => ({
+    const selectedPlatform =
+      preferredPlatforms.find((pref) =>
+        platforms.some((p) => p.includes(pref))
+      ) ||
+      platforms[0] ||
+      "";
+
+    setAddGameFormData((prev) => ({
       ...prev,
       caratula: game.coverUrl || "",
-      plataforma: selectedPlatform
+      plataforma: selectedPlatform,
     }));
   };
 
@@ -1802,17 +1806,45 @@ function Juegos() {
                   >
                     ✏️
                   </button>
-                )}
+                )}{" "}
                 <div className="cover-wrapper">
                   {game.caratula && (
                     <>
                       <img
                         src={game.caratula}
                         alt={`Carátula de ${game.nombre}`}
-                        className="game-cover"
+                        className={`game-cover${
+                          game.youtube ? " has-youtube" : ""
+                        }`}
                       />
                       <div className="cover-gradient"></div>
                     </>
+                  )}
+                  {game.youtube && (
+                    <button
+                      className="play-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(
+                          game.youtube,
+                          "_blank",
+                          "noopener,noreferrer"
+                        );
+                      }}
+                      tabIndex={0}
+                      aria-label="Ver en YouTube"
+                    >
+                      <svg
+                        width="40"
+                        height="40"
+                        viewBox="0 0 40 40"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <circle cx="20" cy="20" r="20" fill="rgba(0,0,0,0.6)" />
+                        <polygon points="16,13 30,20 16,27" fill="#fff" />
+                      </svg>
+                    </button>
                   )}
                 </div>
                 <strong
@@ -1990,18 +2022,51 @@ function Juegos() {
                       >
                         ✏️
                       </button>
-                    )}
+                    )}{" "}
                     <div className="cover-wrapper">
                       {game.caratula && (
                         <>
                           <img
                             src={game.caratula}
                             alt={`Carátula de ${game.nombre}`}
-                            className="game-cover"
+                            className={`game-cover${
+                              game.youtube ? " has-youtube" : ""
+                            }`}
                           />
                           <div className="cover-gradient"></div>
                         </>
-                      )}{" "}
+                      )}
+                      {game.youtube && (
+                        <button
+                          className="play-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(
+                              game.youtube,
+                              "_blank",
+                              "noopener,noreferrer"
+                            );
+                          }}
+                          tabIndex={0}
+                          aria-label="Ver en YouTube"
+                        >
+                          <svg
+                            width="40"
+                            height="40"
+                            viewBox="0 0 40 40"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle
+                              cx="20"
+                              cy="20"
+                              r="20"
+                              fill="rgba(0,0,0,0.6)"
+                            />
+                            <polygon points="16,13 30,20 16,27" fill="#fff" />
+                          </svg>
+                        </button>
+                      )}
                       {/* Mostrar avatar y nombre del recomendador si estamos en recomendaciones */}
                       {(() => {
                         if (planeoView !== "recomendado" || !game.usuario)
@@ -2970,7 +3035,8 @@ function Juegos() {
               }}
             >
               {errorMessage}
-            </p>            <button
+            </p>{" "}
+            <button
               className="add-recommendation-confirm"
               onClick={() => setShowErrorPopup(false)}
               style={{
@@ -2995,7 +3061,7 @@ function Juegos() {
               ✖
             </button>
             <h2 className="popup-add-title">Añadir Juego al Catálogo</h2>
-            
+
             {/* Búsqueda IGDB */}
             <div className="search-input-global popup-search-igdb">
               <img
@@ -3012,15 +3078,17 @@ function Juegos() {
                 autoFocus
               />
             </div>
-            
+
             {/* Estados de carga y error */}
             {gameIgdbLoading && (
-              <p className="popup-igdb-loading">{gameIgdbError || "Buscando..."}</p>
+              <p className="popup-igdb-loading">
+                {gameIgdbError || "Buscando..."}
+              </p>
             )}
             {gameIgdbError && !gameIgdbLoading && (
               <p className="popup-igdb-error">{gameIgdbError}</p>
             )}
-            
+
             {/* Resultados IGDB */}
             <div className="popup-igdb-scroll">
               {gameIgdbResults.map((game) => (
@@ -3045,7 +3113,7 @@ function Juegos() {
                 </div>
               ))}
             </div>
-              {/* Formulario de datos adicionales - solo visible si hay un juego seleccionado */}
+            {/* Formulario de datos adicionales - solo visible si hay un juego seleccionado */}
             {selectedGameIGDB && (
               <div className="add-game-form-section">
                 <div className="edit-form-container">
@@ -3056,7 +3124,9 @@ function Juegos() {
                       <select
                         className="edit-select"
                         value={addGameFormData.estado}
-                        onChange={(e) => handleAddGameFormChange("estado", e.target.value)}
+                        onChange={(e) =>
+                          handleAddGameFormChange("estado", e.target.value)
+                        }
                       >
                         <option value="Jugando">Jugando</option>
                         <option value="Planeo Jugar">Planeo Jugar</option>
@@ -3073,11 +3143,13 @@ function Juegos() {
                         max="10"
                         step="0.1"
                         value={addGameFormData.nota || "0"}
-                        onChange={(e) => handleAddGameFormChange("nota", e.target.value)}
+                        onChange={(e) =>
+                          handleAddGameFormChange("nota", e.target.value)
+                        }
                       />
                     </div>
                   </div>
-                  
+
                   {/* Segunda fila: Horas y Fecha */}
                   <div className="edit-form-row">
                     <div className="edit-form-field">
@@ -3088,7 +3160,9 @@ function Juegos() {
                         min="0"
                         step="0.1"
                         value={addGameFormData.horas}
-                        onChange={(e) => handleAddGameFormChange("horas", e.target.value)}
+                        onChange={(e) =>
+                          handleAddGameFormChange("horas", e.target.value)
+                        }
                         placeholder="Ej: 15.5"
                       />
                     </div>
@@ -3098,11 +3172,13 @@ function Juegos() {
                         type="date"
                         className="edit-input"
                         value={addGameFormData.fecha}
-                        onChange={(e) => handleAddGameFormChange("fecha", e.target.value)}
+                        onChange={(e) =>
+                          handleAddGameFormChange("fecha", e.target.value)
+                        }
                       />
                     </div>
                   </div>
-                  
+
                   {/* Tercera fila: YouTube y Carátula */}
                   <div className="edit-form-row">
                     <div className="edit-form-field">
@@ -3111,7 +3187,9 @@ function Juegos() {
                         type="url"
                         className="edit-input"
                         value={addGameFormData.youtube}
-                        onChange={(e) => handleAddGameFormChange("youtube", e.target.value)}
+                        onChange={(e) =>
+                          handleAddGameFormChange("youtube", e.target.value)
+                        }
                         placeholder="https://youtube.com/..."
                       />
                     </div>
@@ -3121,12 +3199,14 @@ function Juegos() {
                         type="url"
                         className="edit-input"
                         value={addGameFormData.caratula}
-                        onChange={(e) => handleAddGameFormChange("caratula", e.target.value)}
+                        onChange={(e) =>
+                          handleAddGameFormChange("caratula", e.target.value)
+                        }
                         placeholder="URL de la carátula..."
                       />
                     </div>
                   </div>
-                  
+
                   {/* Cuarta fila: Plataforma Principal */}
                   <div className="edit-form-row">
                     <div className="edit-form-field">
@@ -3135,7 +3215,12 @@ function Juegos() {
                         <select
                           className="edit-select"
                           value={addGameFormData.plataforma}
-                          onChange={(e) => handleAddGameFormChange("plataforma", e.target.value)}
+                          onChange={(e) =>
+                            handleAddGameFormChange(
+                              "plataforma",
+                              e.target.value
+                            )
+                          }
                         >
                           <option value="">Seleccionar plataforma...</option>
                           {availableGamePlatforms.map((platform) => (
@@ -3149,7 +3234,12 @@ function Juegos() {
                           type="text"
                           className="edit-input"
                           value={addGameFormData.plataforma}
-                          onChange={(e) => handleAddGameFormChange("plataforma", e.target.value)}
+                          onChange={(e) =>
+                            handleAddGameFormChange(
+                              "plataforma",
+                              e.target.value
+                            )
+                          }
                           placeholder="Ej: Nintendo Switch"
                         />
                       )}
@@ -3158,7 +3248,7 @@ function Juegos() {
                 </div>
               </div>
             )}
-            
+
             {/* Botón de confirmación */}
             <button
               className="add-recommendation-confirm"
@@ -3167,7 +3257,7 @@ function Juegos() {
                 if (!selectedGameIGDB) return;
                 setAddGameStatus("");
                 setAddGameStatus("Añadiendo juego...");
-                
+
                 try {
                   const response = await fetch("/api/add-game", {
                     method: "POST",
@@ -3177,7 +3267,7 @@ function Juegos() {
                       formData: addGameFormData,
                     }),
                   });
-                  
+
                   const data = await response.json();
                   if (data.error) {
                     setAddGameStatus("Error al añadir juego");
@@ -3196,7 +3286,7 @@ function Juegos() {
             >
               Añadir al Catálogo
             </button>
-            
+
             {/* Estado de la operación */}
             {addGameStatus && (
               <div

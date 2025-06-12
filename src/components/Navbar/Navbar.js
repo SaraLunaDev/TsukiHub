@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import "./Navbar.css";
 import TwitchAuthButton from "./TwitchAuth";
 
 function Navbar() {
+  // Hook para obtener la ubicación actual
+  const location = useLocation();
+  
   // Estado para controlar el modo oscuro
   const [darkMode, setDarkMode] = useState(false);
 
@@ -20,8 +23,8 @@ function Navbar() {
       setIsDeveloperMode(saved === "true");
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    
+    window.addEventListener("storage", handleStorageChange);
+
     // También verificar cambios directos en localStorage
     const checkDeveloperMode = () => {
       const saved = localStorage.getItem("developerMode");
@@ -33,7 +36,7 @@ function Navbar() {
     const interval = setInterval(checkDeveloperMode, 100);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
       clearInterval(interval);
     };
   }, [isDeveloperMode]);
@@ -66,7 +69,7 @@ function Navbar() {
   // Función para manejar el click del botón Añadir Juego
   const handleAddGameClick = () => {
     // Disparar evento personalizado para que el componente Juegos lo escuche
-    window.dispatchEvent(new CustomEvent('openAddGamePopup'));
+    window.dispatchEvent(new CustomEvent("openAddGamePopup"));
   };
 
   // Renderizado principal del componente
@@ -92,10 +95,9 @@ function Navbar() {
               <Link to="/TTS">TTS</Link>
             </li>
           </ul>
-        </div>
-        <div className="navbar-right">
-          {/* Botón Añadir Juego - solo visible en modo desarrollador */}
-          {isDeveloperMode && (
+        </div>        <div className="navbar-right">
+          {/* Botón Añadir Juego - solo visible en modo desarrollador y en la página de juegos */}
+          {isDeveloperMode && location.pathname === '/juegos' && (
             <button className="add-game-button" onClick={handleAddGameClick}>
               + Añadir Juego
             </button>

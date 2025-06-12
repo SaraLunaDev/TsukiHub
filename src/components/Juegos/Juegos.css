@@ -1149,7 +1149,7 @@ li:hover .game-cover.has-youtube {
 }
 
 .add-recommendation-button {
-  width: 140px;;
+  width: 140px;
   background: var(--color-mid);
   color: var(--text);
   border: none;
@@ -1165,6 +1165,7 @@ li:hover .game-cover.has-youtube {
   justify-content: center;
   gap: 8px;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  margin-bottom: 22px;
 }
 .add-recommendation-button:hover {
   background: var(--color-clear);

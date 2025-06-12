@@ -37,7 +37,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing data" });
   }
 
-  console.log(`[add-game] Adding game: ${game.name || game.title || "Unknown"}`);
+  console.log(
+    `[add-game] Adding game: ${game.name || game.title || "Unknown"}`
+  );
 
   // Cargar las variables de entorno
   const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
@@ -64,7 +66,7 @@ export default async function handler(req, res) {
         if (err) return reject(err);
         resolve(tokens);
       });
-    });    // Preparar los datos del juego para insertar
+    }); // Preparar los datos del juego para insertar
     const gameData = {
       nombre: cleanTextForCSV(game.name || game.title || ""),
       estado: formData.estado || "Planeo Jugar",
@@ -73,7 +75,8 @@ export default async function handler(req, res) {
       horas: formData.horas || "",
       plataforma: formData.plataforma || "",
       fecha: convertISOToDate(formData.fecha) || "",
-      caratula: formData.caratula || 
+      caratula:
+        formData.caratula ||
         (game.cover && game.cover.url
           ? game.cover.url.startsWith("http")
             ? game.cover.url.replace("t_thumb", "t_cover_big")
@@ -84,51 +87,55 @@ export default async function handler(req, res) {
       "Fecha de Lanzamiento": game.first_release_date
         ? new Date(game.first_release_date * 1000).toISOString().split("T")[0]
         : game.release_date || "",
-      géneros: game.genres && Array.isArray(game.genres)
-        ? game.genres
-            .map((g) => cleanTextForCSV(g.name).replace(/-%-/g, " "))
-            .join("-%-")
-        : cleanTextForCSV(game.genres_string || ""),
-      plataformas: game.platforms && Array.isArray(game.platforms)
-        ? game.platforms
-            .map((p) => cleanTextForCSV(p.name).replace(/-%-/g, " "))
-            .join("-%-")
-        : cleanTextForCSV(game.platforms_string || ""),
+      géneros:
+        game.genres && Array.isArray(game.genres)
+          ? game.genres
+              .map((g) => cleanTextForCSV(g.name).replace(/-%-/g, " "))
+              .join("-%-")
+          : cleanTextForCSV(game.genres_string || ""),
+      plataformas:
+        game.platforms && Array.isArray(game.platforms)
+          ? game.platforms
+              .map((p) => cleanTextForCSV(p.name).replace(/-%-/g, " "))
+              .join("-%-")
+          : cleanTextForCSV(game.platforms_string || ""),
       resumen: cleanTextForCSV(game.summary || game.description || ""),
-      desarrolladores: game.involved_companies && Array.isArray(game.involved_companies)
-        ? game.involved_companies.some((c) => c.developer)
-          ? game.involved_companies
-              .filter((c) => c.developer && c.company?.name)
-              .map((c) =>
-                cleanTextForCSV(c.company.name).replace(/-%-/g, " ")
-              )
-              .join("-%-")
-          : game.involved_companies
-              .map((c) =>
-                c.company?.name
-                  ? cleanTextForCSV(c.company.name).replace(/-%-/g, " ")
-                  : ""
-              )
-              .filter(Boolean)
-              .join("-%-")
-        : cleanTextForCSV(game.developers_string || ""),
-      publicadores: game.involved_companies && Array.isArray(game.involved_companies)
-        ? game.involved_companies.some((c) => c.publisher)
-          ? game.involved_companies
-              .filter((c) => c.publisher && c.company?.name)
-              .map((c) =>
-                cleanTextForCSV(c.company.name).replace(/-%-/g, " ")
-              )
-              .join("-%-")
-          : game.involved_companies
-              .map((c) =>
-                c.company?.name
-                  ? cleanTextForCSV(c.company.name).replace(/-%-/g, " ")
-                  : ""
-              )
-              .filter(Boolean)
-              .join("-%-")
-        : cleanTextForCSV(game.publishers_string || ""),
+      desarrolladores:
+        game.involved_companies && Array.isArray(game.involved_companies)
+          ? game.involved_companies.some((c) => c.developer)
+            ? game.involved_companies
+                .filter((c) => c.developer && c.company?.name)
+                .map((c) =>
+                  cleanTextForCSV(c.company.name).replace(/-%-/g, " ")
+                )
+                .join("-%-")
+            : game.involved_companies
+                .map((c) =>
+                  c.company?.name
+                    ? cleanTextForCSV(c.company.name).replace(/-%-/g, " ")
+                    : ""
+                )
+                .filter(Boolean)
+                .join("-%-")
+          : cleanTextForCSV(game.developers_string || ""),
+      publicadores:
+        game.involved_companies && Array.isArray(game.involved_companies)
+          ? game.involved_companies.some((c) => c.publisher)
+            ? game.involved_companies
+                .filter((c) => c.publisher && c.company?.name)
+                .map((c) =>
+                  cleanTextForCSV(c.company.name).replace(/-%-/g, " ")
+                )
+                .join("-%-")
+            : game.involved_companies
+                .map((c) =>
+                  c.company?.name
+                    ? cleanTextForCSV(c.company.name).replace(/-%-/g, " ")
+                    : ""
+                )
+                .filter(Boolean)
+                .join("-%-")
+          : cleanTextForCSV(game.publishers_string || ""),
       igdbId: game.id || game.igdb_id || "",
       usuario: "", // No hay usuario para juegos añadidos por desarrolladores
       comentario: "", // No hay comentario para juegos añadidos por desarrolladores
