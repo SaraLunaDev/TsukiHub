@@ -8,6 +8,8 @@ function Pelis() {
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const moviesPerPage = 18;
+  // Estado para el reproductor de YouTube en hover
+  const [showTrailerPlayer, setShowTrailerPlayer] = useState(false);
   // Estados para filtros
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState({
@@ -376,10 +378,10 @@ function Pelis() {
   const handleMovieClick = (movie) => {
     setSelectedMovie(movie);
   };
-
   // Cerrar el popup de detalles
   const closeMoviePopup = () => {
     setSelectedMovie(null);
+    setShowTrailerPlayer(false); // Resetear el estado del reproductor
   };
 
   // Calcular películas paginadas (usando filtros avanzados si están activos)
@@ -743,12 +745,25 @@ function Pelis() {
       },
     };
   }
+
+  // Función para extraer el ID de YouTube de una URL
+  const extractYouTubeID = (url) => {
+    if (!url) return null;
+
+    const regExp =
+      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+
+    return match && match[2].length === 11 ? match[2] : null;
+  };
+
+  // Función para verificar si una URL de YouTube es válida
+  const isValidYouTubeURL = (url) => {
+    return url && extractYouTubeID(url) !== null;
+  };
+
   return (
     <div className="pelis-container">
-      <div className="pelis-header">
-        <h1>Películas y Series</h1>
-        <p>Descubre y gestiona tu colección de contenido audiovisual</p>
-      </div>
       <div className="pelis-wrapper">
         <div className="div-section">
           <div className="filtros-section">
@@ -1053,98 +1068,165 @@ function Pelis() {
             className="popup-content popup-movie-details"
             onClick={(e) => e.stopPropagation()}
           >
+            {" "}
             <button className="close-button" onClick={closeMoviePopup}>
               ✖
             </button>
+            <>
+              {/* Layout normal - carátula + información */}
+              {!showTrailerPlayer && (
+                <div className="popup-movie-header">
+                  {" "}
+                  <div className="popup-movie-cover">
+                    <img
+                      src={
+                        selectedMovie.caratula ||
+                        "/static/resources/default_cover.png"
+                      }
+                      alt={`Carátula de ${selectedMovie.nombre}`}
+                      onError={(e) => {
+                        e.target.src = "/static/resources/default_cover.png";
+                      }}
+                    />
 
-            <div className="popup-movie-header">
-              <div className="popup-movie-cover">
-                <img
-                  src={
-                    selectedMovie.caratula ||
-                    "/static/resources/default_cover.png"
-                  }
-                  alt={`Carátula de ${selectedMovie.nombre}`}
-                  onError={(e) => {
-                    e.target.src = "/static/resources/default_cover.png";
-                  }}
-                />
-              </div>
-
-              <div className="popup-movie-info">
-                <h2>{selectedMovie.nombre}</h2>
-                <div className="movie-meta">
-                  {selectedMovie.tipo && (
-                    <p>
-                      <strong>Tipo:</strong> {selectedMovie.tipo}
-                    </p>
-                  )}
-                  {selectedMovie.estado && (
-                    <p>
-                      <strong>Estado:</strong>{" "}
-                      {selectedMovie.estado.toUpperCase()}
-                    </p>
-                  )}
-                  {selectedMovie.url && (
-                    <p>
-                      <a
-                        href={selectedMovie.url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Ver en YouTube
-                      </a>
-                    </p>
-                  )}
-                  {selectedMovie.nota_chat && (
-                    <p className="popup-rating">
-                      <img
-                        src="/static/resources/estrellas/star-filled.png"
-                        alt="estrella"
-                        className="nota-estrella"
-                      />
-                      <span className="popup-rating-text">
-                        {selectedMovie.nota_chat}
-                      </span>
-                    </p>
-                  )}
-                  {selectedMovie.duracion && (
-                    <p>
-                      <strong>⌛ Duración:</strong> {selectedMovie.duracion}
-                    </p>
-                  )}
-                  {selectedMovie.fecha && (
-                    <p>
-                      <strong>📅 Fecha vista:</strong> {selectedMovie.fecha}
-                    </p>
-                  )}{" "}
-                  {selectedMovie.director && (
-                    <p>
-                      <strong>🎬 Director:</strong> {selectedMovie.director}
-                    </p>
-                  )}
-                  {selectedMovie.generos && (
-                    <p>
-                      <strong>🎭 Géneros:</strong> {selectedMovie.generos}
-                    </p>
-                  )}
-                  {selectedMovie.fecha_lanzamiento && (
-                    <p>
-                      <strong>🗓️ Lanzamiento:</strong>{" "}
-                      {selectedMovie.fecha_lanzamiento}
-                    </p>
+                    {/* Botón de play para trailer */}
+                    {selectedMovie.trailer &&
+                      isValidYouTubeURL(selectedMovie.trailer) && (
+                        <button
+                          className="popup-play-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowTrailerPlayer(true);
+                          }}
+                          tabIndex={0}
+                          aria-label="Reproducir trailer"
+                          title="Click para reproducir trailer"
+                        >
+                          <svg
+                            width="50"
+                            height="50"
+                            viewBox="0 0 50 50"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle
+                              cx="25"
+                              cy="25"
+                              r="25"
+                              fill="rgba(0,0,0,0.7)"
+                            />
+                            <polygon points="20,16 37,25 20,34" fill="#fff" />
+                          </svg>
+                        </button>
+                      )}
+                  </div>
+                  {/* Información de la película - se oculta cuando se reproduce trailer */}
+                  {!showTrailerPlayer && (
+                    <div className="popup-movie-info">
+                      <h2>{selectedMovie.nombre}</h2>
+                      <div className="movie-meta">
+                        {selectedMovie.tipo && (
+                          <p>
+                            <strong>Tipo:</strong> {selectedMovie.tipo}
+                          </p>
+                        )}
+                        {selectedMovie.estado && (
+                          <p>
+                            <strong>Estado:</strong>{" "}
+                            {selectedMovie.estado.toUpperCase()}
+                          </p>
+                        )}
+                        {selectedMovie.url && (
+                          <p>
+                            <a
+                              href={selectedMovie.url}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Ver en YouTube
+                            </a>
+                          </p>
+                        )}
+                        {selectedMovie.nota_chat && (
+                          <p className="popup-rating">
+                            <img
+                              src="/static/resources/estrellas/star-filled.png"
+                              alt="estrella"
+                              className="nota-estrella"
+                            />
+                            <span className="popup-rating-text">
+                              {selectedMovie.nota_chat}
+                            </span>
+                          </p>
+                        )}
+                        {selectedMovie.duracion && (
+                          <p>
+                            <strong>⌛ Duración:</strong>{" "}
+                            {selectedMovie.duracion}
+                          </p>
+                        )}
+                        {selectedMovie.director && (
+                          <p>
+                            <strong>🎬 Director:</strong>{" "}
+                            {selectedMovie.director}
+                          </p>
+                        )}
+                        {selectedMovie.genero && (
+                          <p>
+                            <strong>🎭 Género:</strong> {selectedMovie.genero}
+                          </p>
+                        )}
+                        {selectedMovie.fecha_lanzamiento && (
+                          <p>
+                            <strong>📅 Fecha de lanzamiento:</strong>{" "}
+                            {selectedMovie.fecha_lanzamiento}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
-              </div>
-            </div>
-
-            {/* Resumen */}
-            {selectedMovie.resumen && (
-              <div className="movie-summary">
-                <h3>Resumen</h3>
-                <p>{selectedMovie.resumen.replace(/-%-/g, ", ")}</p>
-              </div>
-            )}
+              )}
+              {/* Layout reproductor - reemplaza completamente el header */}
+              {showTrailerPlayer && selectedMovie.trailer && (
+                <div className="trailer-player-expanded">
+                  <div className="trailer-controls">
+                    <button
+                      className="close-trailer-button"
+                      onClick={() => setShowTrailerPlayer(false)}
+                    >
+                      ← Volver
+                    </button>
+                  </div>
+                  <div className="trailer-video-container">
+                    <iframe
+                      width="100%"
+                      height="100%"
+                      src={`https://www.youtube.com/embed/${extractYouTubeID(
+                        selectedMovie.trailer
+                      )}?autoplay=1&controls=1&modestbranding=1&rel=0`}
+                      title="Trailer"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                </div>
+              )}
+              {/* Resumen - solo visible cuando no se reproduce trailer */}
+              {!showTrailerPlayer && selectedMovie.resumen && (
+                <div className="movie-summary">
+                  <p>{selectedMovie.resumen.replace(/-%-/g, ", ")}</p>
+                </div>
+              )}
+              {/* Sinopsis siempre visible cuando se reproduce trailer */}{" "}
+              {showTrailerPlayer && selectedMovie.resumen && (
+                <div className="movie-summary trailer-synopsis">
+                  <h3>Sinopsis</h3>
+                  <p>{selectedMovie.resumen.replace(/-%-/g, ", ")}</p>
+                </div>
+              )}
+            </>
           </div>
         </div>
       )}

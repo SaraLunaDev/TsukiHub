@@ -432,10 +432,91 @@
   margin-bottom: 20px;
 }
 
+.popup-movie-cover {
+  position: relative;
+  min-width: 300px;
+  min-height: 400px;
+  overflow: hidden; /* Para contener el botón */
+}
+
 .popup-movie-cover img {
   max-height: 400px;
   border-radius: 8px;
   object-fit: cover;
+  width: 100%;
+  height: 100%;
+  transition: filter 0.3s ease;
+}
+
+.trailer-player-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.trailer-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  opacity: 0.9;
+  transition: opacity 0.3s ease;
+}
+
+.popup-movie-cover:hover .trailer-indicator {
+  opacity: 0;
+}
+
+.trailer-indicator svg {
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+  animation: pulse 2s infinite;
+}
+
+.trailer-tooltip {
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+
+/* Animación de pulso para el icono de play */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+}
+
+/* Cursor pointer para carátulas con trailer */
+.popup-movie-cover[data-has-trailer="true"] {
+  cursor: pointer;
+}
+
+/* Hover effect para la carátula con trailer */
+.popup-movie-cover:hover img {
+  filter: brightness(1.1);
 }
 
 .popup-movie-info {
@@ -1000,4 +1081,110 @@
   min-width: 0;
   max-width: 50%;
   background-color: var(--dark-2);
+}
+
+/* Estilos para el reproductor de trailer en popup */
+.popup-play-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 15;
+  opacity: 0.3; /* Ligeramente visible siempre */
+  transition: all 0.3s ease;
+  padding: 0;
+  pointer-events: auto;
+}
+
+.popup-movie-cover:hover .popup-play-button {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+.popup-play-button svg {
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.8));
+  transition: transform 0.2s ease;
+}
+
+.popup-play-button:hover svg {
+  transform: scale(1.1);
+}
+
+/* Efecto de oscurecimiento en hover */
+.popup-movie-cover:hover img {
+  filter: brightness(0.7);
+}
+
+/* Reproductor de trailer expandido */
+.trailer-player-expanded {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.trailer-controls {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.close-trailer-button {
+  background: var(--clear);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.close-trailer-button:hover {
+  background: var(--color-clear);
+  color: var(--bg);
+}
+
+.trailer-video-container {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.trailer-video-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Sinopsis durante reproducción de trailer */
+.trailer-synopsis {
+  margin-top: 20px !important;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+
+.trailer-synopsis h3 {
+  margin: 0 0 10px 0;
+  color: var(--highlight);
+  font-size: 1.2em;
+}
+
+/* Ajustes del popup cuando se reproduce trailer */
+.popup-movie-details:has(.trailer-player-expanded) {
+  max-width: 1000px;
+}
+
+.popup-movie-header:has(.trailer-player-expanded) {
+  flex-direction: column;
+}
+
+/* Ocultar gradiente en carátula con botón */
+.popup-movie-cover .cover-gradient {
+  display: none;
 }

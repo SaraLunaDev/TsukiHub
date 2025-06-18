@@ -56,18 +56,21 @@ Una aplicación web interactiva para gestionar una base de datos personal de pel
 ## 🛠️ Instalación y Desarrollo
 
 1. **Clonar el repositorio**
+
    ```bash
    git clone [url-del-repo]
    cd database-web
    ```
 
 2. **Instalar dependencias**
+
    ```bash
    npm install
    ```
 
 3. **Configurar variables de entorno**
    Crear archivo `.env` con:
+
    ```env
    GOOGLE_SERVICE_ACCOUNT_EMAIL=your-email@project.iam.gserviceaccount.com
    GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
@@ -78,10 +81,11 @@ Una aplicación web interactiva para gestionar una base de datos personal de pel
    ```
 
 4. **Ejecutar en modo desarrollo**
+
    ```bash
    # Servidor local
    node server.js
-   
+
    # O para React development
    npm start
    ```
@@ -102,19 +106,22 @@ La aplicación está configurada para desplegarse automáticamente en Vercel:
 ## 📊 Funcionalidades Principales
 
 ### 🎬 Gestión de Películas/Series
+
 - Búsqueda automática en TMDB
 - Extracción de datos: sinopsis, director, géneros, trailers
 - Filtros avanzados: género, nota, fecha, desde-hasta
 - Estados: Visto, Viendo, Planeo Ver, Abandonado
 - Notas personales y del chat
 
-### 🎮 Gestión de Juegos  
+### 🎮 Gestión de Juegos
+
 - Integración con IGDB
 - Información detallada de videojuegos
 - Filtros similares a películas
 - Sistema de calificaciones
 
 ### 🔍 Características Avanzadas
+
 - **Búsqueda Inteligente**: Múltiples criterios simultáneos
 - **Filtros Dinámicos**: Spinners de género, rangos de fecha
 - **Responsive Design**: Adaptable a cualquier dispositivo
@@ -123,7 +130,7 @@ La aplicación está configurada para desplegarse automáticamente en Vercel:
 ## 🎯 APIs Integradas
 
 - **TMDB**: Información de películas y series
-- **IGDB**: Base de datos de videojuegos  
+- **IGDB**: Base de datos de videojuegos
 - **Google Sheets**: Almacenamiento y respaldo
 - **TTS**: Síntesis de voz
 
@@ -139,7 +146,7 @@ La aplicación está configurada para desplegarse automáticamente en Vercel:
 
 ✅ **Completado**: Base de datos poblada y funcional  
 ✅ **Limpieza**: Scripts temporales eliminados  
-✅ **Producción**: Listo para uso en vivo  
+✅ **Producción**: Listo para uso en vivo
 
 ---
 

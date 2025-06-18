@@ -285,32 +285,38 @@ export default async function handler(req, res) {
           console.log(
             `[tmdb-search] No genres found for ${item.title || item.name}`
           );
-        }
-
-        // Get trailer URL - PRIORIZAR ESPAÑOL SIEMPRE
+        } // Get trailer URL - PRIORIZAR ESPAÑOL SIEMPRE, CON FALLBACK A TEASERS
         let trailerUrl = "";
         console.log(
-          `[tmdb-search] Starting trailer search for ${item.title || item.name}`
+          `[tmdb-search] Starting trailer/teaser search for ${
+            item.title || item.name
+          }`
         );
 
-        // Paso 1: Buscar trailer en español EXPLÍCITAMENTE
-        let spanishTrailer = null;
+        // Helper function to find video by type and language
+        const findVideoByType = (videos, type, language = null) => {
+          return videos.find((video) => {
+            const isCorrectType = video.type === type;
+            const isYoutube = video.site === "YouTube";
+            const isCorrectLanguage = language
+              ? video.iso_639_1 === language
+              : true;
+
+            return isCorrectType && isYoutube && isCorrectLanguage;
+          });
+        };
+
+        // Paso 1: Buscar trailer en español
         if (videosDataES.results && videosDataES.results.length > 0) {
           console.log(
             `[tmdb-search] Searching Spanish trailers in ${videosDataES.results.length} Spanish videos`
           );
 
-          spanishTrailer = videosDataES.results.find((video) => {
-            const isTrailer = video.type === "Trailer";
-            const isYoutube = video.site === "YouTube";
-            const isSpanish = video.iso_639_1 === "es";
-
-            console.log(
-              `[tmdb-search] Checking Spanish video: ${video.type} (${video.site}) - ${video.iso_639_1} - isTrailer:${isTrailer}, isYoutube:${isYoutube}, isSpanish:${isSpanish}`
-            );
-
-            return isTrailer && isYoutube && isSpanish;
-          });
+          const spanishTrailer = findVideoByType(
+            videosDataES.results,
+            "Trailer",
+            "es"
+          );
 
           if (spanishTrailer) {
             trailerUrl = `https://www.youtube.com/watch?v=${spanishTrailer.key}`;
@@ -319,32 +325,42 @@ export default async function handler(req, res) {
             );
           } else {
             console.log(
-              `[tmdb-search] ❌ No Spanish trailer found in Spanish videos`
+              `[tmdb-search] ❌ No Spanish trailer found, trying Spanish teaser`
             );
+
+            // Paso 1.1: Si no hay trailer en español, buscar teaser en español
+            const spanishTeaser = findVideoByType(
+              videosDataES.results,
+              "Teaser",
+              "es"
+            );
+
+            if (spanishTeaser) {
+              trailerUrl = `https://www.youtube.com/watch?v=${spanishTeaser.key}`;
+              console.log(
+                `[tmdb-search] ✅ FOUND SPANISH TEASER (fallback): ${trailerUrl}`
+              );
+            } else {
+              console.log(`[tmdb-search] ❌ No Spanish teaser found either`);
+            }
           }
         }
 
-        // Paso 2: Solo si NO hay trailer en español, buscar en inglés
+        // Paso 2: Si no hay trailer/teaser en español, buscar en inglés
         if (
           !trailerUrl &&
           videosDataEN.results &&
           videosDataEN.results.length > 0
         ) {
           console.log(
-            `[tmdb-search] No Spanish trailer found, searching English trailers in ${videosDataEN.results.length} English videos`
+            `[tmdb-search] No Spanish trailer/teaser found, searching English trailers in ${videosDataEN.results.length} English videos`
           );
 
-          const englishTrailer = videosDataEN.results.find((video) => {
-            const isTrailer = video.type === "Trailer";
-            const isYoutube = video.site === "YouTube";
-            const isEnglish = video.iso_639_1 === "en";
-
-            console.log(
-              `[tmdb-search] Checking English video: ${video.type} (${video.site}) - ${video.iso_639_1} - isTrailer:${isTrailer}, isYoutube:${isYoutube}, isEnglish:${isEnglish}`
-            );
-
-            return isTrailer && isYoutube && isEnglish;
-          });
+          const englishTrailer = findVideoByType(
+            videosDataEN.results,
+            "Trailer",
+            "en"
+          );
 
           if (englishTrailer) {
             trailerUrl = `https://www.youtube.com/watch?v=${englishTrailer.key}`;
@@ -352,14 +368,32 @@ export default async function handler(req, res) {
               `[tmdb-search] ✅ FOUND ENGLISH TRAILER (fallback): ${trailerUrl}`
             );
           } else {
-            console.log(`[tmdb-search] ❌ No English trailer found either`);
+            console.log(
+              `[tmdb-search] ❌ No English trailer found, trying English teaser`
+            );
+
+            // Paso 2.1: Si no hay trailer en inglés, buscar teaser en inglés
+            const englishTeaser = findVideoByType(
+              videosDataEN.results,
+              "Teaser",
+              "en"
+            );
+
+            if (englishTeaser) {
+              trailerUrl = `https://www.youtube.com/watch?v=${englishTeaser.key}`;
+              console.log(
+                `[tmdb-search] ✅ FOUND ENGLISH TEASER (fallback): ${trailerUrl}`
+              );
+            } else {
+              console.log(`[tmdb-search] ❌ No English teaser found either`);
+            }
           }
         }
 
-        // Paso 3: Como último recurso, buscar cualquier trailer sin importar idioma
+        // Paso 3: Como último recurso, buscar cualquier tipo de video promocional
         if (!trailerUrl) {
           console.log(
-            `[tmdb-search] No trailers found in specific languages, searching any language`
+            `[tmdb-search] No trailers/teasers found in specific languages, searching any language`
           );
 
           const allVideos = [
@@ -367,49 +401,35 @@ export default async function handler(req, res) {
             ...(videosDataEN.results || []),
           ];
 
-          const anyTrailer = allVideos.find(
-            (video) => video.type === "Trailer" && video.site === "YouTube"
-          );
+          // Priorizar: Trailer > Teaser > Clip
+          const anyTrailer = findVideoByType(allVideos, "Trailer");
+          const anyTeaser = findVideoByType(allVideos, "Teaser");
+          const anyClip = findVideoByType(allVideos, "Clip");
 
           if (anyTrailer) {
             trailerUrl = `https://www.youtube.com/watch?v=${anyTrailer.key}`;
             console.log(
               `[tmdb-search] ✅ FOUND ANY TRAILER (last resort): ${trailerUrl} (${anyTrailer.iso_639_1})`
             );
-          } else {
+          } else if (anyTeaser) {
+            trailerUrl = `https://www.youtube.com/watch?v=${anyTeaser.key}`;
             console.log(
-              `[tmdb-search] ❌ No trailers found at all, trying teasers/clips`
+              `[tmdb-search] ✅ FOUND ANY TEASER (last resort): ${trailerUrl} (${anyTeaser.iso_639_1})`
             );
-
-            // Buscar teaser o clip como último recurso
-            const teaser = allVideos.find(
-              (video) => video.type === "Teaser" && video.site === "YouTube"
+          } else if (anyClip) {
+            trailerUrl = `https://www.youtube.com/watch?v=${anyClip.key}`;
+            console.log(
+              `[tmdb-search] ✅ FOUND ANY CLIP (last resort): ${trailerUrl} (${anyClip.iso_639_1})`
             );
-
-            const clip = allVideos.find(
-              (video) => video.type === "Clip" && video.site === "YouTube"
-            );
-
-            if (teaser) {
-              trailerUrl = `https://www.youtube.com/watch?v=${teaser.key}`;
-              console.log(
-                `[tmdb-search] ✅ Using teaser as trailer: ${trailerUrl} (${teaser.iso_639_1})`
-              );
-            } else if (clip) {
-              trailerUrl = `https://www.youtube.com/watch?v=${clip.key}`;
-              console.log(
-                `[tmdb-search] ✅ Using clip as trailer: ${trailerUrl} (${clip.iso_639_1})`
-              );
-            } else {
-              console.log(`[tmdb-search] ❌ No videos found at all`);
-            }
+          } else {
+            console.log(`[tmdb-search] ❌ No promotional videos found at all`);
           }
         }
 
         console.log(
-          `[tmdb-search] Final trailer result for ${item.title || item.name}: ${
-            trailerUrl || "NONE"
-          }`
+          `[tmdb-search] Final trailer/teaser result for ${
+            item.title || item.name
+          }: ${trailerUrl || "NONE"}`
         ); // Get poster and backdrop - prioritize Spanish, fallback to English, then search result
         let posterPath = null;
         let backdropPath = null;
