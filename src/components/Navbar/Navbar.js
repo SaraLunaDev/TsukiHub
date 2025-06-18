@@ -6,7 +6,7 @@ import TwitchAuthButton from "./TwitchAuth";
 function Navbar() {
   // Hook para obtener la ubicación actual
   const location = useLocation();
-  
+
   // Estado para controlar el modo oscuro
   const [darkMode, setDarkMode] = useState(false);
 
@@ -65,11 +65,16 @@ function Navbar() {
     setTwitchUser(user);
     localStorage.setItem("twitchUser", JSON.stringify(user));
   };
-
   // Función para manejar el click del botón Añadir Juego
   const handleAddGameClick = () => {
     // Disparar evento personalizado para que el componente Juegos lo escuche
     window.dispatchEvent(new CustomEvent("openAddGamePopup"));
+  };
+
+  // Función para manejar el click del botón Añadir Película/Serie
+  const handleAddMovieClick = () => {
+    // Disparar evento personalizado para que el componente Pelis lo escuche
+    window.dispatchEvent(new CustomEvent("openAddMoviePopup"));
   };
 
   // Renderizado principal del componente
@@ -79,11 +84,13 @@ function Navbar() {
         <div className="navbar-left">
           <Link to="/" className="navbar-logo">
             <img src="/static/resources/logo.png" alt="Logo" />
-          </Link>
-
+          </Link>{" "}
           <ul className="navbar-links">
             <li>
               <Link to="/juegos">Juegos</Link>
+            </li>
+            <li>
+              <Link to="/pelis">Pelis</Link>
             </li>
             <li>
               <Link to="/pokedex/kanto">Pokedex</Link>
@@ -95,11 +102,18 @@ function Navbar() {
               <Link to="/TTS">TTS</Link>
             </li>
           </ul>
-        </div>        <div className="navbar-right">
+        </div>{" "}
+        <div className="navbar-right">
           {/* Botón Añadir Juego - solo visible en modo desarrollador y en la página de juegos */}
-          {isDeveloperMode && location.pathname === '/juegos' && (
+          {isDeveloperMode && location.pathname === "/juegos" && (
             <button className="add-game-button" onClick={handleAddGameClick}>
               + Añadir Juego
+            </button>
+          )}
+          {/* Botón Añadir Película/Serie - solo visible en modo desarrollador y en la página de pelis */}
+          {isDeveloperMode && location.pathname === "/pelis" && (
+            <button className="add-movie-button" onClick={handleAddMovieClick}>
+              + Añadir Película/Serie
             </button>
           )}
           <button className="theme-button" onClick={toggleDarkMode}>

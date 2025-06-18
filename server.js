@@ -448,6 +448,669 @@ app.post("/api/validate-user", async (req, res) => {
   }
 });
 
+// --- /api/tmdb-search ---
+app.post("/api/tmdb-search", async (req, res) => {
+  const { query, type = "multi" } = req.body; // type can be 'movie', 'tv', or 'multi'
+
+  if (!query) return res.status(400).json({ error: "Missing query" });
+
+  try {
+    const apiKey = process.env.REACT_APP_TMDB_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: "TMDB API key missing" });
+    }
+
+    console.log(`[tmdb-search] Searching for: ${query} (type: ${type})`);
+
+    // Search TMDB
+    const tmdbResp = await fetch(
+      `https://api.themoviedb.org/3/search/${type}?api_key=${apiKey}&query=${encodeURIComponent(
+        query
+      )}&language=es-ES&page=1`
+    );
+
+    if (!tmdbResp.ok) {
+      return res.status(500).json({
+        error: "TMDB API error",
+        status: tmdbResp.status,
+      });
+    }
+
+    const tmdbData = await tmdbResp.json();
+    console.log(`[tmdb-search] Found ${tmdbData.results.length} results`);
+
+    // Transform results and get additional details for each item
+    const transformedResults = await Promise.all(
+      tmdbData.results.slice(0, 10).map(async (item) => {
+        // Get detailed information for each movie/TV show
+        const detailType =
+          item.media_type || (type === "movie" ? "movie" : "tv"); // Get detail data and videos separately using specific endpoints
+        const detailUrlES = `https://api.themoviedb.org/3/${detailType}/${item.id}?api_key=${apiKey}&language=es-ES&append_to_response=credits`;
+        const detailUrlEN = `https://api.themoviedb.org/3/${detailType}/${item.id}?api_key=${apiKey}&language=en-US&append_to_response=credits`;
+        const videosUrlES = `https://api.themoviedb.org/3/${detailType}/${item.id}/videos?api_key=${apiKey}&language=es-ES`;
+        const videosUrlEN = `https://api.themoviedb.org/3/${detailType}/${item.id}/videos?api_key=${apiKey}&language=en-US`;
+
+        console.log(
+          `[tmdb-search] Fetching details for ${item.title || item.name} (ID: ${
+            item.id
+          })`
+        );
+        let detailData = {};
+        let detailDataEN = {};
+        let videosDataES = {};
+        let videosDataEN = {};
+
+        try {
+          // Get Spanish version
+          const detailResp = await fetch(detailUrlES);
+          if (detailResp.ok) {
+            detailData = await detailResp.json();
+            console.log(
+              `[tmdb-search] Spanish detail data received for ${
+                item.title || item.name
+              }`
+            );
+          }
+
+          // Get English version for comparison
+          const detailRespEN = await fetch(detailUrlEN);
+          if (detailRespEN.ok) {
+            detailDataEN = await detailRespEN.json();
+            console.log(
+              `[tmdb-search] English detail data received for ${
+                item.title || item.name
+              }`
+            );
+          }
+
+          // Get videos in Spanish first
+          const videosRespES = await fetch(videosUrlES);
+          if (videosRespES.ok) {
+            videosDataES = await videosRespES.json();
+            console.log(
+              `[tmdb-search] Spanish videos data received for ${
+                item.title || item.name
+              }: ${videosDataES.results?.length || 0} videos`
+            );
+          }
+
+          // Get videos in English as backup
+          const videosRespEN = await fetch(videosUrlEN);
+          if (videosRespEN.ok) {
+            videosDataEN = await videosRespEN.json();
+            console.log(
+              `[tmdb-search] English videos data received for ${
+                item.title || item.name
+              }: ${videosDataEN.results?.length || 0} videos`
+            );
+          }
+        } catch (e) {
+          console.error("Error fetching details for:", item.id, e);
+        } // Log videos data for debugging
+        if (videosDataES.results && videosDataES.results.length > 0) {
+          console.log(
+            `[tmdb-search] Found ${
+              videosDataES.results.length
+            } Spanish videos for ${item.title || item.name}`
+          );
+          videosDataES.results.forEach((video, index) => {
+            console.log(
+              `[tmdb-search] Spanish Video ${index + 1}: ${video.type} (${
+                video.site
+              }) - ${video.iso_639_1} - Key: ${video.key}`
+            );
+          });
+        }
+
+        if (videosDataEN.results && videosDataEN.results.length > 0) {
+          console.log(
+            `[tmdb-search] Found ${
+              videosDataEN.results.length
+            } English videos for ${item.title || item.name}`
+          );
+          videosDataEN.results.forEach((video, index) => {
+            console.log(
+              `[tmdb-search] English Video ${index + 1}: ${video.type} (${
+                video.site
+              }) - ${video.iso_639_1} - Key: ${video.key}`
+            );
+          });
+        }
+
+        // Format runtime/duration
+        let duration = "";
+        if (detailType === "movie" && detailData.runtime) {
+          const hours = Math.floor(detailData.runtime / 60);
+          const minutes = detailData.runtime % 60;
+          duration = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+        } else if (
+          detailType === "tv" &&
+          detailData.episode_run_time &&
+          detailData.episode_run_time.length > 0
+        ) {
+          const avgRuntime = detailData.episode_run_time[0];
+          const hours = Math.floor(avgRuntime / 60);
+          const minutes = avgRuntime % 60;
+          duration = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+        }
+
+        // Get director (for movies) or creator (for TV shows)
+        let director = "";
+        let directorEN = "";
+
+        // Get director from Spanish version
+        if (detailData.credits) {
+          console.log(
+            `[tmdb-search] Spanish credits data available for ${
+              item.title || item.name
+            }`
+          );
+          console.log(
+            `[tmdb-search] Spanish credits crew length: ${
+              detailData.credits.crew?.length || 0
+            }`
+          );
+
+          if (detailType === "movie") {
+            const directorCredit = detailData.credits.crew?.find(
+              (person) => person.job === "Director"
+            );
+            director = directorCredit ? directorCredit.name : "";
+            console.log(`[tmdb-search] Spanish director found: "${director}"`);
+          } else if (detailType === "tv") {
+            director =
+              detailData.created_by
+                ?.map((creator) => creator.name)
+                .join(", ") || "";
+            console.log(
+              `[tmdb-search] Spanish TV creator found: "${director}"`
+            );
+          }
+        } else {
+          console.log(
+            `[tmdb-search] No Spanish credits data for ${
+              item.title || item.name
+            }`
+          );
+        }
+
+        // Get director from English version for comparison
+        if (detailDataEN.credits) {
+          console.log(
+            `[tmdb-search] English credits data available for ${
+              item.title || item.name
+            }`
+          );
+
+          if (detailType === "movie") {
+            const directorCreditEN = detailDataEN.credits.crew?.find(
+              (person) => person.job === "Director"
+            );
+            directorEN = directorCreditEN ? directorCreditEN.name : "";
+            console.log(
+              `[tmdb-search] English director found: "${directorEN}"`
+            );
+          } else if (detailType === "tv") {
+            directorEN =
+              detailDataEN.created_by
+                ?.map((creator) => creator.name)
+                .join(", ") || "";
+            console.log(
+              `[tmdb-search] English TV creator found: "${directorEN}"`
+            );
+          }
+        }
+
+        // Use English director if Spanish director contains non-Latin characters (Japanese, Chinese, Korean)
+        const finalDirector =
+          director &&
+          /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\uAC00-\uD7AF]/.test(
+            director
+          )
+            ? directorEN
+            : director || directorEN;
+        console.log(
+          `[tmdb-search] Final director choice: "${finalDirector}" (Spanish: "${director}", English: "${directorEN}")`
+        );
+
+        // Get genres - prioritize Spanish, fallback to English
+        let genresString = "";
+        let genresES = [];
+        let genresEN = [];
+
+        // Get genres from Spanish data
+        if (detailData.genres && Array.isArray(detailData.genres)) {
+          genresES = detailData.genres
+            .map((genre) => genre.name)
+            .filter((name) => name);
+          console.log(
+            `[tmdb-search] Spanish genres found for ${
+              item.title || item.name
+            }: ${genresES.join(", ")}`
+          );
+        }
+
+        // Get genres from English data as fallback
+        if (detailDataEN.genres && Array.isArray(detailDataEN.genres)) {
+          genresEN = detailDataEN.genres
+            .map((genre) => genre.name)
+            .filter((name) => name);
+          console.log(
+            `[tmdb-search] English genres found for ${
+              item.title || item.name
+            }: ${genresEN.join(", ")}`
+          );
+        }
+
+        // Use Spanish genres if available, otherwise English
+        if (genresES.length > 0) {
+          genresString = genresES.join(", ");
+          console.log(`[tmdb-search] Using Spanish genres: ${genresString}`);
+        } else if (genresEN.length > 0) {
+          genresString = genresEN.join(", ");
+          console.log(
+            `[tmdb-search] Using English genres (fallback): ${genresString}`
+          );
+        } else {
+          console.log(
+            `[tmdb-search] No genres found for ${item.title || item.name}`
+          );
+        }
+
+        // Get trailer URL - PRIORIZAR ESPAÑOL SIEMPRE
+        let trailerUrl = "";
+        console.log(
+          `[tmdb-search] Starting trailer search for ${item.title || item.name}`
+        );
+
+        // Paso 1: Buscar trailer en español EXPLÍCITAMENTE
+        let spanishTrailer = null;
+        if (videosDataES.results && videosDataES.results.length > 0) {
+          console.log(
+            `[tmdb-search] Searching Spanish trailers in ${videosDataES.results.length} Spanish videos`
+          );
+
+          spanishTrailer = videosDataES.results.find((video) => {
+            const isTrailer = video.type === "Trailer";
+            const isYoutube = video.site === "YouTube";
+            const isSpanish = video.iso_639_1 === "es";
+
+            console.log(
+              `[tmdb-search] Checking Spanish video: ${video.type} (${video.site}) - ${video.iso_639_1} - isTrailer:${isTrailer}, isYoutube:${isYoutube}, isSpanish:${isSpanish}`
+            );
+
+            return isTrailer && isYoutube && isSpanish;
+          });
+
+          if (spanishTrailer) {
+            trailerUrl = `https://www.youtube.com/watch?v=${spanishTrailer.key}`;
+            console.log(
+              `[tmdb-search] ✅ FOUND SPANISH TRAILER: ${trailerUrl}`
+            );
+          } else {
+            console.log(
+              `[tmdb-search] ❌ No Spanish trailer found in Spanish videos`
+            );
+          }
+        }
+
+        // Paso 2: Solo si NO hay trailer en español, buscar en inglés
+        if (
+          !trailerUrl &&
+          videosDataEN.results &&
+          videosDataEN.results.length > 0
+        ) {
+          console.log(
+            `[tmdb-search] No Spanish trailer found, searching English trailers in ${videosDataEN.results.length} English videos`
+          );
+
+          const englishTrailer = videosDataEN.results.find((video) => {
+            const isTrailer = video.type === "Trailer";
+            const isYoutube = video.site === "YouTube";
+            const isEnglish = video.iso_639_1 === "en";
+
+            console.log(
+              `[tmdb-search] Checking English video: ${video.type} (${video.site}) - ${video.iso_639_1} - isTrailer:${isTrailer}, isYoutube:${isYoutube}, isEnglish:${isEnglish}`
+            );
+
+            return isTrailer && isYoutube && isEnglish;
+          });
+
+          if (englishTrailer) {
+            trailerUrl = `https://www.youtube.com/watch?v=${englishTrailer.key}`;
+            console.log(
+              `[tmdb-search] ✅ FOUND ENGLISH TRAILER (fallback): ${trailerUrl}`
+            );
+          } else {
+            console.log(`[tmdb-search] ❌ No English trailer found either`);
+          }
+        }
+
+        // Paso 3: Como último recurso, buscar cualquier trailer sin importar idioma
+        if (!trailerUrl) {
+          console.log(
+            `[tmdb-search] No trailers found in specific languages, searching any language`
+          );
+
+          const allVideos = [
+            ...(videosDataES.results || []),
+            ...(videosDataEN.results || []),
+          ];
+
+          const anyTrailer = allVideos.find(
+            (video) => video.type === "Trailer" && video.site === "YouTube"
+          );
+
+          if (anyTrailer) {
+            trailerUrl = `https://www.youtube.com/watch?v=${anyTrailer.key}`;
+            console.log(
+              `[tmdb-search] ✅ FOUND ANY TRAILER (last resort): ${trailerUrl} (${anyTrailer.iso_639_1})`
+            );
+          } else {
+            console.log(
+              `[tmdb-search] ❌ No trailers found at all, trying teasers/clips`
+            );
+
+            // Buscar teaser o clip como último recurso
+            const teaser = allVideos.find(
+              (video) => video.type === "Teaser" && video.site === "YouTube"
+            );
+
+            const clip = allVideos.find(
+              (video) => video.type === "Clip" && video.site === "YouTube"
+            );
+
+            if (teaser) {
+              trailerUrl = `https://www.youtube.com/watch?v=${teaser.key}`;
+              console.log(
+                `[tmdb-search] ✅ Using teaser as trailer: ${trailerUrl} (${teaser.iso_639_1})`
+              );
+            } else if (clip) {
+              trailerUrl = `https://www.youtube.com/watch?v=${clip.key}`;
+              console.log(
+                `[tmdb-search] ✅ Using clip as trailer: ${trailerUrl} (${clip.iso_639_1})`
+              );
+            } else {
+              console.log(`[tmdb-search] ❌ No videos found at all`);
+            }
+          }
+        }
+
+        console.log(
+          `[tmdb-search] Final trailer result for ${item.title || item.name}: ${
+            trailerUrl || "NONE"
+          }`
+        ); // Get poster and backdrop - prioritize Spanish, fallback to English, then search result
+        let posterPath = null;
+        let backdropPath = null;
+
+        // Priorizar carátula en español, luego inglés, luego resultado de búsqueda
+        if (detailData.poster_path) {
+          posterPath = `https://image.tmdb.org/t/p/w500${detailData.poster_path}`;
+          console.log(
+            `[tmdb-search] Using Spanish poster for ${item.title || item.name}`
+          );
+        } else if (detailDataEN.poster_path) {
+          posterPath = `https://image.tmdb.org/t/p/w500${detailDataEN.poster_path}`;
+          console.log(
+            `[tmdb-search] Using English poster (fallback) for ${
+              item.title || item.name
+            }`
+          );
+        } else if (item.poster_path) {
+          posterPath = `https://image.tmdb.org/t/p/w500${item.poster_path}`;
+          console.log(
+            `[tmdb-search] Using search result poster for ${
+              item.title || item.name
+            }`
+          );
+        }
+
+        // Priorizar imagen de fondo en español, luego inglés, luego resultado de búsqueda
+        if (detailData.backdrop_path) {
+          backdropPath = `https://image.tmdb.org/t/p/w1280${detailData.backdrop_path}`;
+          console.log(
+            `[tmdb-search] Using Spanish backdrop for ${
+              item.title || item.name
+            }`
+          );
+        } else if (detailDataEN.backdrop_path) {
+          backdropPath = `https://image.tmdb.org/t/p/w1280${detailDataEN.backdrop_path}`;
+          console.log(
+            `[tmdb-search] Using English backdrop (fallback) for ${
+              item.title || item.name
+            }`
+          );
+        } else if (item.backdrop_path) {
+          backdropPath = `https://image.tmdb.org/t/p/w1280${item.backdrop_path}`;
+          console.log(
+            `[tmdb-search] Using search result backdrop for ${
+              item.title || item.name
+            }`
+          );
+        }
+
+        const result = {
+          id: item.id,
+          name: item.title || item.name,
+          title: item.title || item.name,
+          original_title: item.original_title || item.original_name || "",
+          overview: item.overview || detailData.overview || "",
+          release_date: item.release_date || item.first_air_date,
+          poster_path: posterPath,
+          backdrop_path: backdropPath,
+          vote_average: item.vote_average || 0,
+          vote_count: item.vote_count,
+          genre_ids: item.genre_ids,
+          original_language: item.original_language,
+          popularity: item.popularity,
+          media_type: detailType,
+          adult: item.adult || false, // Additional detailed information
+          duration: duration,
+          director: finalDirector,
+          trailer_url: trailerUrl,
+          genres: genresString, // Add genres to result
+          // TV specific fields
+          first_air_date: item.first_air_date,
+          origin_country: item.origin_country,
+          original_name: item.original_name,
+          number_of_seasons: detailData.number_of_seasons,
+          number_of_episodes: detailData.number_of_episodes,
+          // Movie specific fields
+          original_title: item.original_title,
+          video: item.video,
+          runtime: detailData.runtime,
+        };
+
+        console.log(
+          `[tmdb-search] Returning result for ${item.title || item.name}:`,
+          {
+            director: result.director,
+            trailer_url: result.trailer_url,
+            original_title: result.original_title,
+            vote_average: result.vote_average,
+          }
+        );
+
+        return result;
+      })
+    );
+
+    console.log(`[tmdb-search] Processed ${transformedResults.length} results`);
+    res.json({ results: transformedResults });
+  } catch (e) {
+    console.error("TMDB search error:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Función para limpiar texto para CSV (movies)
+const cleanTextForCSVMovies = (text) => {
+  if (!text) return "";
+  return text
+    .replace(/"/g, '""') // Escapar comillas dobles
+    .replace(/[\r\n]/g, " ") // Reemplazar saltos de línea con espacios
+    .replace(/,/g, "-%-") // Reemplazar comas
+    .trim(); // Eliminar espacios al inicio y final
+};
+
+// Función para convertir fecha ISO a formato DD/MM/YYYY (movies)
+const convertISOToDateMovies = (dateInput) => {
+  if (!dateInput) return "";
+
+  // Si ya está en formato DD/MM/YYYY, devolverlo tal como está
+  if (
+    typeof dateInput === "string" &&
+    /^\d{2}\/\d{2}\/\d{4}$/.test(dateInput)
+  ) {
+    return dateInput;
+  }
+
+  // Si está en formato ISO (YYYY-MM-DD), convertirlo
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return "";
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+// --- /api/add-movie ---
+app.post("/api/add-movie", async (req, res) => {
+  const { content, formData } = req.body;
+  if (!content || !formData) {
+    return res.status(400).json({ error: "Missing data" });
+  }
+
+  console.log(
+    `[add-movie] Adding content: ${content.name || content.title || "Unknown"}`
+  );
+
+  // Cargar las variables de entorno
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const sheetId = process.env.GOOGLE_SHEET_ID;
+
+  if (!privateKey || !email || !sheetId) {
+    return res.status(500).json({ error: "Google credentials missing" });
+  }
+  try {
+    // Autenticación con Google Sheets
+    const auth = new google.auth.JWT({
+      email: email,
+      key: privateKey,
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+
+    const sheets = google.sheets({ version: "v4", auth }); // Determinar el tipo de contenido
+    const contentType = content.media_type === "movie" ? "Película" : "Serie";
+
+    // Formatear fecha de salida
+    const fechaSalida = content.release_date
+      ? convertISOToDateMovies(content.release_date)
+      : "";
+
+    // Debug de fechas
+    console.log("[add-movie] Date processing:");
+    console.log(`  - Release date (raw): ${content.release_date}`);
+    console.log(`  - Fecha salida (processed): ${fechaSalida}`);
+    console.log(`  - Fecha vista (raw): ${formData.fecha}`);
+    console.log(
+      `  - Fecha vista (processed): ${convertISOToDateMovies(
+        formData.fecha || ""
+      )}`
+    ); // Log detallado de los datos recibidos para debugging
+    console.log("[add-movie] Content data received:");
+    console.log(`  - Title: ${content.name || content.title}`);
+    console.log(`  - Original title: ${content.original_title}`);
+    console.log(`  - Trailer URL: ${content.trailer_url}`);
+    console.log(`  - Director: ${content.director}`);
+    console.log(`  - Genres: ${content.genres}`);
+    console.log(`  - Vote average: ${content.vote_average}`);
+    console.log(`  - Backdrop path: ${content.backdrop_path}`);
+
+    console.log("[add-movie] Form data received:");
+    console.log(`  - Estado: ${formData.estado}`);
+    console.log(`  - Fecha vista (raw): ${formData.fecha}`);
+    console.log(
+      `  - Fecha vista (processed): ${convertISOToDateMovies(
+        formData.fecha || ""
+      )}`
+    );
+    console.log(`  - Trailer: ${formData.trailer}`);
+    console.log(`  - URL: ${formData.url}`);
+    console.log(`  - Nota chat: ${formData.nota_chat}`);
+    console.log(`  - Caratula: ${formData.caratula}`); // Preparar datos para insertar según el NUEVO formato especificado:
+    // A:Titulo, B:Titulo_Original, C:Tipo, D:Estado, E:Fecha_Vista, F:Trailer, G:URL, H:Caratula, I:Imagen_Fondo, J:Duracion, K:Fecha_Salida, L:Director, M:Generos, N:Sinopsis, O:Puntuacion_Promedio, P:Usuario, Q:Comentario, R:Nota_Chat
+    const values = [
+      [
+        cleanTextForCSVMovies(content.name || content.title), // A: Titulo
+        cleanTextForCSVMovies(content.original_title || ""), // B: Titulo_Original (NUEVO)
+        cleanTextForCSVMovies(contentType), // C: Tipo (Película/Serie)
+        cleanTextForCSVMovies(formData.estado || "Planeo Ver"), // D: Estado
+        cleanTextForCSVMovies(convertISOToDateMovies(formData.fecha || "")), // E: Fecha_Vista
+        cleanTextForCSVMovies(content.trailer_url || ""), // F: Trailer (NUEVO)
+        cleanTextForCSVMovies(formData.url || ""), // G: URL (YouTube personalizada)
+        cleanTextForCSVMovies(formData.caratula || content.poster_path || ""), // H: Caratula (modificable)
+        cleanTextForCSVMovies(content.backdrop_path || ""), // I: Imagen_Fondo (NUEVO)
+        cleanTextForCSVMovies(content.duration || ""), // J: Duracion (de TMDB, formateada)
+        cleanTextForCSVMovies(fechaSalida), // K: Fecha_Salida (de TMDB)
+        cleanTextForCSVMovies(content.director || ""), // L: Director (de TMDB, en romanji)
+        cleanTextForCSVMovies(content.genres || ""), // M: Generos (de TMDB)
+        cleanTextForCSVMovies(content.overview || ""), // N: Sinopsis (de TMDB)
+        cleanTextForCSVMovies(content.vote_average?.toString() || ""), // O: Puntuacion_Promedio (NUEVO)
+        "", // P: Usuario (se poblará solo si se añade como recomendación)
+        "", // Q: Comentario (se poblará solo si se añade como recomendación)
+        cleanTextForCSVMovies(formData.nota_chat || ""), // R: Nota_Chat (establecida por el usuario)
+      ],
+    ];
+
+    console.log("[add-movie] Values to insert:", values[0]);
+    console.log("[add-movie] Critical field values:");
+    console.log(`  - E (Fecha_Vista): "${values[0][4]}"`);
+    console.log(`  - F (Trailer): "${values[0][5]}"`);
+    console.log(`  - G (URL): "${values[0][6]}"`);
+    console.log(`  - K (Fecha_Salida): "${values[0][10]}"`);
+    console.log(`  - R (Nota_Chat): "${values[0][17]}"`);
+    console.log("[add-movie] Array length:", values[0].length); // Insertar datos en la hoja de cálculo
+    const request = {
+      spreadsheetId: sheetId,
+      range: "Pelis!A:R", // 18 columnas: A:Titulo hasta R:Nota_Chat
+      valueInputOption: "RAW", // Cambiar de USER_ENTERED a RAW para evitar conversiones automáticas
+      insertDataOption: "INSERT_ROWS",
+      resource: {
+        values: values,
+      },
+    };
+
+    console.log("[add-movie] Making append request...");
+    const response = await sheets.spreadsheets.values.append(request);
+
+    console.log("[add-movie] Response:", response.data);
+
+    if (response.data.updates && response.data.updates.updatedRows > 0) {
+      res.json({
+        success: true,
+        message: `${contentType} "${
+          content.name || content.title
+        }" agregado exitosamente`,
+        data: response.data,
+      });
+    } else {
+      res.status(500).json({
+        error: "No se pudo agregar el contenido",
+        response: response.data,
+      });
+    }
+  } catch (error) {
+    console.error("[add-movie] Error:", error);
+    res.status(500).json({
+      error: "Error interno del servidor",
+      details: error.message,
+    });
+  }
+});
+
 // --- Static files (for production build) ---
 const path = require("path");
 app.use(express.static(path.join(__dirname, "build")));

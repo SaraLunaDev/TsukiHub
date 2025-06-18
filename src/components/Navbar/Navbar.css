@@ -252,3 +252,28 @@
 .add-game-button:active {
   transform: scale(0.98);
 }
+
+/* Botón Añadir Película/Serie para desarrolladores */
+.add-movie-button {
+  display: flex;
+  align-items: center;
+  background: var(--color-mid);
+  color: var(--text);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.add-movie-button:hover {
+  background: var(--selected-button-high);
+  transform: scale(1.05);
+}
+
+.add-movie-button:active {
+  transform: scale(0.98);
+}

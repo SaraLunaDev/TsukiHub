@@ -49,6 +49,8 @@ function Juegos() {
   const [editingGame, setEditingGame] = useState(null);
   const [editFormData, setEditFormData] = useState({}); // Estado para plataformas disponibles para el spinner de plataforma
   const [availablePlatforms, setAvailablePlatforms] = useState([]);
+  // Estado para todas las plataformas jugadas (extraídas de la columna F)
+  const [playedPlatforms, setPlayedPlatforms] = useState([]);
 
   // DEBUG: Agregar log para verificar el estado del modo desarrollador
   useEffect(() => {
@@ -815,28 +817,59 @@ function Juegos() {
     setActiveFilters((prev) => ({ ...prev, [category]: filterType }));
     setCurrentPage(1);
   };
-
   // Alterna el filtro activo para la lista de "pasado"
   const handleFilterToggle = (type) => {
     let filterType;
+
+    // Obtener la dirección actual (asc/desc)
+    const currentDirection = activeFilters.pasado.includes("-asc")
+      ? "asc"
+      : "desc";
+
     switch (type) {
       case "name":
-        filterType =
-          activeFilters.pasado === "name-asc" ? "name-desc" : "name-asc";
+        // Si ya está activo el filtro de nombre, alternar dirección
+        if (activeFilters.pasado.includes("name")) {
+          filterType =
+            activeFilters.pasado === "name-asc" ? "name-desc" : "name-asc";
+        } else {
+          // Si no está activo, usar la dirección actual
+          filterType = `name-${currentDirection}`;
+        }
         break;
       case "date":
-        filterType =
-          activeFilters.pasado === "date-asc" ? "date-desc" : "date-asc";
+        // Si ya está activo el filtro de fecha, alternar dirección
+        if (activeFilters.pasado.includes("date")) {
+          filterType =
+            activeFilters.pasado === "date-asc" ? "date-desc" : "date-asc";
+        } else {
+          // Si no está activo, usar la dirección actual
+          filterType = `date-${currentDirection}`;
+        }
         break;
       case "rating":
-        filterType =
-          activeFilters.pasado === "rating-asc" ? "rating-desc" : "rating-asc";
+        // Si ya está activo el filtro de nota, alternar dirección
+        if (activeFilters.pasado.includes("rating")) {
+          filterType =
+            activeFilters.pasado === "rating-asc"
+              ? "rating-desc"
+              : "rating-asc";
+        } else {
+          // Si no está activo, usar la dirección actual
+          filterType = `rating-${currentDirection}`;
+        }
         break;
       case "duration":
-        filterType =
-          activeFilters.pasado === "duration-asc"
-            ? "duration-desc"
-            : "duration-asc";
+        // Si ya está activo el filtro de duración, alternar dirección
+        if (activeFilters.pasado.includes("duration")) {
+          filterType =
+            activeFilters.pasado === "duration-asc"
+              ? "duration-desc"
+              : "duration-asc";
+        } else {
+          // Si no está activo, usar la dirección actual
+          filterType = `duration-${currentDirection}`;
+        }
         break;
       default:
         return;
@@ -1472,10 +1505,8 @@ function Juegos() {
       originalEstado: game.estado || "",
       originalFecha: game.fecha || "",
       originalUsuario: game.usuario || "",
-    });
-
-    // Inicializar plataformas disponibles
-    setAvailablePlatforms(selectedPlatforms);
+    }); // Las plataformas disponibles ya están configuradas con las plataformas jugadas
+    // No necesitamos sobrescribirlas aquí
 
     setShowEditPopup(true);
   };
@@ -1483,7 +1514,7 @@ function Juegos() {
     setShowEditPopup(false);
     setEditingGame(null);
     setEditFormData({});
-    setAvailablePlatforms([]);
+    // No limpiar availablePlatforms ya que contiene las plataformas jugadas
     closeAllDropdowns();
   };
 
@@ -1506,39 +1537,8 @@ function Juegos() {
       // Add item
       newItems = [...currentItems, item];
     }
-
     const newValue = newItems.join(", ");
     handleEditFormChange(field, newValue);
-
-    // Si se modifican las plataformas, actualizar las plataformas disponibles
-    if (field === "plataformas") {
-      updateAvailablePlatforms(newValue);
-    }
-  };
-  // Función para actualizar las plataformas disponibles para el spinner de plataforma
-  const updateAvailablePlatforms = (platformsString) => {
-    const selectedPlatforms = getSelectedItems(platformsString);
-    setAvailablePlatforms(selectedPlatforms);
-
-    // Si la plataforma actual no está en las plataformas seleccionadas, aplicar lógica inteligente
-    const currentPlatform = editFormData.plataforma || "";
-    if (currentPlatform && !selectedPlatforms.includes(currentPlatform)) {
-      // Aplicar la misma lógica inteligente que en handleEditGame
-      const preferredPlatforms = [
-        "Wii",
-        "Nintendo Switch",
-        "PlayStation 5",
-        "Xbox Series X/S",
-        "PC",
-      ];
-      const newSelectedPlatform =
-        preferredPlatforms.find((platform) =>
-          selectedPlatforms.includes(platform)
-        ) ||
-        selectedPlatforms[0] ||
-        "";
-      handleEditFormChange("plataforma", newSelectedPlatform);
-    }
   };
 
   // State for dropdown visibility
@@ -1784,6 +1784,26 @@ function Juegos() {
       window.location.reload();
     },
   };
+
+  // Extraer plataformas únicas de todos los juegos jugados
+  useEffect(() => {
+    if (games.length > 0) {
+      const uniquePlatforms = [
+        ...new Set(
+          games
+            .map((game) => game.plataforma)
+            .filter((platform) => platform && platform.trim() !== "")
+            .map((platform) => platform.trim())
+        ),
+      ].sort();
+      setPlayedPlatforms(uniquePlatforms);
+    }
+  }, [games]); // Actualizar availablePlatforms cuando playedPlatforms cambie
+  useEffect(() => {
+    if (playedPlatforms.length > 0) {
+      setAvailablePlatforms(playedPlatforms);
+    }
+  }, [playedPlatforms]);
 
   // Renderizado principal del componente
   return (
@@ -2137,15 +2157,21 @@ function Juegos() {
                 className="search-input"
               ></input>
             </div>
-            <h1 className="header-filtros">Filtros Generales</h1>
+            <h1 className="header-filtros">Filtros Generales</h1>{" "}
             <div className="filter-buttons-row">
               <div className="filter-buttons">
                 <button
                   onClick={() => handleFilterToggle("name")}
                   style={{
-                    backgroundColor: activeFilters.pasado.includes("name")
-                      ? "var(--selected-button-high)"
-                      : "inherit",
+                    paddingLeft: activeFilters.pasado.includes("name")
+                      ? "40px"
+                      : "30px",
+                    fontWeight: activeFilters.pasado.includes("name")
+                      ? "bold"
+                      : "normal",
+                    color: activeFilters.pasado.includes("name")
+                      ? "var(--color-mid)"
+                      : "var(--text-2)",
                   }}
                 >
                   Nombre{" "}
@@ -2156,9 +2182,15 @@ function Juegos() {
                 <button
                   onClick={() => handleFilterToggle("date")}
                   style={{
-                    backgroundColor: activeFilters.pasado.includes("date")
-                      ? "var(--selected-button-high)"
-                      : "inherit",
+                    paddingLeft: activeFilters.pasado.includes("date")
+                      ? "40px"
+                      : "30px",
+                    fontWeight: activeFilters.pasado.includes("date")
+                      ? "bold"
+                      : "normal",
+                    color: activeFilters.pasado.includes("date")
+                      ? "var(--color-mid)"
+                      : "var(--text-2)",
                   }}
                 >
                   Fecha{" "}
@@ -2169,9 +2201,15 @@ function Juegos() {
                 <button
                   onClick={() => handleFilterToggle("rating")}
                   style={{
-                    backgroundColor: activeFilters.pasado.includes("rating")
-                      ? "var(--selected-button-high)"
-                      : "inherit",
+                    paddingLeft: activeFilters.pasado.includes("rating")
+                      ? "40px"
+                      : "30px",
+                    fontWeight: activeFilters.pasado.includes("rating")
+                      ? "bold"
+                      : "normal",
+                    color: activeFilters.pasado.includes("rating")
+                      ? "var(--color-mid)"
+                      : "var(--text-2)",
                   }}
                 >
                   Nota{" "}
@@ -2182,9 +2220,15 @@ function Juegos() {
                 <button
                   onClick={() => handleFilterToggle("duration")}
                   style={{
-                    backgroundColor: activeFilters.pasado.includes("duration")
-                      ? "var(--selected-button-high)"
-                      : "inherit",
+                    paddingLeft: activeFilters.pasado.includes("duration")
+                      ? "40px"
+                      : "30px",
+                    fontWeight: activeFilters.pasado.includes("duration")
+                      ? "bold"
+                      : "normal",
+                    color: activeFilters.pasado.includes("duration")
+                      ? "var(--color-mid)"
+                      : "var(--text-2)",
                   }}
                 >
                   Duración{" "}
@@ -2227,7 +2271,7 @@ function Juegos() {
                     className="label-filtro-avanzado"
                   >
                     Plataforma:
-                  </label>
+                  </label>{" "}
                   <select
                     id="platform-select"
                     value={selectedPlatform}
@@ -2235,7 +2279,7 @@ function Juegos() {
                     className="spinner-generos"
                   >
                     <option value="">Todas</option>
-                    {uniquePlatforms.map((platform) => (
+                    {playedPlatforms.map((platform) => (
                       <option key={platform} value={platform}>
                         {platform}
                       </option>
@@ -2620,10 +2664,18 @@ function Juegos() {
                   rows={3}
                 />
               </div>
-            )}
+            )}{" "}
             <button
-              className="add-recommendation-confirm"
-              disabled={!selectedIGDB}
+              className={`add-recommendation-confirm ${
+                addStatus.includes("Error")
+                  ? "error"
+                  : addStatus.includes("¡")
+                  ? "success"
+                  : addStatus.includes("Añadiendo")
+                  ? "loading"
+                  : ""
+              }`}
+              disabled={!selectedIGDB || addStatus.includes("Añadiendo")}
               onClick={async () => {
                 if (!selectedIGDB) return;
                 setAddStatus("");
@@ -2632,9 +2684,8 @@ function Juegos() {
                   twitchUser = JSON.parse(localStorage.getItem("twitchUser"));
                 } catch {}
                 if (!twitchUser || !twitchUser.id) {
-                  setAddStatus(
-                    "Debes iniciar sesión con Twitch para recomendar."
-                  );
+                  setAddStatus("Inicia sesión con Twitch");
+                  setTimeout(() => setAddStatus(""), 3000);
                   return;
                 }
                 setAddStatus("Añadiendo...");
@@ -2650,9 +2701,10 @@ function Juegos() {
                   });
                   const data = await res.json();
                   if (data.error) {
-                    setAddStatus("Error al añadir recomendación");
+                    setAddStatus("Error al recomendar");
+                    setTimeout(() => setAddStatus(""), 3000);
                   } else {
-                    setAddStatus("¡Recomendación añadida!");
+                    setAddStatus("¡Recomendado!");
 
                     // Actualizar el mapeo de usuarios con el nuevo usuario
                     if (twitchUser.id && twitchUser.name) {
@@ -2674,22 +2726,21 @@ function Juegos() {
                     }, 2000);
                   }
                 } catch (error) {
-                  setAddStatus("Error al añadir recomendación");
+                  setAddStatus("Error al recomendar");
+                  setTimeout(() => setAddStatus(""), 3000);
                 }
               }}
             >
-              Confirmar recomendación
+              {addStatus.includes("Añadiendo")
+                ? "Añadiendo..."
+                : addStatus.includes("¡")
+                ? "¡Recomendado!"
+                : addStatus.includes("Error")
+                ? "Error al recomendar"
+                : addStatus.includes("Inicia")
+                ? "Inicia sesión con Twitch"
+                : "Confirmar recomendación"}{" "}
             </button>
-            {addStatus && (
-              <div
-                className={
-                  "popup-add-status " +
-                  (addStatus.startsWith("¡") ? "success" : "error")
-                }
-              >
-                {addStatus}
-              </div>
-            )}{" "}
           </div>
         </div>
       )}
@@ -2905,7 +2956,7 @@ function Juegos() {
                           } seleccionados`
                         : "Seleccionar plataformas..."}
                       <span className="edit-spinner-arrow">▼</span>
-                    </div>
+                    </div>{" "}
                     <div className="edit-spinner-dropdown">
                       {uniquePlatforms.map((platform) => {
                         const selectedPlatforms = getSelectedItems(
@@ -3061,7 +3112,6 @@ function Juegos() {
               ✖
             </button>
             <h2 className="popup-add-title">Añadir Juego</h2>
-
             {/* Búsqueda IGDB */}
             <div className="search-input-global popup-search-igdb">
               <img
@@ -3078,7 +3128,6 @@ function Juegos() {
                 autoFocus
               />
             </div>
-
             {/* Estados de carga y error */}
             {gameIgdbLoading && (
               <p className="popup-igdb-loading">
@@ -3088,7 +3137,6 @@ function Juegos() {
             {gameIgdbError && !gameIgdbLoading && (
               <p className="popup-igdb-error">{gameIgdbError}</p>
             )}
-
             {/* Resultados IGDB */}
             <div className="popup-igdb-scroll">
               {gameIgdbResults.map((game) => (
@@ -3247,16 +3295,24 @@ function Juegos() {
                   </div>
                 </div>
               </div>
-            )}
-
+            )}{" "}
             {/* Botón de confirmación */}
             <button
-              className="add-recommendation-confirm"
-              disabled={!selectedGameIGDB}
+              className={`add-recommendation-confirm ${
+                addGameStatus.includes("Error")
+                  ? "error"
+                  : addGameStatus.includes("¡")
+                  ? "success"
+                  : addGameStatus.includes("Añadiendo")
+                  ? "loading"
+                  : ""
+              }`}
+              disabled={
+                !selectedGameIGDB || addGameStatus.includes("Añadiendo")
+              }
               onClick={async () => {
                 if (!selectedGameIGDB) return;
-                setAddGameStatus("");
-                setAddGameStatus("Añadiendo juego...");
+                setAddGameStatus("Añadiendo...");
 
                 try {
                   const response = await fetch("/api/add-game", {
@@ -3270,9 +3326,10 @@ function Juegos() {
 
                   const data = await response.json();
                   if (data.error) {
-                    setAddGameStatus("Error al añadir juego");
+                    setAddGameStatus("Error al añadir");
+                    setTimeout(() => setAddGameStatus(""), 3000);
                   } else {
-                    setAddGameStatus("¡Juego añadido al catálogo!");
+                    setAddGameStatus("¡Añadido!");
                     // Recargar datos después de 2 segundos
                     setTimeout(() => {
                       handleCloseAddGamePopup();
@@ -3280,24 +3337,19 @@ function Juegos() {
                     }, 2000);
                   }
                 } catch (error) {
-                  setAddGameStatus("Error al añadir juego");
+                  setAddGameStatus("Error al añadir");
+                  setTimeout(() => setAddGameStatus(""), 3000);
                 }
               }}
             >
-              Añadir al Catálogo
+              {addGameStatus.includes("Añadiendo")
+                ? "Añadiendo..."
+                : addGameStatus.includes("¡")
+                ? "¡Añadido!"
+                : addGameStatus.includes("Error")
+                ? "Error al añadir"
+                : "Añadir al Catálogo"}{" "}
             </button>
-
-            {/* Estado de la operación */}
-            {addGameStatus && (
-              <div
-                className={
-                  "popup-add-status " +
-                  (addGameStatus.startsWith("¡") ? "success" : "error")
-                }
-              >
-                {addGameStatus}
-              </div>
-            )}
           </div>
         </div>
       )}
