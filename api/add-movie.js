@@ -82,8 +82,8 @@ export default async function handler(req, res) {
     // Formatear fecha de salida
     const fechaSalida = content.release_date
       ? convertISOToDate(content.release_date)
-      : ""; // Preparar datos para insertar según el formato especificado:
-    // A:Titulo, B:Titulo_Original, C:Tipo, D:Estado, E:Fecha_Vista, F:Trailer, G:URL, H:Caratula, I:Imagen_Fondo, J:Duracion, K:Fecha_Salida, L:Director, M:Generos, N:Sinopsis, O:Puntuacion_Promedio, P:Usuario, Q:Comentario, R:Nota_Chat
+      : "";    // Preparar datos para insertar según el formato especificado:
+    // A:Titulo, B:Titulo_Original, C:Tipo, D:Estado, E:Fecha_Vista, F:Trailer, G:URL, H:Caratula, I:Imagen, J:Duracion, K:Fecha_Salida, L:Director, M:Generos, N:Sinopsis, O:Nota, P:Usuario, Q:Comentario, R:Nota_Chat
     const values = [
       [
         cleanTextForCSV(content.name || content.title), // A - Titulo
@@ -91,16 +91,15 @@ export default async function handler(req, res) {
         cleanTextForCSV(contentType), // C - Tipo (Película/Serie)        cleanTextForCSV(formData.estado || "Planeo Ver"), // D - Estado
         cleanTextForCSV(convertISOToDate(formData.fecha || "")), // E - Fecha_Vista
         cleanTextForCSV(content.trailer_url || ""), // F - Trailer
-        cleanTextForCSV(formData.url || ""), // G - URL (YouTube)
-        cleanTextForCSV(formData.caratula || content.poster_path || ""), // H - Caratula (modificable)
-        cleanTextForCSV(content.backdrop_path || ""), // I - Imagen_Fondo        cleanTextForCSV(content.duration || ""), // J - Duracion (de TMDB, formateada)
+        cleanTextForCSV(formData.url || ""), // G - URL (YouTube)        cleanTextForCSV(formData.caratula || content.poster_path || ""), // H - Caratula (modificable)        cleanTextForCSV(content.backdrop_path || ""), // I - Imagen (no Imagen_Fondo)
+        cleanTextForCSV(content.duration || ""), // J - Duracion (de TMDB, formateada)
         cleanTextForCSV(fechaSalida), // K - Fecha_Salida (de TMDB)
         cleanTextForCSV(content.director || ""), // L - Director (de TMDB)
         cleanTextForCSV(content.genres || ""), // M - Generos (de TMDB)
         cleanTextForCSV(content.overview || ""), // N - Sinopsis (de TMDB)
         cleanTextForCSV(
           content.vote_average ? content.vote_average.toString() : ""
-        ), // O - Puntuacion_Promedio
+        ), // O - Nota (no Puntuacion_Promedio)
         "", // P - Usuario (se poblará solo si se añade como recomendación)
         "", // Q - Comentario (se poblará solo si se añade como recomendación)
         cleanTextForCSV(formData.nota_chat || ""), // R - Nota_Chat (establecida por el usuario)
