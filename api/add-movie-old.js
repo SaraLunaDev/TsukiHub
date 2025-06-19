@@ -31,6 +31,33 @@ const convertISOToDateMovies = (dateInput) => {
   return `${day}/${month}/${year}`;
 };
 
+// Función para limpiar texto para CSV
+const cleanTextForCSV = (text) => {
+  if (!text) return "";
+  return text
+    .replace(/"/g, '""') // Escapar comillas dobles
+    .replace(/[\r\n]/g, " ") // Reemplazar saltos de línea con espacios
+    .replace(/,/g, "-%-") // Reemplazar comas
+    .trim(); // Eliminar espacios al inicio y final
+};
+
+// Función para convertir fecha ISO a formato DD/MM/YYYY
+const convertISOToDate = (isoDate) => {
+  if (!isoDate) return "";
+  const date = new Date(isoDate);
+  if (isNaN(date.getTime())) return "";
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+// Función para convertir comas separadas en formato -%-
+const convertCommasToSeparators = (text) => {
+  if (!text) return "";
+  return text.replace(/,\s*/g, "-%-");
+};
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -44,7 +71,6 @@ export default async function handler(req, res) {
   console.log(
     `[add-movie] Adding content: ${content.name || content.title || "Unknown"}`
   );
-
   // Cargar las variables de entorno
   const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -70,21 +96,18 @@ export default async function handler(req, res) {
         hasSheetId: !!sheetId
       }
     });
-  }
-
-  try {
-    // Autenticación con Google Sheets (igual que server.js)
+  }  try {
+    // Autenticación con Google Sheets (usar el mismo formato que add-game.js)
     console.log("[add-movie] Creating JWT authentication...");
+    const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
     const auth = new google.auth.JWT({
-      email: email,
+      email,
       key: privateKey,
-      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+      scopes: SCOPES,
     });
 
     console.log("[add-movie] Creating sheets client...");
-    const sheets = google.sheets({ version: "v4", auth });
-
-    // Determinar el tipo de contenido
+    const sheets = google.sheets({ version: "v4", auth });    // Determinar el tipo de contenido
     const contentType = content.media_type === "movie" ? "Película" : "Serie";
 
     // Formatear fecha de salida
@@ -159,8 +182,11 @@ export default async function handler(req, res) {
     console.log(`  - K (Fecha_Salida): "${values[0][10]}"`);
     console.log(`  - R (Nota_Chat): "${values[0][17]}"`);
     console.log("[add-movie] Array length:", values[0].length);
-
-    // Insertar datos en la hoja de cálculo
+        cleanTextForCSV(content.original_title || ""), // B - Titulo_Original
+        cleanTextForCSV(contentType), // C - Tipo (Película/Serie)
+        cleanTextForCSV(formData.estado || "Planeo Ver"), // D - Estado
+        cleanTextForCSV(convertISOToDate(formData.fecha || "")), // E - Fecha_Vista
+        cleanTextForCSV(content.trailer_url || ""), // F - Trailer    // Insertar datos en la hoja de cálculo
     const request = {
       spreadsheetId: sheetId,
       range: "Pelis!A:R", // 18 columnas: A:Titulo hasta R:Nota_Chat
@@ -190,8 +216,7 @@ export default async function handler(req, res) {
         error: "No se pudo agregar el contenido",
         response: response.data,
       });
-    }
-  } catch (error) {
+    }} catch (error) {
     console.error("[add-movie] Error details:");
     console.error("- Error type:", error.constructor.name);
     console.error("- Error message:", error.message);
