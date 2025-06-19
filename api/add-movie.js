@@ -65,13 +65,15 @@ export default async function handler(req, res) {
         hasSheetId: !!sheetId
       }
     });
-  }
-  try {
-    // Autenticación con Google Sheets
+  }  try {
+    // Autenticación con Google Sheets (usar el mismo formato que add-game.js)
     console.log("[add-movie] Creating JWT authentication...");
-    const auth = new google.auth.JWT(email, null, privateKey, [
-      "https://www.googleapis.com/auth/spreadsheets",
-    ]);
+    const SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
+    const auth = new google.auth.JWT({
+      email,
+      key: privateKey,
+      scopes: SCOPES,
+    });
 
     console.log("[add-movie] Creating sheets client...");
     const sheets = google.sheets({ version: "v4", auth });// Determinar el tipo de contenido
@@ -109,34 +111,21 @@ export default async function handler(req, res) {
     console.log("[add-movie] Trailer URL value:", content.trailer_url);
     console.log("[add-movie] Original title value:", content.original_title);
     console.log("[add-movie] Vote average value:", content.vote_average);
-    console.log("[add-movie] Genres value:", content.genres);    // Insertar datos en la hoja de cálculo
-    const request = {
+    console.log("[add-movie] Genres value:", content.genres);    // Insertar datos en la hoja de cálculo (formato idéntico a add-game.js)
+    await sheets.spreadsheets.values.append({
       spreadsheetId: sheetId,
-      range: "Pelis!A1", // Cambiar a formato simple como juegos
-      valueInputOption: "USER_ENTERED", // Cambiar a USER_ENTERED como juegos
+      range: "Pelis!A1",
+      valueInputOption: "USER_ENTERED",
       requestBody: {
         values: values,
       },
-    };    console.log("[add-movie] Making append request...");
-    const response = await sheets.spreadsheets.values.append(request);
+    });
 
-    console.log("[add-movie] Response status:", response.status);
-    console.log("[add-movie] Response data:", response.data);
-
-    if (response.data.updates && response.data.updates.updatedRows > 0) {
-      res.json({
-        success: true,
-        message: `${contentType} "${
-          content.name || content.title
-        }" agregado exitosamente`,
-        data: response.data,
-      });
-    } else {
-      res.status(500).json({
-        error: "No se pudo agregar el contenido",
-        response: response.data,
-      });
-    }  } catch (error) {
+    console.log(`[add-movie] Movie added successfully: ${content.name || content.title}`);
+    res.json({ 
+      success: true,
+      message: `${contentType} "${content.name || content.title}" agregado exitosamente`
+    });} catch (error) {
     console.error("[add-movie] Error details:");
     console.error("- Error type:", error.constructor.name);
     console.error("- Error message:", error.message);
