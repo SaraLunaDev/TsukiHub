@@ -40,23 +40,41 @@ export default async function handler(req, res) {
   console.log(
     `[add-movie] Adding content: ${content.name || content.title || "Unknown"}`
   );
-
   // Cargar las variables de entorno
   const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n");
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   const sheetId = process.env.GOOGLE_SHEET_ID;
 
-  if (!privateKey || !email || !sheetId) {
-    return res.status(500).json({ error: "Google credentials missing" });
-  }
+  console.log("[add-movie] Environment check:");
+  console.log("- Email present:", !!email);
+  console.log("- Sheet ID present:", !!sheetId);
+  console.log("- Private key present:", !!privateKey);
+  console.log("- Private key length:", privateKey?.length);
 
+  if (!privateKey || !email || !sheetId) {
+    console.error("[add-movie] Missing credentials:", {
+      hasPrivateKey: !!privateKey,
+      hasEmail: !!email,
+      hasSheetId: !!sheetId
+    });
+    return res.status(500).json({ 
+      error: "Google credentials missing",
+      details: {
+        hasPrivateKey: !!privateKey,
+        hasEmail: !!email,
+        hasSheetId: !!sheetId
+      }
+    });
+  }
   try {
     // Autenticación con Google Sheets
+    console.log("[add-movie] Creating JWT authentication...");
     const auth = new google.auth.JWT(email, null, privateKey, [
       "https://www.googleapis.com/auth/spreadsheets",
     ]);
 
-    const sheets = google.sheets({ version: "v4", auth }); // Determinar el tipo de contenido
+    console.log("[add-movie] Creating sheets client...");
+    const sheets = google.sheets({ version: "v4", auth });// Determinar el tipo de contenido
     const contentType = content.media_type === "movie" ? "Película" : "Serie";
 
     // Formatear fecha de salida
@@ -100,12 +118,11 @@ export default async function handler(req, res) {
       resource: {
         values: values,
       },
-    };
-
-    console.log("[add-movie] Making append request...");
+    };    console.log("[add-movie] Making append request...");
     const response = await sheets.spreadsheets.values.append(request);
 
-    console.log("[add-movie] Response:", response.data);
+    console.log("[add-movie] Response status:", response.status);
+    console.log("[add-movie] Response data:", response.data);
 
     if (response.data.updates && response.data.updates.updatedRows > 0) {
       res.json({
@@ -120,12 +137,18 @@ export default async function handler(req, res) {
         error: "No se pudo agregar el contenido",
         response: response.data,
       });
-    }
-  } catch (error) {
-    console.error("[add-movie] Error:", error);
+    }  } catch (error) {
+    console.error("[add-movie] Error details:");
+    console.error("- Error type:", error.constructor.name);
+    console.error("- Error message:", error.message);
+    console.error("- Error code:", error.code);
+    console.error("- Error stack:", error.stack);
+    
     res.status(500).json({
       error: "Error interno del servidor",
       details: error.message,
+      type: error.constructor.name,
+      code: error.code
     });
   }
 }
