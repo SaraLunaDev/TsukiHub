@@ -167,14 +167,25 @@ export default async function handler(req, res) {
             `[tmdb-search] Spanish credits crew length: ${
               detailData.credits.crew?.length || 0
             }`
-          );
-
-          if (detailType === "movie") {
+          );          if (detailType === "movie") {
             const directorCredit = detailData.credits.crew?.find(
               (person) => person.job === "Director"
             );
             director = directorCredit ? directorCredit.name : "";
             console.log(`[tmdb-search] Spanish director found: ${director}`);
+
+            // If director contains non-Latin characters, it might be in original language
+            if (
+              director &&
+              /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\uAC00-\uD7AF]/.test(
+                director
+              )
+            ) {
+              console.log(
+                `[tmdb-search] Spanish movie director contains non-Latin characters: ${director}`
+              );
+              director = ""; // Clear it so we use English version
+            }
           } else if (detailType === "tv") {
             director =
               detailData.created_by
