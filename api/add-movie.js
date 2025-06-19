@@ -109,13 +109,12 @@ export default async function handler(req, res) {
     console.log("[add-movie] Trailer URL value:", content.trailer_url);
     console.log("[add-movie] Original title value:", content.original_title);
     console.log("[add-movie] Vote average value:", content.vote_average);
-    console.log("[add-movie] Genres value:", content.genres); // Insertar datos en la hoja de cálculo
+    console.log("[add-movie] Genres value:", content.genres);    // Insertar datos en la hoja de cálculo
     const request = {
       spreadsheetId: sheetId,
-      range: "Pelis!A:R", // 18 columnas: A:Titulo hasta R:Nota_Chat
-      valueInputOption: "RAW", // Cambiar de USER_ENTERED a RAW para evitar conversiones automáticas
-      insertDataOption: "INSERT_ROWS",
-      resource: {
+      range: "Pelis!A1", // Cambiar a formato simple como juegos
+      valueInputOption: "USER_ENTERED", // Cambiar a USER_ENTERED como juegos
+      requestBody: {
         values: values,
       },
     };    console.log("[add-movie] Making append request...");
