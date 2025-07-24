@@ -186,9 +186,9 @@ function Inicio() {
       description: "Conseguir todos los Logros",
     },
     l_racha: {
-      name: "Vigía Octogenario",
+      name: "Vigía Centenario",
       description:
-        "Escribir al menos un mensaje durante 80 directos consecutivos",
+        "Escribir al menos un mensaje durante 100 directos consecutivos",
     },
     l_mensajes: {
       name: "Eminencia de la Mensajería",

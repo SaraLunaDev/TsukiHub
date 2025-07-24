@@ -167,7 +167,8 @@ export default async function handler(req, res) {
             `[tmdb-search] Spanish credits crew length: ${
               detailData.credits.crew?.length || 0
             }`
-          );          if (detailType === "movie") {
+          );
+          if (detailType === "movie") {
             const directorCredit = detailData.credits.crew?.find(
               (person) => person.job === "Director"
             );

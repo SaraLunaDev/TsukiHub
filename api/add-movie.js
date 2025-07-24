@@ -60,15 +60,15 @@ export default async function handler(req, res) {
     console.error("[add-movie] Missing credentials:", {
       hasPrivateKey: !!privateKey,
       hasEmail: !!email,
-      hasSheetId: !!sheetId
+      hasSheetId: !!sheetId,
     });
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: "Google credentials missing",
       details: {
         hasPrivateKey: !!privateKey,
         hasEmail: !!email,
-        hasSheetId: !!sheetId
-      }
+        hasSheetId: !!sheetId,
+      },
     });
   }
 
@@ -197,12 +197,12 @@ export default async function handler(req, res) {
     console.error("- Error message:", error.message);
     console.error("- Error code:", error.code);
     console.error("- Error stack:", error.stack);
-    
+
     res.status(500).json({
       error: "Error interno del servidor",
       details: error.message,
       type: error.constructor.name,
-      code: error.code
+      code: error.code,
     });
   }
 }

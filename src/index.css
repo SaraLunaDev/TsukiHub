@@ -1,25 +1,21 @@
-/*
-  Global base styles for the app.
-  Use CSS variables for font-family and keep selectors simple.
-*/
 body {
-  margin: 0; /* Elimina el margen predeterminado del cuerpo */
+  margin: 0;
   font-family: var(--font-main), -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif; /* Fuente principal compatible con varias plataformas */
-  -webkit-font-smoothing: antialiased; /* Mejora el renderizado de fuentes en navegadores Webkit */
-  -moz-osx-font-smoothing: grayscale; /* Mejora el renderizado de fuentes en macOS */
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace; /* Fuente especifica para bloques de codigo */
+    monospace;
 }
 
 html {
-  scrollbar-width: none; /* Oculta la barra de desplazamiento en Firefox */
+  scrollbar-width: none;
 }
 
 body::-webkit-scrollbar {
-  display: none; /* Oculta la barra de desplazamiento en Chrome y Safari */
+  display: none;
 }

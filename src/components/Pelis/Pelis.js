@@ -19,7 +19,10 @@ function Pelis() {
   const [selectedGenre, setSelectedGenre] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [filteredMoviesAdvanced, setFilteredMoviesAdvanced] = useState([]);
+  const [filteredMoviesAdvanced, setFilteredMoviesAdvanced] = useState([]);  // Estados para edición de películas
+  const [editingMovie, setEditingMovie] = useState(null);
+  const [showEditMoviePopup, setShowEditMoviePopup] = useState(false);
+  const [editMovieFormData, setEditMovieFormData] = useState({});
 
   // Estados para el popup de añadir película/serie
   const [showAddMoviePopup, setShowAddMoviePopup] = useState(false);
@@ -382,6 +385,68 @@ function Pelis() {
   const closeMoviePopup = () => {
     setSelectedMovie(null);
     setShowTrailerPlayer(false); // Resetear el estado del reproductor
+  };
+
+  // Función auxiliar para limpiar los separadores -%-
+  const cleanSeparators = (str) => {
+    return str ? str.replace(/-%-/g, ", ") : "";
+  };
+
+  // Función para convertir fecha DD/MM/YYYY a formato ISO
+  const convertDateToISO = (dateString) => {
+    if (!dateString) return "";
+    const parts = dateString.split("/");
+    if (parts.length === 3) {
+      const [day, month, year] = parts;
+      return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+    return dateString;
+  };
+  // Función para manejar la edición de películas
+  const handleEditMovie = (movie) => {
+    setEditingMovie(movie);
+    
+    setEditMovieFormData({
+      nombre: movie.nombre || "",
+      titulo_original: movie.titulo_original || "",
+      tipo: movie.tipo || "Película",
+      estado: movie.estado || "",
+      fecha: convertDateToISO(movie.fecha || ""),
+      trailer: movie.trailer || "",
+      url: movie.url || "",
+      caratula: movie.caratula || "",
+      imagen_fondo: movie.imagen_fondo || "",
+      duracion: movie.duracion || "",
+      fecha_lanzamiento: convertDateToISO(movie.fecha_lanzamiento || ""),
+      director: movie.director || "",
+      genero: cleanSeparators(movie.genero || ""),
+      resumen: cleanSeparators(movie.resumen || ""),
+      nota_tmdb: movie.nota_tmdb || "",
+      usuario: movie.usuario || "",
+      comentario: cleanSeparators(movie.comentario || ""),
+      nota_chat: movie.nota_chat || "",
+      // Campos para identificación única de la fila
+      originalNombre: movie.nombre || "",
+      originalEstado: movie.estado || "",
+      originalFecha: movie.fecha || "",
+      originalUsuario: movie.usuario || "",
+    });
+
+    setShowEditMoviePopup(true);
+  };
+  // Función para cerrar el popup de edición
+  const handleCloseEditMoviePopup = () => {
+    setShowEditMoviePopup(false);
+    setEditingMovie(null);
+    setEditMovieFormData({});
+  };
+
+  // Función para manejar cambios en el formulario de edición
+  const handleEditMovieFormChange = (field, value) => {
+    setEditMovieFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   // Calcular películas paginadas (usando filtros avanzados si están activos)
@@ -944,7 +1009,7 @@ function Pelis() {
                       className="edit-game-button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // handleEditMovie(movie); // TODO: Implementar edición
+                        handleEditMovie(movie);
                       }}
                       title="Editar película/serie"
                     >
@@ -1410,6 +1475,134 @@ function Pelis() {
                   disabled={!selectedMovieTMDB || addMovieStatus === "adding"}
                 >
                   {getAddButtonText()}
+                </button>
+              </div>
+            </div>
+          </div>        </div>
+      )}
+
+      {/* Popup para editar película/serie */}
+      {showEditMoviePopup && (
+        <div className="popup-overlay" onClick={handleCloseEditMoviePopup}>
+          <div
+            className="popup-content popup-edit-movie"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="close-button" onClick={handleCloseEditMoviePopup}>
+              ✖
+            </button>
+            <h2 className="popup-edit-title">Editar Película/Serie</h2>
+            <div className="edit-form-container">
+              {/* Primera fila: Nombre y Estado */}
+              <div className="edit-form-row">
+                <div className="edit-form-field">
+                  <label>Nombre</label>
+                  <input
+                    type="text"
+                    value={editMovieFormData.nombre || ""}
+                    onChange={(e) => handleEditMovieFormChange("nombre", e.target.value)}
+                  />
+                </div>
+                <div className="edit-form-field">
+                  <label>Estado</label>
+                  <select
+                    value={editMovieFormData.estado || ""}
+                    onChange={(e) => handleEditMovieFormChange("estado", e.target.value)}
+                  >
+                    <option value="Visto">Visto</option>
+                    <option value="Viendo">Viendo</option>
+                    <option value="Planeo Ver">Planeo Ver</option>
+                    <option value="Abandonado">Abandonado</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Segunda fila: Tipo y Fecha Vista */}
+              <div className="edit-form-row">
+                <div className="edit-form-field">
+                  <label>Tipo</label>
+                  <select
+                    value={editMovieFormData.tipo || "Película"}
+                    onChange={(e) => handleEditMovieFormChange("tipo", e.target.value)}
+                  >
+                    <option value="Película">Película</option>
+                    <option value="Serie">Serie</option>
+                  </select>
+                </div>
+                <div className="edit-form-field">
+                  <label>Fecha Vista</label>
+                  <input
+                    type="date"
+                    value={editMovieFormData.fecha || ""}
+                    onChange={(e) => handleEditMovieFormChange("fecha", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Tercera fila: Nota Chat y URL */}
+              <div className="edit-form-row">
+                <div className="edit-form-field">
+                  <label>Nota Chat</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="10"
+                    value={editMovieFormData.nota_chat || ""}
+                    onChange={(e) => handleEditMovieFormChange("nota_chat", e.target.value)}
+                  />
+                </div>
+                <div className="edit-form-field">
+                  <label>URL YouTube</label>
+                  <input
+                    type="url"
+                    value={editMovieFormData.url || ""}
+                    onChange={(e) => handleEditMovieFormChange("url", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Cuarta fila: Carátula */}
+              <div className="edit-form-row">
+                <div className="edit-form-field edit-form-field-full">
+                  <label>URL Carátula</label>
+                  <input
+                    type="url"
+                    value={editMovieFormData.caratula || ""}
+                    onChange={(e) => handleEditMovieFormChange("caratula", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Quinta fila: Comentario */}
+              <div className="edit-form-row">
+                <div className="edit-form-field edit-form-field-full">
+                  <label>Comentario</label>
+                  <textarea
+                    value={editMovieFormData.comentario || ""}
+                    onChange={(e) => handleEditMovieFormChange("comentario", e.target.value)}
+                    rows="3"
+                  />
+                </div>
+              </div>
+
+              {/* Botones de acción */}
+              <div className="edit-form-actions">
+                <button
+                  className="edit-cancel-button"
+                  onClick={handleCloseEditMoviePopup}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="edit-save-button"
+                  onClick={() => {
+                    // TODO: Implementar función de guardar
+                    console.log("Saving movie:", editMovieFormData);
+                    handleCloseEditMoviePopup();
+                  }}
+                >
+                  Guardar Cambios
                 </button>
               </div>
             </div>

@@ -60,12 +60,14 @@
   transition: all 0.3s ease;
   /* Quitar overflow: hidden para que la nota-badge no se corte */
   overflow: visible;
-  height: 250px; /* Altura inicial (imagen completa y nombre) */
+  height: 250px;
+  /* Altura inicial (imagen completa y nombre) */
 }
 
 /* Efecto hover para todas las cartas */
 .pelis-container li:hover {
-  transform: scale(1.05); /* Aumenta ligeramente el tamaño */
+  transform: scale(1.05);
+  /* Aumenta ligeramente el tamaño */
 }
 
 /* Imagen de portada - IDÉNTICA A JUEGOS */
@@ -74,7 +76,6 @@
   left: 0;
   bottom: 0;
   width: 100%;
-  height: 190px;
   object-fit: cover;
   object-position: center center;
   border-radius: 8px;
@@ -85,21 +86,24 @@
   will-change: auto;
 }
 
-.pelis-container li:hover img.game-cover {
-  height: 160px;
-  object-position: bottom center;
-}
-
 /* Títulos - IDÉNTICOS A JUEGOS */
 .pelis-container li strong {
-  display: -webkit-box; /* Define un contenedor flexible */
-  line-clamp: 2; /* Limita a dos líneas visibles */
-  -webkit-box-orient: vertical; /* Establece la orientación vertical */
-  overflow: hidden; /* Oculta el contenido excedente */
-  text-overflow: ellipsis; /* Agrega "..." al texto truncado */
-  white-space: normal; /* Permite el uso de varias líneas */
-  line-height: 1.2em; /* Ajusta la altura de las líneas */
-  max-height: 2.4em; /* Limita la altura total (2 líneas * line-height) */
+  display: -webkit-box;
+  /* Define un contenedor flexible */
+  line-clamp: 2;
+  /* Limita a dos líneas visibles */
+  -webkit-box-orient: vertical;
+  /* Establece la orientación vertical */
+  overflow: hidden;
+  /* Oculta el contenido excedente */
+  text-overflow: ellipsis;
+  /* Agrega "..." al texto truncado */
+  white-space: normal;
+  /* Permite el uso de varias líneas */
+  line-height: 1.2em;
+  /* Ajusta la altura de las líneas */
+  max-height: 2.4em;
+  /* Limita la altura total (2 líneas * line-height) */
   margin-top: 14px;
   font-size: 1em;
 }
@@ -108,8 +112,10 @@
 .pelis-container li .cover-wrapper {
   position: relative;
   display: block;
-  height: 190px; /* Altura máxima de la imagen */
-  overflow: hidden; /* Oculta el recorte superior */
+  height: 190px;
+  /* Altura máxima de la imagen */
+  overflow: hidden;
+  /* Oculta el recorte superior */
 }
 
 /* Gradiente de la imagen - IDÉNTICO A JUEGOS */
@@ -124,7 +130,7 @@
   pointer-events: none;
   opacity: 0;
   border-radius: 8px;
-  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.0) 30%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.0) 30%);
   transition: opacity 0.3s ease;
 }
 
@@ -240,7 +246,7 @@
   cursor: pointer;
   z-index: 2;
   padding: 0;
-  transition: transform 0.18s cubic-bezier(.4,1.5,.5,1);
+  transition: transform 0.18s cubic-bezier(.4, 1.5, .5, 1);
 }
 
 .pelis-container li:hover .game-cover.has-youtube {
@@ -254,7 +260,7 @@
 .play-button svg {
   width: 48px;
   height: 48px;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.8));
   fill: var(--color-mid);
 }
 
@@ -274,7 +280,8 @@
   height: 40px;
   font-size: 14px;
   cursor: pointer;
-  z-index: 20; /* Por encima de otros elementos */
+  z-index: 20;
+  /* Por encima de otros elementos */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -350,13 +357,15 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8); /* Oscurecimiento */
+  background-color: rgba(0, 0, 0, 0.8);
+  /* Oscurecimiento */
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
   opacity: 0;
-  animation: fadeIn 0.3s forwards; /* Animación de entrada */
+  animation: fadeIn 0.3s forwards;
+  /* Animación de entrada */
 }
 
 /* Contenido del popup */
@@ -368,9 +377,12 @@
   text-align: center;
   box-shadow: var(--box-shadow);
   position: relative;
-  transform: scale(0.9); /* Tamaño inicial más pequeño */
-  opacity: 0; /* Inicialmente invisible */
-  animation: popupIn 0.3s forwards; /* Animación de entrada */
+  transform: scale(0.9);
+  /* Tamaño inicial más pequeño */
+  opacity: 0;
+  /* Inicialmente invisible */
+  animation: popupIn 0.3s forwards;
+  /* Animación de entrada */
 }
 
 /* Botón de cerrar */
@@ -395,6 +407,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -403,11 +416,14 @@
 /* Animación de entrada del popup */
 @keyframes popupIn {
   from {
-    transform: scale(0.9); /* Empieza un poco más pequeño */
+    transform: scale(0.9);
+    /* Empieza un poco más pequeño */
     opacity: 0;
   }
+
   to {
-    transform: scale(1); /* Tamaño normal */
+    transform: scale(1);
+    /* Tamaño normal */
     opacity: 1;
   }
 }
@@ -417,7 +433,8 @@
   display: flex;
   align-items: stretch;
   gap: 20px;
-  height: 100%; /* Asegúrate de que ocupe el alto completo */
+  height: 100%;
+  /* Asegúrate de que ocupe el alto completo */
 }
 
 /* Popup específico para películas */
@@ -436,7 +453,8 @@
   position: relative;
   min-width: 300px;
   min-height: 400px;
-  overflow: hidden; /* Para contener el botón */
+  overflow: hidden;
+  /* Para contener el botón */
 }
 
 .popup-movie-cover img {
@@ -479,7 +497,7 @@
 }
 
 .trailer-indicator svg {
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.5));
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
   animation: pulse 2s infinite;
 }
 
@@ -499,10 +517,12 @@
     transform: scale(1);
     opacity: 0.9;
   }
+
   50% {
     transform: scale(1.1);
     opacity: 1;
   }
+
   100% {
     transform: scale(1);
     opacity: 0.9;
@@ -626,7 +646,7 @@
 .add-movie-popup {
   background-color: var(--clear);
   border-radius: 16px;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.25);
   max-width: 650px;
   min-width: 420px;
   max-height: 90vh;
@@ -745,7 +765,7 @@
   height: 80px;
   object-fit: cover;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
 }
 
 .result-info {
@@ -873,7 +893,7 @@
   font-weight: 700;
   font-size: 18px;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
   cursor: pointer;
   opacity: 1;
   transition: background 0.2s, opacity 0.2s;
@@ -1093,7 +1113,8 @@
   border: none;
   cursor: pointer;
   z-index: 15;
-  opacity: 0.3; /* Ligeramente visible siempre */
+  opacity: 0.3;
+  /* Ligeramente visible siempre */
   transition: all 0.3s ease;
   padding: 0;
   pointer-events: auto;
@@ -1105,7 +1126,7 @@
 }
 
 .popup-play-button svg {
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.8));
   transition: transform 0.2s ease;
 }
 
@@ -1153,7 +1174,7 @@
   aspect-ratio: 16/9;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .trailer-video-container iframe {
@@ -1187,4 +1208,134 @@
 /* Ocultar gradiente en carátula con botón */
 .popup-movie-cover .cover-gradient {
   display: none;
+}
+
+/* ===== ESTILOS PARA EL POPUP DE EDITAR PELÍCULA/SERIE ===== */
+
+.popup-edit-movie {
+  max-width: 800px;
+  min-width: 600px;
+  text-align: left;
+}
+
+.popup-edit-title {
+  margin: 0 0 20px 0;
+  font-size: 1.5em;
+  color: var(--highlight);
+  text-align: center;
+}
+
+.edit-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.edit-form-row {
+  display: flex;
+  gap: 15px;
+  align-items: flex-end;
+}
+
+.edit-form-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.edit-form-field-full {
+  flex: 1 1 100%;
+}
+
+.edit-form-field label {
+  font-weight: bold;
+  color: var(--text);
+  font-size: 0.9em;
+}
+
+.edit-form-field input,
+.edit-form-field select,
+.edit-form-field textarea {
+  padding: 8px 12px;
+  border: 2px solid var(--text-2);
+  border-radius: 6px;
+  background-color: var(--edit-text);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.edit-form-field input:focus,
+.edit-form-field select:focus,
+.edit-form-field textarea:focus {
+  outline: none;
+  border-color: var(--color-mid);
+}
+
+.edit-form-field textarea {
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+}
+
+.edit-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--border);
+}
+
+.edit-cancel-button,
+.edit-save-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-cancel-button {
+  background-color: var(--text-2);
+  color: var(--bg);
+}
+
+.edit-cancel-button:hover {
+  background-color: var(--text);
+}
+
+.edit-save-button {
+  background-color: var(--color-mid);
+  color: var(--bg);
+}
+
+.edit-save-button:hover {
+  background-color: var(--color-clear);
+  transform: translateY(-1px);
+}
+
+.edit-save-button:active {
+  transform: translateY(0);
+}
+
+/* Responsive para móvil */
+@media (max-width: 768px) {
+  .popup-edit-movie {
+    max-width: 95vw;
+    min-width: 300px;
+  }
+
+  .edit-form-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .edit-form-actions {
+    flex-direction: column;
+  }
 }

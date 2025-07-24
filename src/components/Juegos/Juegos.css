@@ -1,4 +1,32 @@
-﻿/* Contenedor principal */
+﻿.popup-play-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: none;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.25s;
+  z-index: 10;
+  padding: 0;
+}
+
+.popup-game-cover:hover .popup-play-button {
+  opacity: 1;
+}
+
+.popup-play-button svg {
+  display: block;
+  filter: drop-shadow(0 2px 8px #000a);
+}
+
+.popup-play-button:focus {
+  outline: 2px solid var(--color-mid);
+}
+
+/* Contenedor principal */
 .juegos-container {
   text-align: center;
   max-width: 1400px;
@@ -92,14 +120,22 @@ body {
 
 .juegos-container li strong,
 .planeo-jugar-list li strong {
-  display: -webkit-box; /* Define un contenedor flexible */
-  line-clamp: 2; /* Limita a dos líneas visibles */
-  -webkit-box-orient: vertical; /* Establece la orientación vertical */
-  overflow: hidden; /* Oculta el contenido excedente */
-  text-overflow: ellipsis; /* Agrega "..." al texto truncado */
-  white-space: normal; /* Permite el uso de varias líneas */
-  line-height: 1.2em; /* Ajusta la altura de las líneas */
-  max-height: 2.4em; /* Limita la altura total (2 líneas * line-height) */
+  display: -webkit-box;
+  /* Define un contenedor flexible */
+  line-clamp: 2;
+  /* Limita a dos líneas visibles */
+  -webkit-box-orient: vertical;
+  /* Establece la orientación vertical */
+  overflow: hidden;
+  /* Oculta el contenido excedente */
+  text-overflow: ellipsis;
+  /* Agrega "..." al texto truncado */
+  white-space: normal;
+  /* Permite el uso de varias líneas */
+  line-height: 1.2em;
+  /* Ajusta la altura de las líneas */
+  max-height: 2.4em;
+  /* Limita la altura total (2 líneas * line-height) */
 }
 
 .game-details,
@@ -110,12 +146,12 @@ body {
   gap: 10px;
   font-size: 0.8em;
   color: var(--text-2);
-  font-weight:bolder;
+  font-weight: bolder;
   margin-top: 10px;
   padding: 0;
 }
 
-.game-details-bottom{
+.game-details-bottom {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -141,7 +177,7 @@ body {
   height: 15px;
   margin-right: 2px;
   vertical-align: middle;
-  filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.2));
+  filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.2));
   padding: 0;
 }
 
@@ -156,10 +192,13 @@ body {
 
 /* Fecha debajo de las estrellas en los juegos pasados */
 .game-date {
-  font-size: 0.9em; /* Tamaño de fuente más pequeño */
+  font-size: 0.9em;
+  /* Tamaño de fuente más pequeño */
   color: var(--text-2);
-  margin-top: 20px; /* Espaciado entre las estrellas y la fecha */
-  text-align: center; /* Centra la fecha */
+  margin-top: 20px;
+  /* Espaciado entre las estrellas y la fecha */
+  text-align: center;
+  /* Centra la fecha */
   font-weight: bold;
 }
 
@@ -180,8 +219,10 @@ body {
   height: 24px;
   box-shadow: none;
   object-fit: contain;
-  margin: 0; /* Resetea márgenes */
-  padding: 0; /* Resetea padding */
+  margin: 0;
+  /* Resetea márgenes */
+  padding: 0;
+  /* Resetea padding */
 }
 
 /* Flechas de navegación */
@@ -217,7 +258,8 @@ body {
 }
 
 .category {
-  flex: 1; /* Cada categoría ocupa espacio igual */
+  flex: 1;
+  /* Cada categoría ocupa espacio igual */
 }
 
 .category-jugando {
@@ -272,10 +314,13 @@ body {
 /* Botón de filtro */
 .filter-container {
   position: relative;
-  display: flex; /* Cambiado a flex para alinear contenido */
-  justify-content: flex-end; /* Alínea el contenido a la derecha */
+  display: flex;
+  /* Cambiado a flex para alinear contenido */
+  justify-content: flex-end;
+  /* Alínea el contenido a la derecha */
   align-items: flex-start;
-  width: 100%; /* Asegura que ocupe todo el ancho disponible */
+  width: 100%;
+  /* Asegura que ocupe todo el ancho disponible */
 }
 
 #game-cover-small {
@@ -285,26 +330,33 @@ body {
 /* Juegos dentro de las secciones Jugando y Planeo Jugar */
 .category-jugando li,
 .category-planeo-jugar li {
-  pointer-events: auto; /* Habilita interacciones */
-  transform: initial; /* Permite transformaciones */
-  transition: all 0.3s ease; /* Suaviza animaciones */
+  pointer-events: auto;
+  /* Habilita interacciones */
+  transform: initial;
+  /* Permite transformaciones */
+  transition: all 0.3s ease;
+  /* Suaviza animaciones */
 }
 
 /* Efecto hover para todas las cartas - carrusel excluido para evitar conflictos de posicionamiento */
 .juegos-container li:hover,
 .planeo-jugar-list li:hover,
 .category-jugando li:hover {
-  transform: scale(1.05); /* Aumenta ligeramente el tamaño */
+  transform: scale(1.05);
+  /* Aumenta ligeramente el tamaño */
 }
 
 /* Hover específico para carrusel - escala con brightness manteniendo posicionamiento */
 .category-planeo-jugar li {
-  --hover-scale: 1; /* Variable CSS para controlar escala del hover */
+  --hover-scale: 1;
+  /* Variable CSS para controlar escala del hover */
 }
 
 .category-planeo-jugar li:hover {
-  --hover-scale: 1.05; /* Aumenta la escala en hover */
-  filter: brightness(1.1); /* Efecto sutil adicional */
+  --hover-scale: 1.05;
+  /* Aumenta la escala en hover */
+  filter: brightness(1.1);
+  /* Efecto sutil adicional */
 }
 
 /* Contenedor del juego */
@@ -313,10 +365,11 @@ body {
   transition: all 0.3s ease;
   /* Quitar overflow: hidden para que la nota-badge no se corte */
   overflow: visible;
-  height: 250px; /* Altura inicial (imagen completa y nombre) */
+  height: 250px;
+  /* Altura inicial (imagen completa y nombre) */
 }
 
-.category-pasado{
+.category-pasado {
   width: 100%;
   height: 100%;
   min-height: 340px;
@@ -324,17 +377,21 @@ body {
 
 /* Contenido extra, oculto por defecto */
 .juegos-container li .game-extra {
-  display: none; /* Oculta contenido extra inicialmente */
+  display: none;
+  /* Oculta contenido extra inicialmente */
   position: absolute;
-  bottom: 10px; /* Aparece al final del contenedor */
+  bottom: 10px;
+  /* Aparece al final del contenedor */
   left: 0;
   right: 0;
   padding: 0px;
   background: var(--clear);
   text-align: center;
-  border-radius: 0 0 10px 10px; /* Bordes redondeados solo abajo */
+  border-radius: 0 0 10px 10px;
+  /* Bordes redondeados solo abajo */
   opacity: 0;
-  transform: translateY(20px); /* Mueve el contenido hacia abajo */
+  transform: translateY(20px);
+  /* Mueve el contenido hacia abajo */
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
@@ -342,7 +399,8 @@ body {
 .juegos-container li:hover .game-extra {
   display: block;
   opacity: 1;
-  transform: translateY(0); /* Mueve el contenido a su lugar */
+  transform: translateY(0);
+  /* Mueve el contenido a su lugar */
 }
 
 /* Estilo del nombre */
@@ -355,7 +413,8 @@ body {
 .game-extra .stars-container,
 .game-extra .game-date,
 .game-extra .game-buttons {
-  margin: 5px 0; /* Espaciado entre elementos */
+  margin: 5px 0;
+  /* Espaciado entre elementos */
 }
 
 .game-extra .stars-container {
@@ -365,7 +424,8 @@ body {
 }
 
 .game-extra .game-buttons a {
-  margin: 0 5px; /* Espaciado entre botones */
+  margin: 0 5px;
+  /* Espaciado entre botones */
 }
 
 .juegos-wrapper {
@@ -415,7 +475,8 @@ body {
   background-image: var(--lupa);
   padding: 10px;
   height: 25px;
-  width: 25px; /* Usa dimensiones consistentes */
+  width: 25px;
+  /* Usa dimensiones consistentes */
   border-radius: 20px 0px 0px 20px;
   background-color: var(--edit-text);
   color: var(--text);
@@ -460,13 +521,15 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.8); /* Oscurecimiento */
+  background-color: rgba(0, 0, 0, 0.8);
+  /* Oscurecimiento */
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
   opacity: 0;
-  animation: fadeIn 0.3s forwards; /* Animación de entrada */
+  animation: fadeIn 0.3s forwards;
+  /* Animación de entrada */
 }
 
 /* Contenido del popup */
@@ -478,9 +541,12 @@ body {
   text-align: center;
   box-shadow: var(--box-shadow);
   position: relative;
-  transform: scale(0.9); /* Tamaño inicial más pequeño */
-  opacity: 0; /* Inicialmente invisible */
-  animation: popupIn 0.3s forwards; /* Animación de entrada */
+  transform: scale(0.9);
+  /* Tamaño inicial más pequeño */
+  opacity: 0;
+  /* Inicialmente invisible */
+  animation: popupIn 0.3s forwards;
+  /* Animación de entrada */
 }
 
 /* Botón de cerrar */
@@ -505,6 +571,7 @@ body {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -513,11 +580,14 @@ body {
 /* Animación de entrada del popup */
 @keyframes popupIn {
   from {
-    transform: scale(0.9); /* Empieza un poco más pequeño */
+    transform: scale(0.9);
+    /* Empieza un poco más pequeño */
     opacity: 0;
   }
+
   to {
-    transform: scale(1); /* Tamaño normal */
+    transform: scale(1);
+    /* Tamaño normal */
     opacity: 1;
   }
 }
@@ -527,10 +597,11 @@ body {
   display: flex;
   align-items: stretch;
   gap: 20px;
-  height: 100%; /* Asegúrate de que ocupe el alto completo */
+  height: 100%;
+  /* Asegúrate de que ocupe el alto completo */
 }
 
-.section-null{
+.section-null {
   margin-bottom: 20px;
 }
 
@@ -612,7 +683,8 @@ body {
   text-align: left;
   padding: 15px;
   background-color: var(--clear);
-  border-radius: 8px; /* Solo redondear abajo para unificar con las columnas */
+  border-radius: 8px;
+  /* Solo redondear abajo para unificar con las columnas */
   box-shadow: var(--box-shadow-inset);
   overflow-y: auto;
   font-size: 0.9em;
@@ -620,7 +692,8 @@ body {
 
 /* Ocultar la barra de scroll */
 .game-summary::-webkit-scrollbar {
-  width: 0; /* Elimina la barra de desplazamiento */
+  width: 0;
+  /* Elimina la barra de desplazamiento */
   background: transparent;
 }
 
@@ -639,7 +712,8 @@ body {
 .game-meta-row {
   display: flex;
   justify-content: space-between;
-  gap: 20px; /* Espaciado entre columnas */
+  gap: 20px;
+  /* Espaciado entre columnas */
 }
 
 .game-meta-column {
@@ -648,12 +722,14 @@ body {
 }
 
 .game-meta-column strong {
-  color: inherit; /* Conserva el color actual del encabezado */
+  color: inherit;
+  /* Conserva el color actual del encabezado */
   font-weight: bold;
 }
 
 .game-meta-column span {
-  color: var(--text-2); /* Aplica el color específico al contenido */
+  color: var(--text-2);
+  /* Aplica el color específico al contenido */
   font-size: 0.9em;
 }
 
@@ -709,9 +785,12 @@ body {
 .cover-wrapper {
   position: relative;
   display: block;
-  height: 190px; /* Altura máxima de la imagen */
-  overflow: hidden; /* Oculta el recorte superior */
-  height: 32px; /* Reserva espacio para la fecha o badge */
+  height: 190px;
+  /* Altura máxima de la imagen */
+  overflow: hidden;
+  /* Oculta el recorte superior */
+  height: 32px;
+  /* Reserva espacio para la fecha o badge */
 }
 
 .game-cover.has-youtube {
@@ -733,7 +812,7 @@ li:hover .cover-wrapper .play-button {
   cursor: pointer;
   z-index: 2;
   padding: 0;
-  transition: transform 0.18s cubic-bezier(.4,1.5,.5,1);
+  transition: transform 0.18s cubic-bezier(.4, 1.5, .5, 1);
 }
 
 li:hover .game-cover.has-youtube {
@@ -747,7 +826,7 @@ li:hover .game-cover.has-youtube {
 .play-button svg {
   width: 48px;
   height: 48px;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.8));
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.8));
   fill: var(--color-mid);
 }
 
@@ -763,27 +842,33 @@ li:hover .game-cover.has-youtube {
   flex-direction: column;
   gap: 0;
 }
+
 .filtro-fechas-labels {
   display: flex;
   width: 100%;
   justify-content: space-between;
   margin-bottom: 4px;
 }
+
 .filtro-fecha-label {
   color: var(--text-2);
   font-weight: 500;
 }
+
 .filtro-fecha-label-desde {
   text-align: left;
 }
+
 .filtro-fecha-label-hasta {
   text-align: right;
 }
+
 .filtro-fechas-inputs {
   display: flex;
   width: 100%;
   gap: 18px;
 }
+
 .filtro-fecha-input {
   flex: 1;
   min-width: 0;
@@ -791,7 +876,7 @@ li:hover .game-cover.has-youtube {
   background-color: var(--dark-2);
 }
 
-.header-juegos{
+.header-juegos {
   margin-top: 10px !important;
   margin-bottom: 30px !important;
 }
@@ -895,13 +980,13 @@ li:hover .game-cover.has-youtube {
   pointer-events: none;
   opacity: 0;
   border-radius: 8px;
-  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.0) 30%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.0) 30%);
   transition: opacity 0.3s ease;
 }
 
 /* Gradiente invertido para juegos recomendados */
 .category-planeo-jugar .planeo-jugar-list li .cover-gradient {
-  background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.0) 40%);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.0) 40%);
 }
 
 .juegos-container li:hover .cover-gradient,
@@ -913,8 +998,10 @@ li:hover .game-cover.has-youtube {
 .planeo-jugar-list li .cover-wrapper {
   position: relative;
   display: block;
-  height: 190px; /* Altura máxima de la imagen */
-  overflow: hidden; /* Oculta el recorte superior */
+  height: 190px;
+  /* Altura máxima de la imagen */
+  overflow: hidden;
+  /* Oculta el recorte superior */
 }
 
 .juegos-container li .game-date-hover {
@@ -952,7 +1039,7 @@ li:hover .game-cover.has-youtube {
   justify-content: flex-start;
   gap: 6px;
   opacity: 1;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.0) 100%);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.6) 70%, rgba(0, 0, 0, 0.0) 100%);
   transition: none !important;
 }
 
@@ -996,6 +1083,7 @@ li:hover .game-cover.has-youtube {
 .juegos-container li:hover .cover-gradient:not(.category-pasado li .cover-gradient):not(.category-planeo-jugar .planeo-jugar-list li .cover-gradient) {
   opacity: 0 !important;
 }
+
 .category-jugando li:hover img.game-cover,
 .juegos-container li:hover img.game-cover:not(.category-pasado li img.game-cover),
 .planeo-jugar-list li:hover img.game-cover {
@@ -1021,7 +1109,7 @@ li:hover .game-cover.has-youtube {
   max-width: 650px;
   min-width: 420px;
   border-radius: 16px;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.25);
   background: var(--clear);
   padding: 32px;
   text-align: center;
@@ -1056,9 +1144,12 @@ li:hover .game-cover.has-youtube {
   overflow-y: auto;
   margin-top: 10px;
   margin-bottom: 18px;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
 }
+
 .popup-igdb-scroll::-webkit-scrollbar {
   display: none;
 }
@@ -1075,17 +1166,20 @@ li:hover .game-cover.has-youtube {
   background: none;
   transition: background 0.15s, border 0.15s;
 }
+
 .igdb-result.selected {
   background: var(--mid);
   border: 2px solid var(--color-mid);
 }
+
 .igdb-result-cover {
   width: 60px;
   height: 80px;
   object-fit: cover;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
 }
+
 .igdb-result-info {
   display: flex;
   flex-direction: column;
@@ -1093,6 +1187,7 @@ li:hover .game-cover.has-youtube {
   justify-content: flex-start;
   flex: 1;
 }
+
 .igdb-result-title {
   font-weight: bold;
   font-size: 17px;
@@ -1101,6 +1196,7 @@ li:hover .game-cover.has-youtube {
   padding-left: 0;
   margin-bottom: 0;
 }
+
 .igdb-result-date {
   font-size: 13px;
   color: var(--text-2);
@@ -1121,7 +1217,7 @@ li:hover .game-cover.has-youtube {
   font-weight: 700;
   font-size: 18px;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
   cursor: pointer;
   opacity: 1;
   transition: background 0.2s, opacity 0.2s;
@@ -1158,7 +1254,7 @@ li:hover .game-cover.has-youtube {
   font-weight: 700;
   font-size: 14px;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
   cursor: pointer;
   padding: 6px 8px;
   display: flex;
@@ -1168,10 +1264,12 @@ li:hover .game-cover.has-youtube {
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
   margin-bottom: 22px;
 }
+
 .add-recommendation-button:hover {
   background: var(--color-clear);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
 }
+
 .add-recommendation-plus {
   font-size: 1.3em;
   font-weight: bold;
@@ -1195,20 +1293,24 @@ li:hover .game-cover.has-youtube {
   width: 100%;
   position: relative;
 }
+
 .category-planeo-jugar .category-header .header-spacer {
-  width: 140px; /* Igual que el botón */
+  width: 140px;
+  /* Igual que el botón */
   min-width: 140px;
   max-width: 140px;
   flex-shrink: 0;
   display: block;
   height: 1px;
 }
+
 .category-planeo-jugar .category-header .header-juegos {
   flex: 1;
   text-align: center;
   margin: 0;
   position: relative;
 }
+
 .category-planeo-jugar .category-header .add-recommendation-button {
   padding-top: 6px;
   padding-bottom: 6px;
@@ -1217,7 +1319,7 @@ li:hover .game-cover.has-youtube {
 }
 
 /* Cuando el botón no está visible, el espaciador derecho ocupa su lugar */
-.category-planeo-jugar .category-header .add-recommendation-button:not(:visible) + .header-spacer {
+.category-planeo-jugar .category-header .add-recommendation-button:not(:visible)+.header-spacer {
   display: block;
 }
 
@@ -1226,6 +1328,7 @@ li:hover .game-cover.has-youtube {
   .category-planeo-jugar .category-header::before {
     display: none !important;
   }
+
   .category-planeo-jugar .add-recommendation-button {
     --add-btn-width: auto;
   }
@@ -1234,32 +1337,43 @@ li:hover .game-cover.has-youtube {
 /* --- Carrusel infinito Planeo Jugar --- */
 .category-planeo-jugar .planeo-jugar-list {
   position: relative;
-  width: 900px; /* Expandido +140px total para máximo espacio (760 + 140) */
-  height: 280px; /* Altura fija para mantener el layout */
-  margin: 0 auto; /* Centrado automático */
+  width: 900px;
+  /* Expandido +140px total para máximo espacio (760 + 140) */
+  height: 280px;
+  /* Altura fija para mantener el layout */
+  margin: 0 auto;
+  /* Centrado automático */
   padding-right: 12px;
   overflow: visible;
-  display: block; /* Cambiar de flex a block para posicionamiento absoluto */
+  display: block;
+  /* Cambiar de flex a block para posicionamiento absoluto */
 }
+
 .category-planeo-jugar .planeo-jugar-list li {
-  position: absolute; /* Posicionamiento absoluto para control total */
+  position: absolute;
+  /* Posicionamiento absoluto para control total */
   background: var(--clear);
   border-radius: 10px;
   box-shadow: var(--box-shadow);
   padding: 6px;
   text-align: center;
   overflow: visible;
-  width: 140px; /* Ancho fijo para cálculos */
-  height: 250px; /* Altura fija */  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
-              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-              filter 0.4s ease-out;
+  width: 140px;
+  /* Ancho fijo para cálculos */
+  height: 250px;
+  /* Altura fija */
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.4s ease-out;
   will-change: transform, z-index, filter;
 }
+
 .category-planeo-jugar .planeo-jugar-list li.carrusel-center {
   /* box-shadow: 0 8px 32px #000a, var(--box-shadow);
      filter: drop-shadow(0 4px 16px #0008) brightness(1.05); */
   z-index: 100;
 }
+
 .category-planeo-jugar .planeo-jugar-list li.carrusel-distant {
   /* Distant games get subtle dimming - overlay handles the main distance effect */
   filter: brightness(0.92);
@@ -1268,18 +1382,25 @@ li:hover .game-cover.has-youtube {
 /* Responsive: ajustar ancho del contenedor */
 @media (max-width: 1100px) {
   .category-planeo-jugar .planeo-jugar-list {
-    width: 780px; /* Expandido +140px total para máximo espacio (640 + 140) */
-    margin: 0 auto; /* Centrado automático */
+    width: 780px;
+    /* Expandido +140px total para máximo espacio (640 + 140) */
+    margin: 0 auto;
+    /* Centrado automático */
   }
+
   .category-planeo-jugar .planeo-jugar-list li {
     width: 120px;
   }
 }
+
 @media (max-width: 800px) {
   .category-planeo-jugar .planeo-jugar-list {
-    width: 660px; /* Expandido +140px total para máximo espacio (520 + 140) */
-    margin: 0 auto; /* Centrado automático */
+    width: 660px;
+    /* Expandido +140px total para máximo espacio (520 + 140) */
+    margin: 0 auto;
+    /* Centrado automático */
   }
+
   .category-planeo-jugar .planeo-jugar-list li {
     width: 100px;
   }
@@ -1295,7 +1416,7 @@ li:hover .game-cover.has-youtube {
   font-weight: 700;
   font-size: 14px;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
   cursor: pointer;
   padding: 6px 8px;
   display: flex;
@@ -1305,9 +1426,10 @@ li:hover .game-cover.has-youtube {
   margin-left: 8px;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
+
 .toggle-planeo-btn:hover {
   background: var(--color-clear);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
 }
 
 /* Recomendador: estilos para mostrar avatar y nombre permanentemente */
@@ -1322,15 +1444,17 @@ li:hover .game-cover.has-youtube {
   transition: opacity 0.25s;
   z-index: 3;
 }
+
 .recomendador-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   border: 2px solid #fff;
   background: #222;
   object-fit: cover;
 }
+
 .recomendador-nombre-gradient {
   margin-left: 10px;
   padding: 4px 12px 4px 8px;
@@ -1338,8 +1462,8 @@ li:hover .game-cover.has-youtube {
   font-size: 1rem;
   font-weight: 600;
   color: #fff;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.85) 80%, rgba(0,0,0,0.0) 100%);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 80%, rgba(0, 0, 0, 0.0) 100%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   white-space: nowrap;
   opacity: 1;
   transition: opacity 0.25s;
@@ -1358,7 +1482,7 @@ li:hover .game-cover.has-youtube {
   pointer-events: none;
   opacity: 0;
   border-radius: 8px;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.0) 40%);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.0) 40%);
   transition: opacity 0.3s ease;
 }
 
@@ -1388,8 +1512,10 @@ li:hover .game-cover.has-youtube {
 
 /* Distance overlay opacity levels - now handled dynamically via inline styles */
 .category-planeo-jugar .planeo-jugar-list li.carrusel-center .distance-overlay {
-  opacity: 0; /* Center game always has no overlay */
+  opacity: 0;
+  /* Center game always has no overlay */
 }
+
 /* Remove discrete distance classes - opacity now calculated dynamically */
 
 /* Campo de comentario en popup de recomendación */
@@ -1423,8 +1549,9 @@ li:hover .game-cover.has-youtube {
   font-style: italic;
 }
 
-.recommender-comment-section{
-  margin-top: 10px;;
+.recommender-comment-section {
+  margin-top: 10px;
+  ;
 }
 
 .recommender-comment {
@@ -1445,7 +1572,8 @@ li:hover .game-cover.has-youtube {
   height: 40px;
   font-size: 14px;
   cursor: pointer;
-  z-index: 20; /* Por encima de otros elementos */
+  z-index: 20;
+  /* Por encima de otros elementos */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1463,6 +1591,7 @@ li:hover .game-cover.has-youtube {
 .header-juegos.toggle-header-btn {
   transition: color 0.2s;
 }
+
 .header-juegos.toggle-header-btn:hover {
   color: var(--color-mid) !important;
 }
@@ -1472,7 +1601,7 @@ li:hover .game-cover.has-youtube {
   max-width: 800px;
   min-width: 600px;
   border-radius: 16px;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.25);
   background: var(--clear);
   padding: 32px;
   text-align: left;
@@ -1588,12 +1717,13 @@ li:hover .game-cover.has-youtube {
 .edit-save-button:hover {
   background: var(--color-clear);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Slider para la nota */
 .edit-slider {
-  margin-top: 10px;;
+  margin-top: 10px;
+  ;
   height: 20px;
   border-radius: 20px;
   background: var(--dark-2);
@@ -1613,7 +1743,7 @@ li:hover .game-cover.has-youtube {
   background: var(--color-mid);
   cursor: pointer;
   border: 2px solid var(--text);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
 }
 
@@ -1629,7 +1759,7 @@ li:hover .game-cover.has-youtube {
   background: var(--color-mid);
   cursor: pointer;
   border: 2px solid var(--text);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
 }
 
@@ -1722,17 +1852,19 @@ li:hover .game-cover.has-youtube {
   flex: 1;
 }
 
-.edit-spinner-option input[type="checkbox"]:checked + .edit-option-label {
+.edit-spinner-option input[type="checkbox"]:checked+.edit-option-label {
   font-weight: 600;
   color: var(--color-clear);
 }
 
 /* Popup para añadir juego (desarrolladores) */
 .popup-add-game {
-  max-width: 800px;
-  min-width: 600px;
+  position: relative;
+  /* Ensure the container has relative positioning */
+  display: inline-block;
+  /* Ensure the container is inline-block */
   border-radius: 16px;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.25);
   background: var(--clear);
   padding: 32px;
   text-align: left;
@@ -1744,4 +1876,56 @@ li:hover .game-cover.has-youtube {
   margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid var(--text-2);
+}
+
+.popup-game-cover {
+  position: relative;
+  display: inline-block;
+  width: fit-content;
+  height: fit-content;
+}
+
+.popup-game-cover img {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: auto;
+}
+
+/* Estilo para el trailer a pantalla completa */
+.popup-trailer-fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup-trailer-fullscreen iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.popup-close-trailer-fullscreen {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  color: white;
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+.popup-close-trailer-fullscreen:hover {
+  background: rgba(255, 255, 255, 0.2);
 }

@@ -1,68 +1,55 @@
-/*
-  THEME VARIABLES
-  ---------------
-  All main color, shadow, and UI variables for light and dark mode.
-  Use these for consistency and easy theme switching.
-*/
 :root {
-  /* Main Colors (Light Theme) */
-  --navbar: #333;
-  --dark: #222;
-  --dark-2: #2a2a2a;
-  --mid: #333;
-  --mid-2: #3a3a3a;
-  --mid-3: #333;
-  --clear: #555;
-  --clear-2: #5a5a5a;
+  --navbar: #20262d;
+  --dark: #13181d;
+  --dark-2: #181d23;
+  --mid: #20262d;
+  --mid-2: #23282f;
+  --mid-3: #20262d;
+  --clear: #38404a;
+  --clear-2: #404854;
   --text: #fafafa;
-  --text-2: #bababa;
-  --text-3: #eee;
-  --text-4: #666;
-  --divider: #222;
+  --text-2: #a0a8b2;
+  --text-3: #d0d6de;
+  --text-4: #4a5662;
+  --divider: #13181d;
 
-  /* Accent Colors */
   --color-dark: #ff5555;
   --color-mid: #ff8888;
   --color-clear: #ffaaaa;
 
-  /* Filter Menu */
-  --background-color-filter-menu: #333;
+  --background-color-filter-menu: #20262d;
   --text-filter-menu: #fafafa;
 
-  /* Shadows */
-  --box-shadow: 0 8px 10px rgba(0, 0, 0, 0.25);
-  --box-shadow-2: 0 8px 10px rgba(0, 0, 0, 0.1);
-  --box-shadow-3: 0 8px 10px rgba(0, 0, 0, 0.1);
-  --box-shadow-up: 0 -4px 6px rgba(0, 0, 0, 0.1);
-  --box-shadow-inset: inset 0 0 10px rgb(0, 0, 0, 0.75);
-  --box-shadow-inset-2: inset 0 0 5px 2px rgb(0, 0, 0, 0.75);
-  --box-shadow-inset-3: inset 0 0 2px rgb(0, 0, 0, 0.75);
-  --box-shadow-inset-glow: inset 0 0 5px 1px rgb(255, 208, 0, 0.5);
+  --box-shadow: 0 8px 10px rgba(20, 25, 35, 0.25);
+  --box-shadow-2: 0 8px 10px rgba(20, 25, 35, 0.1);
+  --box-shadow-3: 0 8px 10px rgba(20, 25, 35, 0.1);
+  --box-shadow-up: 0 -4px 6px rgba(20, 25, 35, 0.1);
+  --box-shadow-inset: inset 0 0 10px rgba(20, 25, 35, 0.75);
+  --box-shadow-inset-2: inset 0 0 5px 2px rgba(20, 25, 35, 0.75);
+  --box-shadow-inset-3: inset 0 0 2px rgba(20, 25, 35, 0.75);
+  --box-shadow-inset-glow: inset 0 0 5px 1px rgba(60, 90, 140, 0.5);
 
-  /* Image Styles */
-  --img-shadow-glow: drop-shadow(0 0 1px gold);
-  --img-background-glow: #55553f;
-  --img-border: drop-shadow(1px 1px 1px #222);
+  --img-shadow-glow: drop-shadow(0 0 1px #4b5662);
+  --img-background-glow: #232834;
+  --img-border: drop-shadow(1px 1px 1px #13181d);
 
-  /* UI Elements */
-  --selected-button-high: #55555548;
-  --edit-text: #333;
-  --edit-text-border: #333;
+  --selected-button-high: #23283448;
+  --edit-text: #20262d;
+  --edit-text-border: #20262d;
   --lupa: url("/public/static/resources/lupa.png");
   --transparent: rgba(0, 0, 0, 0);
   --progressbar-color: #ff8888;
-  --progressbar-back: #222;
+  --progressbar-back: #13181d;
   --voices: #ff8888;
   --sounds: #88c5ff;
-  --button-color: #444;
-  --button-color-clear: #666;
-  --button-color-dark: #111;
-  --textshadow: 1px 1px 2px #000000;
+  --button-color: #232834;
+  --button-color-clear: #38404a;
+  --button-color-dark: #0d1014;
+  --textshadow: 1px 1px 2px #13181d;
   --font-main: "JetBrains Mono", monospace;
 }
 
 body.dark-mode {
-  /* Main Colors (Dark Theme) */
   --navbar: #ffffff;
   --dark: #f8f8f8;
   --dark-2: #fbfbfb;
@@ -77,16 +64,13 @@ body.dark-mode {
   --text-4: #777;
   --divider: #eee;
 
-  /* Accent Colors */
   --color-dark: #ff5555;
   --color-mid: #ff8888;
   --color-clear: #ffaaaa;
 
-  /* Filter Menu */
   --background-color-filter-menu: #f8f8f8;
   --text-filter-menu: #222;
 
-  /* Shadows */
   --box-shadow: 0 8px 10px rgba(0, 0, 0, 0.25);
   --box-shadow-2: 0 0px 5px rgb(0, 0, 0, 0.5);
   --box-shadow-3: 0 0px 10px rgb(0, 0, 0, 0.25);
@@ -96,11 +80,9 @@ body.dark-mode {
   --box-shadow-inset-3: inset 0 0 2px rgb(0, 0, 0, 0.25);
   --box-shadow-inset-glow: inset 0 0 8px 2px rgb(168, 137, 0);
 
-  /* Image Styles */
   --img-shadow-glow: drop-shadow(0 0 1px rgb(155, 132, 0));
   --img-background-glow: #ffffd6;
 
-  /* UI Elements */
   --selected-button-high: rgba(85, 85, 85, 0.082);
   --edit-text: #ffffff;
   --edit-text-border: #dfdfdf;
@@ -117,7 +99,6 @@ body.dark-mode {
   --font-main: "JetBrains Mono", monospace;
 }
 
-/* General Styles */
 body {
   font-family: var(--font-main);
   margin: 0;

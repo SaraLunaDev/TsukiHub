@@ -219,7 +219,7 @@ section {
 .header-platino:hover+.achievement-content .achievement-description {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateY(-10px);
 }
 
 .header-platino:hover+.achievement-content .achievement-icons {
@@ -501,7 +501,7 @@ section {
 .header-logro:hover+.achievement-content .achievement-description {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translateY(-10px);
 }
 
 .header-logro:hover+.achievement-content .achievement-icons {

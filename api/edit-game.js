@@ -224,22 +224,23 @@ export default async function handler(req, res) {
       cleanTextForCSV(gameData.nombre || ""), // A - Nombre
       normalizedEstado, // B - Estado
       gameData.youtube || "", // C - Youtube
-      gameData.nota || "", // D - Nota
-      gameData.horas || "", // E - Horas
-      gameData.plataforma || "", // F - Plataforma (del spinner)
-      convertISOToDate(gameData.fecha), // G - Fecha
-      gameData.caratula || "", // H - Carátula
-      convertISOToDate(gameData["Fecha de Lanzamiento"]), // I - Fecha de Lanzamiento
-      convertCommasToSeparators(cleanTextForCSV(gameData.géneros || "")), // J - Géneros
-      convertCommasToSeparators(cleanTextForCSV(gameData.plataformas || "")), // K - Plataformas
-      convertCommasToSeparators(cleanTextForCSV(gameData.resumen || "")), // L - Resumen
+      gameData.trailer || "", // D - Trailer
+      gameData.nota || "", // E - Nota
+      gameData.horas || "", // F - Horas
+      gameData.plataforma || "", // G - Plataforma (del spinner)
+      convertISOToDate(gameData.fecha), // H - Fecha
+      gameData.caratula || "", // I - Carátula
+      convertISOToDate(gameData["Fecha de Lanzamiento"]), // J - Fecha de Lanzamiento
+      convertCommasToSeparators(cleanTextForCSV(gameData.géneros || "")), // K - Géneros
+      convertCommasToSeparators(cleanTextForCSV(gameData.plataformas || "")), // L - Plataformas
+      convertCommasToSeparators(cleanTextForCSV(gameData.resumen || "")), // M - Resumen
       convertCommasToSeparators(
         cleanTextForCSV(gameData.desarrolladores || "")
-      ), // M - Desarrolladores
-      convertCommasToSeparators(cleanTextForCSV(gameData.publicadores || "")), // N - Publicadores
-      gameData.igdbId || "", // O - IGDBID
-      gameData.usuario || "", // P - Usuario
-      convertCommasToSeparators(cleanTextForCSV(gameData.comentario || "")), // Q - Comentario
+      ), // N - Desarrolladores
+      convertCommasToSeparators(cleanTextForCSV(gameData.publicadores || "")), // O - Publicadores
+      gameData.igdbId || "", // P - IGDBID
+      gameData.usuario || "", // Q - Usuario
+      convertCommasToSeparators(cleanTextForCSV(gameData.comentario || "")), // R - Comentario
     ];
 
     console.log(

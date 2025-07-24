@@ -71,6 +71,7 @@ export default async function handler(req, res) {
       nombre: cleanTextForCSV(game.name || game.title || ""),
       estado: formData.estado || "Planeo Jugar",
       youtube: formData.youtube || "",
+      trailer: formData.trailer || game.trailer || "",
       nota: formData.nota || "",
       horas: formData.horas || "",
       plataforma: formData.plataforma || "",
@@ -154,20 +155,21 @@ export default async function handler(req, res) {
             gameData.nombre, // A - Nombre
             gameData.estado, // B - Estado
             gameData.youtube, // C - YouTube
-            gameData.nota, // D - Nota
-            gameData.horas, // E - Horas
-            gameData.plataforma, // F - Plataforma
-            gameData.fecha, // G - Fecha
-            gameData.caratula, // H - Carátula
-            gameData["Fecha de Lanzamiento"], // I - Fecha de Lanzamiento
-            gameData.géneros, // J - Géneros
-            gameData.plataformas, // K - Plataformas
-            gameData.resumen, // L - Resumen
-            gameData.desarrolladores, // M - Desarrolladores
-            gameData.publicadores, // N - Publicadores
-            gameData.igdbId, // O - IGDBID
-            gameData.usuario, // P - Usuario
-            gameData.comentario, // Q - Comentario
+            gameData.trailer, // D - Trailer
+            gameData.nota, // E - Nota
+            gameData.horas, // F - Horas
+            gameData.plataforma, // G - Plataforma
+            gameData.fecha, // H - Fecha
+            gameData.caratula, // I - Carátula
+            gameData["Fecha de Lanzamiento"], // J - Fecha de Lanzamiento
+            gameData.géneros, // K - Géneros
+            gameData.plataformas, // L - Plataformas
+            gameData.resumen, // M - Resumen
+            gameData.desarrolladores, // N - Desarrolladores
+            gameData.publicadores, // O - Publicadores
+            gameData.igdbId, // P - IGDBID
+            gameData.usuario, // Q - Usuario
+            gameData.comentario, // R - Comentario
           ],
         ],
       },

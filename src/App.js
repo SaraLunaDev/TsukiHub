@@ -12,7 +12,7 @@ import "./App.css";
 function App() {
   return (
     <Router>
-      <Navbar /> {/* Barra de navegacion visible en todas las paginas */}{" "}
+      <Navbar /> {}{" "}
       <Routes>
         <Route path="/" element={<Inicio />} /> {/* Pagina de inicio */}
         <Route path="/juegos" element={<Juegos />} /> {/* Seccion de juegos */}

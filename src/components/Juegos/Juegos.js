@@ -1,8 +1,32 @@
 import React, { useState, useEffect, useRef } from "react";
-
 import "./Juegos.css";
 
 function Juegos() {
+  // Estado para el juego seleccionado (debe ir antes de cualquier uso)
+  const [selectedGame, setSelectedGame] = useState(null);
+  // Estado para mostrar el trailer en el popup
+  const [showTrailer, setShowTrailer] = useState(false);
+
+  // Devuelve la URL embebida para el trailer (YouTube o directo)
+  function getTrailerEmbedUrl(trailerUrl) {
+    if (!trailerUrl) return "";
+    // Si es un enlace de YouTube
+    const ytMatch = trailerUrl.match(/(?:youtu.be\/|youtube.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/);
+    if (ytMatch) {
+      return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+    }
+    // Si es un enlace directo a video mp4/webm
+    if (trailerUrl.match(/\.(mp4|webm)$/)) {
+      return trailerUrl;
+    }
+    // Si es otro tipo de video, intentar usar como src
+    return trailerUrl;
+  }
+
+  // Cierra el trailer al cerrar el popup
+  useEffect(() => {
+    if (!selectedGame) setShowTrailer(false);
+  }, [selectedGame]);
   // Estado principal: lista de todos los juegos
   const [games, setGames] = useState([]);
   // Listas separadas por estado del juego
@@ -33,8 +57,6 @@ function Juegos() {
   const [currentPage, setCurrentPage] = useState(1);
   // Número máximo de juegos por página
   const gamesPerPage = 18;
-  // Juego seleccionado para mostrar en el popup
-  const [selectedGame, setSelectedGame] = useState(null);
   // Estado para alternar entre Planeo Jugar y Recomendaciones
   const [planeoView, setPlaneoView] = useState("planeo jugar"); // "planeo jugar" o "recomendado"  // Estado para mapeo de usuarios (ID -> nombre)
   const [users, setUsers] = useState([]);
@@ -56,175 +78,6 @@ function Juegos() {
   useEffect(() => {
     console.log("isDeveloperMode:", isDeveloperMode);
   }, [isDeveloperMode]);
-
-  // Escuchar cambios en el localStorage para el modo desarrollador
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const saved = localStorage.getItem("developerMode");
-      setIsDeveloperMode(saved === "true");
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
-
-  // Resetea el startIndex al cambiar de vista para evitar desbordes
-  useEffect(() => {
-    console.log(
-      "planeoView changed to:",
-      planeoView,
-      "resetting startIndex to 0"
-    );
-    setStartIndex(0);
-  }, [planeoView]);
-
-  // Debug: Log when startIndex changes
-  useEffect(() => {
-    console.log(
-      "startIndex changed to:",
-      startIndex,
-      "planeoView:",
-      planeoView
-    );
-  }, [startIndex]);
-
-  // Maneja el click en un juego para mostrar el popup
-  const handleGameClick = (game) => {
-    setSelectedGame(game);
-  };
-
-  // Cierra el popup de detalles
-  const closePopup = () => {
-    setSelectedGame(null);
-  };
-  // Normaliza cadenas para búsquedas (elimina acentos y caracteres especiales)
-  const normalizeString = (str) => {
-    return str
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-zA-Z0-9]/g, "")
-      .toLowerCase();
-  }; // Obtiene el nombre de usuario a partir del ID desde UserData
-  const getUserName = (userId) => {
-    if (!userId) return "";
-
-    // Normalizar el ID para comparación (convertir a string)
-    const normalizedUserId = String(userId).trim();
-
-    // Buscar en los datos completos de UserData primero
-    const userFromUserData = userDataComplete.find(
-      (user) => String(user.id).trim() === normalizedUserId
-    );
-
-    if (userFromUserData && userFromUserData.nombre) {
-      return userFromUserData.nombre;
-    }
-
-    // Fallback al mapeo de usuarios del sheet de juegos
-    const user = users.find(([id]) => String(id).trim() === normalizedUserId);
-    const userName = user ? user[1] : normalizedUserId;
-
-    return userName; // Si no encuentra el nombre, muestra el ID
-  };
-  // Genera un avatar por defecto con las iniciales del usuario
-  const generateDefaultAvatar = (initials, userId) => {
-    // Generar un color basado en el user ID para que sea consistente
-    const hash = userId.split("").reduce((acc, char) => {
-      return char.charCodeAt(0) + ((acc << 5) - acc);
-    }, 0);
-    const hue = Math.abs(hash) % 360;
-
-    // Crear un avatar simple con SVG
-    const svg = `
-      <svg width="28" height="28" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="14" cy="14" r="14" fill="hsl(${hue}, 60%, 60%)"/>
-        <text x="14" y="19" font-family="Arial, sans-serif" font-size="11" 
-              fill="white" text-anchor="middle" font-weight="bold">${initials}</text>
-      </svg>
-    `;
-
-    return `data:image/svg+xml;base64,${btoa(svg)}`;
-  }; // Obtiene el avatar de usuario a partir del ID desde UserData
-  const getUserAvatar = (userId) => {
-    if (!userId) return null;
-
-    // Normalizar el ID para comparación (convertir a string)
-    const normalizedUserId = String(userId).trim();
-
-    // Buscar en los datos completos de UserData primero
-    const userFromUserData = userDataComplete.find(
-      (user) => String(user.id).trim() === normalizedUserId
-    );
-
-    if (userFromUserData && userFromUserData.pfp) {
-      return userFromUserData.pfp;
-    }
-
-    // Fallback: intentar desde datos de Twitch en localStorage
-    try {
-      const twitchUser = JSON.parse(localStorage.getItem("twitchUser") || "{}");
-      if (
-        String(twitchUser.id).trim() === normalizedUserId &&
-        twitchUser.image
-      ) {
-        return twitchUser.image;
-      }
-    } catch (error) {
-      // Silently handle localStorage errors
-    }
-
-    // Fallback: intentar desde cache de userData de otros componentes
-    try {
-      const cachedUserData = localStorage.getItem("userData");
-      if (cachedUserData) {
-        const userData = JSON.parse(cachedUserData);
-        const matchingUser = userData.find(
-          (user) => String(user.id).trim() === normalizedUserId
-        );
-        if (matchingUser) {
-          // Intentar diferentes propiedades para el avatar
-          const avatar =
-            matchingUser.pfp ||
-            matchingUser.avatar ||
-            matchingUser.image ||
-            matchingUser.profilePicture;
-          if (avatar) {
-            return avatar;
-          }
-        }
-      }
-    } catch (error) {
-      // Silently handle localStorage errors
-    }
-
-    // Generar avatar por defecto usando las iniciales del nombre de usuario
-    const userName = getUserName(normalizedUserId);
-    if (userName && userName !== normalizedUserId) {
-      // Si tenemos un nombre real, generar avatar con iniciales
-      const initials = userName
-        .split(" ")
-        .map((word) => word[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-      const avatarUrl = generateDefaultAvatar(initials, normalizedUserId);
-      return avatarUrl;
-    }
-
-    // Si no se encuentra avatar ni nombre, retornar null
-    return null;
-  };
-
-  /**
-   * SISTEMA DE MAPEO DE USUARIOS:
-   * - Los IDs de usuario de Twitch se almacenan en la columna P del Google Sheet
-   * - Se crea un mapeo [userId, userName] para convertir IDs a nombres legibles
-   * - Se intenta obtener nombres desde:
-   *   1. Usuario de Twitch logueado actualmente
-   *   2. Cache de userData de otros componentes
-   *   3. Como fallback, se muestra el ID directamente
-   * - Al hacer nuevas recomendaciones, se actualiza el mapeo automáticamente
-   */
 
   // Obtiene los juegos a mostrar en la página actual de "pasado"
   const paginatedGames = filteredGames.slice(
@@ -263,6 +116,50 @@ function Juegos() {
     setFilteredGames(filtered);
     setCurrentPage(1);
   }, [searchQuery, pasado]); // Carrusel infinito y escalado para Planeo Jugar
+
+  // --- FUNCIONES FALTANTES ---
+  // Normaliza una cadena para búsquedas insensibles a mayúsculas, tildes, etc.
+  function normalizeString(str) {
+    if (!str) return "";
+    return str
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .replace(/[^\w\s]/gi, "")
+      .trim();
+  }
+
+  // Devuelve el nombre de usuario a partir del ID o string
+  function getUserName(userId) {
+    if (!userId) return "";
+    // Buscar en userDataComplete si existe
+    const user = userDataComplete.find(
+      (u) => u.id === userId || u.nombre === userId
+    );
+    return user ? user.nombre : userId;
+  }
+
+  // Devuelve el avatar del usuario a partir del ID o string
+  function getUserAvatar(userId) {
+    if (!userId) return "";
+    const user = userDataComplete.find(
+      (u) => u.id === userId || u.nombre === userId
+    );
+    return user && user.avatar ? user.avatar : null;
+  }
+
+  // Maneja el click en un juego para mostrar el popup
+  function handleGameClick(game) {
+    setSelectedGame(game);
+    setShowEditPopup(false);
+  }
+
+  // Cierra el popup de detalles o edición
+  function closePopup() {
+    setSelectedGame(null);
+    setShowEditPopup(false);
+    setEditingGame(null);
+  }
   const CARRUSEL_SIZE = 9;
   const CENTER_INDEX = Math.floor(CARRUSEL_SIZE / 2);
   // Hook para detectar el tamaño de la pantalla
@@ -500,23 +397,24 @@ function Juegos() {
 
         const parsedData = rows.slice(1).map((row) => {
           const [
-            nombre,
-            estado,
-            youtube,
-            nota,
-            horas,
-            plataforma,
-            fecha,
-            caratula,
-            fechaLanzamiento,
-            géneros,
-            plataformas,
-            resumen,
-            desarrolladores,
-            publicadores,
-            igdbId,
-            usuario,
-            comentario,
+            nombre,         // 0
+            estado,         // 1
+            youtube,        // 2
+            trailer,        // 3
+            nota,           // 4
+            horas,          // 5
+            plataforma,     // 6
+            fecha,          // 7
+            caratula,       // 8
+            fechaLanzamiento, // 9
+            géneros,        // 10
+            plataformas,    // 11
+            resumen,        // 12
+            desarrolladores,// 13
+            publicadores,   // 14
+            igdbId,         // 15
+            usuario,        // 16
+            comentario      // 17
           ] = row.split(",");
 
           // Construir mapeo de usuarios
@@ -533,6 +431,7 @@ function Juegos() {
             nombre: nombre?.trim(),
             estado: estado?.trim().toLowerCase(),
             youtube: youtube?.trim(),
+            trailer: trailer?.trim(),
             nota: nota?.trim(),
             horas: horas?.trim(),
             plataforma: plataforma?.trim(),
@@ -615,29 +514,31 @@ function Juegos() {
 
         const currentData = rows.slice(1).map((row) => {
           const [
-            nombre,
-            estado,
-            youtube,
-            nota,
-            horas,
-            plataforma,
-            fecha,
-            caratula,
-            fechaLanzamiento,
-            géneros,
-            plataformas,
-            resumen,
-            desarrolladores,
-            publicadores,
-            igdbId,
-            usuario,
-            comentario,
+            nombre,         // 0
+            estado,         // 1
+            youtube,        // 2
+            trailer,        // 3
+            nota,           // 4
+            horas,          // 5
+            plataforma,     // 6
+            fecha,          // 7
+            caratula,       // 8
+            fechaLanzamiento, // 9
+            géneros,        // 10
+            plataformas,    // 11
+            resumen,        // 12
+            desarrolladores,// 13
+            publicadores,   // 14
+            igdbId,         // 15
+            usuario,        // 16
+            comentario      // 17
           ] = row.split(",");
 
           return {
             nombre: nombre?.trim(),
             estado: estado?.trim().toLowerCase(),
             youtube: youtube?.trim(),
+            trailer: trailer?.trim(),
             nota: nota?.trim(),
             horas: horas?.trim(),
             plataforma: plataforma?.trim(),
@@ -1033,18 +934,19 @@ function Juegos() {
   // Calcular fechas mínima y máxima de los juegos jugados
   useEffect(() => {
     if (pasado.length === 0) return;
-    // Encuentra la fecha más antigua y la más reciente
+    // Solo fechas válidas DD/MM/YYYY
     const fechas = pasado
       .map((g) => g.fecha)
-      .filter(Boolean)
+      .filter((fecha) => fecha && /^\d{2}\/\d{2}\/\d{4}$/.test(fecha))
       .map((f) => {
         const [d, m, y] = f.split("/").map(Number);
         return new Date(y, m - 1, d);
       })
+      .filter((date) => !isNaN(date.getTime()))
       .sort((a, b) => a - b);
     if (fechas.length > 0) {
       const min = fechas[0];
-      const max = new Date();
+      const max = fechas[fechas.length - 1];
       setDateFrom(min.toISOString().slice(0, 10));
       setDateTo(max.toISOString().slice(0, 10));
     }
@@ -1076,6 +978,7 @@ function Juegos() {
     horas: "",
     fecha: "",
     youtube: "",
+    trailer: "",
     caratula: "", // Campo para la carátula
     plataforma: "",
   });
@@ -1288,6 +1191,7 @@ function Juegos() {
       ...prev,
       caratula: game.coverUrl || "",
       plataforma: selectedPlatform,
+      trailer: game.trailer || "",
     }));
   };
 
@@ -2461,10 +2365,57 @@ function Juegos() {
             </button>
             <div className="popup-body">
               <div className="popup-image">
-                <img
-                  src={selectedGame.caratula.replace("t_cover_big", "t_1080p")}
-                  alt={`Carátula de ${selectedGame.nombre}`}
-                />
+                <div className="popup-game-cover">
+                  {showTrailer ? (
+                    // Contenedor del trailer a pantalla completa
+                    <div className="popup-trailer-fullscreen">
+                      <iframe
+                        width="100%"
+                        height="100%"
+                        src={getTrailerEmbedUrl(selectedGame.trailer)}
+                        title="Trailer"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      ></iframe>
+                      <button
+                        className="popup-close-trailer-fullscreen"
+                        onClick={() => setShowTrailer(false)}
+                        aria-label="Cerrar trailer"
+                      >
+                        ✖
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <img
+                        src={selectedGame.caratula.replace("t_cover_big", "t_1080p")}
+                        alt={`Carátula de ${selectedGame.nombre}`}
+                        style={{ cursor: selectedGame.trailer ? 'pointer' : 'default' }}
+                        onClick={() => selectedGame.trailer && setShowTrailer(true)}
+                      />
+                      {selectedGame.trailer && (
+                        <button
+                          className="popup-play-button"
+                          tabIndex={0}
+                          aria-label="Ver trailer"
+                          onClick={() => setShowTrailer(true)}
+                        >
+                          <svg
+                            width="56"
+                            height="56"
+                            viewBox="0 0 56 56"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle cx="28" cy="28" r="28" fill="rgba(0,0,0,0.6)" />
+                            <polygon points="22,18 40,28 22,38" fill="#fff" />
+                          </svg>
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
               <div className="popup-info">
                 <h2>{selectedGame.nombre}</h2>
@@ -3227,7 +3178,7 @@ function Juegos() {
                     </div>
                   </div>
 
-                  {/* Tercera fila: YouTube y Carátula */}
+                  {/* Tercera fila: YouTube, Trailer y Carátula */}
                   <div className="edit-form-row">
                     <div className="edit-form-field">
                       <label>YouTube</label>
@@ -3239,6 +3190,17 @@ function Juegos() {
                           handleAddGameFormChange("youtube", e.target.value)
                         }
                         placeholder="https://youtube.com/..."
+                      />
+                    </div>
+                    <div className="edit-form-field">
+                      <label>Trailer</label>
+                      <input
+                        type="url"
+                        className="edit-input"
+                        value={addGameFormData.trailer}
+                        readOnly
+                        placeholder="https://youtube.com/..."
+                        style={{ background: addGameFormData.trailer ? '#e9ecef' : undefined }}
                       />
                     </div>
                     <div className="edit-form-field">
