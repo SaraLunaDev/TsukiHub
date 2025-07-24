@@ -119,13 +119,15 @@ export default async function handler(req, res) {
       requestBody: {
         values: [
           [
-            cleanTextForCSV(game.name || game.title || ""),
-            "Recomendado",
-            "",
-            "",
-            "",
-            "",
-            "",
+            cleanTextForCSV(game.name || game.title || ""), // Nombre (A)
+            "Recomendado", // Estado (B)
+            "", // Youtube (C)
+            game.trailer || "", // Trailer (D)
+            "", // Nota (E)
+            "", // Horas (F)
+            "", // Plataforma (G)
+            "", // Fecha (H) - se deja vacío para recomendados
+            // Carátula (I)
             game.cover && game.cover.url
               ? game.cover.url.startsWith("http")
                 ? game.cover.url.replace("t_thumb", "t_cover_big")
@@ -133,22 +135,27 @@ export default async function handler(req, res) {
               : game.cover_url
               ? game.cover_url.replace("t_thumb", "t_cover_big")
               : "",
+            // Fecha de Lanzamiento (J)
             game.first_release_date
               ? new Date(game.first_release_date * 1000)
                   .toISOString()
                   .split("T")[0]
               : game.release_date || "",
+            // Géneros (K)
             game.genres && Array.isArray(game.genres)
               ? game.genres
                   .map((g) => cleanTextForCSV(g.name).replace(/-%-/g, " "))
                   .join("-%-")
               : cleanTextForCSV(game.genres_string || ""),
+            // Plataformas (L)
             game.platforms && Array.isArray(game.platforms)
               ? game.platforms
                   .map((p) => cleanTextForCSV(p.name).replace(/-%-/g, " "))
                   .join("-%-")
               : cleanTextForCSV(game.platforms_string || ""),
+            // Resumen (M)
             cleanTextForCSV(game.summary || game.description || ""),
+            // Desarrolladores (N)
             game.involved_companies && Array.isArray(game.involved_companies)
               ? game.involved_companies.some((c) => c.developer)
                 ? game.involved_companies
@@ -166,6 +173,7 @@ export default async function handler(req, res) {
                     .filter(Boolean)
                     .join("-%-")
               : cleanTextForCSV(game.developers_string || ""),
+            // Publicadores (O)
             game.involved_companies && Array.isArray(game.involved_companies)
               ? game.involved_companies.some((c) => c.publisher)
                 ? game.involved_companies
@@ -183,8 +191,11 @@ export default async function handler(req, res) {
                     .filter(Boolean)
                     .join("-%-")
               : cleanTextForCSV(game.publishers_string || ""),
+            // IGDBID (P)
             game.id || game.igdb_id || "",
+            // Usuario (Q)
             user,
+            // Comentario (R)
             cleanTextForCSV(comment || ""), // Añadir comentario limpio como nueva columna
           ],
         ],

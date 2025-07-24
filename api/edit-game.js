@@ -165,12 +165,11 @@ export default async function handler(req, res) {
       const rowFecha = row[6]?.trim() || "";
       const rowUsuario = row[15]?.trim() || "";
 
-      // Verificar si coinciden todos los criterios identificadores
-      const nameMatch = rowName === originalIdentifiers.nombre?.trim();
-      const estadoMatch =
-        rowEstado.toLowerCase() === originalIdentifiers.estado?.toLowerCase();
-      const fechaMatch = rowFecha === originalIdentifiers.fecha?.trim();
-      const usuarioMatch = rowUsuario === originalIdentifiers.usuario?.trim();
+      // Verificar si coinciden los criterios identificadores, ignorando los vacíos
+      const nameMatch = rowName === (originalIdentifiers.nombre?.trim() || "");
+      const estadoMatch = rowEstado.toLowerCase() === (originalIdentifiers.estado?.toLowerCase() || "");
+      const fechaMatch = !originalIdentifiers.fecha || rowFecha === originalIdentifiers.fecha?.trim();
+      const usuarioMatch = !originalIdentifiers.usuario || rowUsuario === originalIdentifiers.usuario?.trim();
 
       console.log(`[edit-game] Row ${i + 1} comparison:`, {
         rowName,
@@ -251,7 +250,7 @@ export default async function handler(req, res) {
     // Actualizar la fila específica
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
-      range: `Juegos!A${targetRowIndex}:Q${targetRowIndex}`,
+      range: `Juegos!A${targetRowIndex}:R${targetRowIndex}`,
       valueInputOption: "USER_ENTERED",
       requestBody: {
         values: [updatedRow],
