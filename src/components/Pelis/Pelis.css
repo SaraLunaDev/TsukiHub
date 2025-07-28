@@ -1,3 +1,196 @@
+/* Estilo para el textarea de recomendación (igual que en juegos) */
+.popup-comment-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--text-2);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text);
+  background-color: var(--edit-text);
+  resize: vertical;
+  min-height: 60px;
+  max-height: 120px;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+/* Centrado y espaciadores para el header del carrusel Planeo Ver, igual que juegos */
+.category-planeo-ver {
+  flex: 1;
+}
+
+.category-planeo-ver .category-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+}
+
+.category-planeo-ver .category-header .header-spacer {
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
+  flex-shrink: 0;
+  display: block;
+  height: 1px;
+}
+
+.category-planeo-ver .category-header .header-juegos {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  position: relative;
+}
+
+.category-planeo-ver .planeo-ver-carrusel-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  position: relative;
+  padding-bottom: 20px;
+}
+
+.category-planeo-ver .planeo-ver-carrusel-list {
+  position: relative;
+  width: 900px;
+  height: 280px;
+  margin: 0 auto;
+  overflow: visible;
+  display: block;
+  padding-right: 12px;
+}
+
+@media (max-width: 1100px) {
+  .category-planeo-ver .planeo-ver-carrusel-list {
+    width: 780px;
+  }
+}
+
+@media (max-width: 800px) {
+  .category-planeo-ver .planeo-ver-carrusel-list {
+    width: 660px;
+  }
+}
+
+/* Igualar ancho de Planeo Ver al de Planeo Jugar en Juegos */
+.category-planeo-ver {
+  flex: 1;
+}
+
+/* Igualar ancho y alto mínimos de Próximamente al de Jugando en Juegos */
+.category-proximamente {
+  flex: 0 0 auto;
+  min-width: 240px;
+  min-height: 340px;
+}
+
+/* --- Carrusel infinito Planeo Ver (Pelis) --- */
+.planeo-ver-carrusel-container {
+  width: 900px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.planeo-ver-carrusel-list {
+  position: relative;
+  width: 900px;
+  height: 250px;
+  margin: 0 12px;
+  padding: 0;
+  list-style: none;
+  overflow: visible;
+  display: block;
+}
+
+.planeo-ver-carrusel-list li {
+  position: absolute;
+  background: var(--clear);
+  border-radius: 10px;
+  box-shadow: var(--box-shadow);
+  padding: 6px;
+  text-align: center;
+  overflow: visible;
+  width: 140px;
+  height: 250px;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.4s ease-out;
+  will-change: transform, z-index, filter;
+}
+
+.planeo-ver-carrusel-list li.carrusel-center {
+  z-index: 100;
+}
+
+.planeo-ver-carrusel-list li.carrusel-distant {
+  filter: brightness(0.92);
+}
+
+@media (max-width: 1100px) {
+
+  .planeo-ver-carrusel-container,
+  .planeo-ver-carrusel-list {
+    width: 780px;
+  }
+
+  .planeo-ver-carrusel-list li {
+    width: 120px;
+  }
+}
+
+@media (max-width: 800px) {
+
+  .planeo-ver-carrusel-container,
+  .planeo-ver-carrusel-list {
+    width: 660px;
+  }
+
+  .planeo-ver-carrusel-list li {
+    width: 100px;
+  }
+}
+
+.planeo-ver-carrusel-list li .cover-gradient {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  z-index: 10 !important;
+  pointer-events: none;
+  opacity: 1 !important;
+  border-radius: 8px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.0) 40%);
+  transition: opacity 0.3s ease;
+}
+
+.planeo-ver-carrusel-list li:hover .cover-gradient {
+  opacity: 1 !important;
+}
+
+.planeo-ver-carrusel-list li .distance-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  z-index: 5;
+  pointer-events: none;
+  border-radius: 8px;
+  background-color: var(--dark-2);
+  transition: opacity 0.4s ease-out;
+}
+
+.planeo-ver-carrusel-list li.carrusel-center .distance-overlay {
+  opacity: 0;
+}
+
 /* ===== PELÍCULAS Y SERIES - COPIANDO EXACTAMENTE EL ESTILO DE JUEGOS ===== */
 
 /* Contenedor principal */

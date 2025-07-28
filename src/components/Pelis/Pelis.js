@@ -2,6 +2,31 @@ import React, { useState, useEffect } from "react";
 import "./Pelis.css";
 
 function Pelis() {
+  // --- UserData para mostrar nombre de recomendador ---
+  const [userDataComplete, setUserDataComplete] = useState([]);
+  useEffect(() => {
+    const userDataSheetUrl = process.env.REACT_APP_USERDATA_SHEET_URL;
+    if (!userDataSheetUrl) return;
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(userDataSheetUrl);
+        const text = await response.text();
+        const rows = text.split("\n").slice(1).filter(Boolean);
+        const users = rows.map(row => {
+          const cols = row.split(",");
+          return { id: cols[0]?.trim(), nombre: cols[1]?.trim() };
+        });
+        setUserDataComplete(users);
+      } catch {}
+    };
+    fetchUserData();
+  }, []);
+
+  function getUserName(userId) {
+    if (!userId) return "";
+    const user = userDataComplete.find(u => u.id === userId);
+    return user ? user.nombre : userId;
+  }
   // Estados principales para películas/series
   const [movies, setMovies] = useState([]);
   const [watchedMovies, setWatchedMovies] = useState([]);
@@ -43,6 +68,118 @@ function Pelis() {
     const saved = localStorage.getItem("developerMode");
     return saved === "true";
   });
+
+  // --- Carrusel de Planeo Ver ---
+  const [planeoStartIndex, setPlaneoStartIndex] = useState(0);
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+  useEffect(() => {
+    const handleResize = () => setScreenWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Configuración responsive del carrusel
+  const getCarruselConfig = () => {
+    if (screenWidth <= 800) {
+      return { containerWidth: 660, itemWidth: 100, edgeMargin: 0 };
+    } else if (screenWidth <= 1100) {
+      return { containerWidth: 780, itemWidth: 120, edgeMargin: 0 };
+    } else {
+      return { containerWidth: 900, itemWidth: 140, edgeMargin: 0 };
+    }
+  };
+
+
+  // Estado para el pivote del carrusel
+  const [planeoView, setPlaneoView] = useState("planeo ver");
+
+  // Películas con estado "planeo ver"
+  const planeoVerMovies = movies.filter(
+    (m) => m.estado && m.estado.trim().toLowerCase() === "planeo ver"
+  );
+  // Películas con estado "recomendado"
+  const recomendadoMovies = movies.filter(
+    (m) => m.estado && m.estado.trim().toLowerCase() === "recomendado"
+  );
+
+  // Constantes del carrusel
+  const CARRUSEL_SIZE = 9;
+  const CENTER_INDEX = Math.floor(CARRUSEL_SIZE / 2);
+
+  // Calcula los índices de los elementos a mostrar en el carrusel
+  const getCarruselIndices = () => {
+    if (planeoVerMovies.length === 0) return [];
+    let indices = [];
+    let base = planeoStartIndex;
+    if (planeoVerMovies.length < CARRUSEL_SIZE) {
+      for (let i = 0; i < CARRUSEL_SIZE; i++) {
+        let idx = (base + i) % planeoVerMovies.length;
+        if (idx < 0) idx += planeoVerMovies.length;
+        indices.push(idx);
+      }
+    } else {
+      for (let i = 0; i < CARRUSEL_SIZE; i++) {
+        let idx = (base + i) % planeoVerMovies.length;
+        if (idx < 0) idx += planeoVerMovies.length;
+        indices.push(idx);
+      }
+    }
+    return indices;
+  };
+  const carruselIndices = getCarruselIndices();
+
+  // Calcula la posición de cada elemento
+  const calculateItemPosition = (index, containerWidth, itemWidth, edgeMargin) => {
+    if (CARRUSEL_SIZE === 1) {
+      return (containerWidth - itemWidth) / 2;
+    }
+    const totalAvailableWidth = containerWidth - 2 * edgeMargin - itemWidth;
+    const baseSpacing = totalAvailableWidth / (CARRUSEL_SIZE - 1);
+    if (index === 0) {
+      return edgeMargin;
+    } else if (index === CARRUSEL_SIZE - 1) {
+      return containerWidth - edgeMargin - itemWidth;
+    } else {
+      const centerDistance = Math.abs(index - CENTER_INDEX);
+      const maxCenterDistance = Math.floor(CENTER_INDEX);
+      const normalizedDistance = centerDistance / maxCenterDistance;
+      const spacingFactor = 1.8 - normalizedDistance * 0.8;
+      const uniformPosition = edgeMargin + index * baseSpacing;
+      let adjustment = 0;
+      for (let k = 1; k <= Math.abs(index - CENTER_INDEX); k++) {
+        const stepDistance = k / maxCenterDistance;
+        const stepFactor = 1.8 - stepDistance * 0.8;
+        const extraSpace = (stepFactor - 1.0) * baseSpacing * 0.2;
+        if (index < CENTER_INDEX) {
+          adjustment -= extraSpace;
+        } else {
+          adjustment += extraSpace;
+        }
+      }
+      let position = uniformPosition + adjustment;
+      // Superposición para carruseles grandes
+      if (CARRUSEL_SIZE > 7) {
+        const overlapFactor = Math.min((CARRUSEL_SIZE - 7) * 0.08, 0.4);
+        const overlapAmount = (centerDistance / maxCenterDistance) * itemWidth * overlapFactor;
+        if (index < CENTER_INDEX) {
+          position += overlapAmount;
+        } else if (index > CENTER_INDEX) {
+          position -= overlapAmount;
+        }
+      }
+      return position;
+    }
+  };
+
+  // Navegación del carrusel
+  const handleNext = () => {
+    if (!planeoVerMovies.length) return;
+    setPlaneoStartIndex((prev) => (prev + 1) % planeoVerMovies.length);
+  };
+  const handlePrevious = () => {
+    if (!planeoVerMovies.length) return;
+    setPlaneoStartIndex((prev) => (prev - 1 + planeoVerMovies.length) % planeoVerMovies.length);
+  };
   // URL del Google Sheet (debe estar en .env)
   const sheetUrl = process.env.REACT_APP_PELIS_SHEET_URL;
 
@@ -219,7 +356,7 @@ function Pelis() {
               duracion,
               fecha_salida,
               director,
-              generos, // Nueva columna M en checkForUpdatesInBackground
+              generos, // Nueva columna M en handleAddMovie
               sinopsis,
               nota,
               usuario,
@@ -827,8 +964,316 @@ function Pelis() {
     return url && extractYouTubeID(url) !== null;
   };
 
+
+  // Estado para el carrusel de Próximamente (debe ir fuera del render)
+  const [proxStartIndex, setProxStartIndex] = React.useState(0);
+
+  // Películas con estado "proximamente"
+  const proximamenteMovies = movies.filter(
+    (m) => m.estado && m.estado.trim().toLowerCase() === "proximamente"
+  );
+
+  // Carrusel de Próximamente
+  const proxCarruselIndices = (() => {
+    if (proximamenteMovies.length === 0) return [];
+    let indices = [];
+    let base = proxStartIndex;
+    if (proximamenteMovies.length < CARRUSEL_SIZE) {
+      for (let i = 0; i < CARRUSEL_SIZE; i++) {
+        let idx = (base + i) % proximamenteMovies.length;
+        if (idx < 0) idx += proximamenteMovies.length;
+        indices.push(idx);
+      }
+    } else {
+      for (let i = 0; i < CARRUSEL_SIZE; i++) {
+        let idx = (base + i) % proximamenteMovies.length;
+        if (idx < 0) idx += proximamenteMovies.length;
+        indices.push(idx);
+      }
+    }
+    return indices;
+  })();
+  const handleProxNext = () => {
+    if (!proximamenteMovies.length) return;
+    setProxStartIndex((prev) => (prev + 1) % proximamenteMovies.length);
+  };
+  const handleProxPrevious = () => {
+    if (!proximamenteMovies.length) return;
+    setProxStartIndex((prev) => (prev - 1 + proximamenteMovies.length) % proximamenteMovies.length);
+  };
+
+  // Estado para el popup de recomendar
+  const [showRecommendPopup, setShowRecommendPopup] = useState(false);
+  const [recommendSearch, setRecommendSearch] = useState("");
+  const [recommendResults, setRecommendResults] = useState([]);
+  const [selectedRecommend, setSelectedRecommend] = useState(null);
+  const [recommendComment, setRecommendComment] = useState("");
+  const [recommendStatus, setRecommendStatus] = useState("");
+
+  // Estado para animación de puntos en 'Cargando...'
+  const [loadingDots, setLoadingDots] = useState(0);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Animación de puntos suspensivos
+  useEffect(() => {
+    if (!isSearching) return;
+    const interval = setInterval(() => {
+      setLoadingDots((dots) => (dots + 1) % 4);
+    }, 400);
+    return () => clearInterval(interval);
+  }, [isSearching]);
+
+  // Buscar pelis/series en TMDB para recomendar
+  useEffect(() => {
+    if (!showRecommendPopup || !recommendSearch.trim()) {
+      setRecommendResults([]);
+      setIsSearching(false);
+      return;
+    }
+    setIsSearching(true);
+    const searchTMDB = async () => {
+      try {
+        const response = await fetch("/api/tmdb-search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: recommendSearch, type: "multi" }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setRecommendResults(data.results || []);
+        } else {
+          setRecommendResults([]);
+        }
+      } catch {
+        setRecommendResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+    const timeoutId = setTimeout(searchTMDB, 300);
+    return () => clearTimeout(timeoutId);
+  }, [recommendSearch, showRecommendPopup]);
+
+  // Validar usuario antes de recomendar
+  const isUserValid = (() => {
+    let twitchUser = null;
+    try {
+      twitchUser = JSON.parse(localStorage.getItem("twitchUser"));
+    } catch {}
+    return twitchUser && twitchUser.id && twitchUser.name;
+  })();
+
+  // Manejar submit de recomendación
+  const handleRecommend = async () => {
+    if (!selectedRecommend || !recommendComment.trim() || !isUserValid) {
+      setRecommendStatus("error");
+      return;
+    }
+    let twitchUser = null;
+    try {
+      twitchUser = JSON.parse(localStorage.getItem("twitchUser"));
+    } catch {}
+    if (!twitchUser || !twitchUser.id) {
+      setRecommendStatus("error");
+      return;
+    }
+    setRecommendStatus("adding");
+    try {
+      const response = await fetch("/api/add-movie-recommendation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          movie: selectedRecommend,
+          userId: twitchUser.id,
+          userName: twitchUser.name,
+          comentario: recommendComment,
+        }),
+      });
+      if (response.ok) {
+        setRecommendStatus("success");
+        setTimeout(() => {
+          setShowRecommendPopup(false);
+          setSelectedRecommend(null);
+          setRecommendComment("");
+          setRecommendStatus("");
+          setRecommendSearch("");
+        }, 1200);
+      } else {
+        setRecommendStatus("error");
+      }
+    } catch {
+      setRecommendStatus("error");
+    }
+  };
+
   return (
     <div className="pelis-container">
+      <div className="categories-row">
+        <section className="category-proximamente">
+          <h2 className="header-juegos">Próximamente</h2>
+          <ul>
+            {proximamenteMovies.map((movie, index) => (
+              <li key={index}>
+                <div className="cover-wrapper">
+                  {movie.caratula && (
+                    <>
+                      <img
+                        src={movie.caratula}
+                        alt={`Carátula de ${movie.nombre}`}
+                        className="game-cover"
+                        onError={e => {
+                          e.target.src = "/static/resources/default_cover.png";
+                        }}
+                      />
+                      <div className="cover-gradient"></div>
+                    </>
+                  )}
+                </div>
+                <strong
+                  onClick={() => handleMovieClick(movie)}
+                  style={{ cursor: "pointer" }}
+                >
+                  {movie.nombre}
+                </strong>
+              </li>
+            ))}
+          </ul>
+        </section>
+        <section className="category-planeo-ver">
+          <div className="category-header">
+            <div className="header-spacer" />
+            <h2
+              className="header-juegos toggle-header-btn"
+              style={{ flex: 1, textAlign: "center", margin: 0, cursor: "pointer", userSelect: "none" }}
+              onClick={() => setPlaneoView((prev) => prev === "planeo ver" ? "recomendado" : "planeo ver")}
+              title={planeoView === "planeo ver" ? "Ver Recomendaciones" : "Ver Planeo Ver"}
+            >
+              {planeoView === "planeo ver" ? "Planeo Ver" : "Recomendaciones"}
+            </h2>
+            {planeoView === "recomendado" ? (() => {
+              let twitchUser = null;
+              try {
+                twitchUser = JSON.parse(localStorage.getItem("twitchUser"));
+              } catch {}
+              if (twitchUser && twitchUser.name) {
+                return (
+                  <button
+                    className="add-recommendation-button"
+                    style={{ width: 140, minWidth: 140, maxWidth: 140 }}
+                    onClick={() => setShowRecommendPopup(true)}
+                  >
+                    + Recomendar
+                  </button>
+                );
+              } else {
+                // Espaciador igual al ancho del botón
+                return <div className="header-spacer" style={{ width: 140, minWidth: 140, maxWidth: 140 }} />;
+              }
+            })() : <div className="header-spacer" style={{ width: 140, minWidth: 140, maxWidth: 140 }} />}
+          </div>
+          <div className="planeo-ver-carrusel-container">
+            <button
+              onClick={handlePrevious}
+              className="arrow-button"
+              aria-label="Anterior"
+              style={{ position: "relative", zIndex: 2 }}
+            >
+              ◀︎
+            </button>
+            <ul className="planeo-ver-carrusel-list">
+              {(planeoView === "planeo ver"
+                ? carruselIndices
+                : (() => {
+                    // Carrusel para recomendaciones
+                    const recLength = recomendadoMovies.length;
+                    let indices = [];
+                    let base = planeoStartIndex;
+                    for (let i = 0; i < CARRUSEL_SIZE; i++) {
+                      if (recLength === 0) continue;
+                      let idx = (base + i) % recLength;
+                      if (idx < 0) idx += recLength;
+                      indices.push(idx);
+                    }
+                    return indices;
+                  })()
+              ).map((movieIdx, i) => {
+                const movie = planeoView === "planeo ver"
+                  ? planeoVerMovies.length > 0 ? planeoVerMovies[movieIdx % planeoVerMovies.length] : null
+                  : recomendadoMovies.length > 0 ? recomendadoMovies[movieIdx % recomendadoMovies.length] : null;
+                if (!movie) return null;
+                const distance = Math.abs(i - CENTER_INDEX);
+                const { containerWidth, itemWidth, edgeMargin } = getCarruselConfig();
+                const position = calculateItemPosition(i, containerWidth, itemWidth, edgeMargin);
+                const maxDistance = Math.floor(CENTER_INDEX);
+                const normalizedDistance = distance / maxDistance;
+                const easedDistance = Math.pow(normalizedDistance, 2);
+                let scale = 1.0 - easedDistance * 0.25;
+                const zIndex = CARRUSEL_SIZE - distance;
+                const distanceOpacity = distance === 0 ? 0 : Math.min((distance / maxDistance) * 0.5, 0.5);
+                const className = distance === 0 ? "carrusel-center" : "carrusel-distant";
+                return (
+                  <li
+                    key={movieIdx + "-" + i}
+                    className={className}
+                    style={{
+                      position: "absolute",
+                      left: `${position}px`,
+                      transform: `scale(calc(${scale} * var(--hover-scale, 1)))`,
+                      transformOrigin: "center center",
+                      zIndex: zIndex,
+                      cursor: "pointer",
+                      width: `${itemWidth}px`,
+                      transition: "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
+                      "--scale": scale,
+                    }}
+                    onClick={() => handleMovieClick(movie)}
+                    onMouseEnter={e => {
+                      const el = e.currentTarget;
+                      if (el) {
+                        el.style.transform = `scale(calc(${scale} * 1.1))`;
+                        el.style.transition = "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)";
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      const el = e.currentTarget;
+                      if (el) {
+                        el.style.transform = `scale(calc(${scale}))`;
+                        el.style.transition = "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)";
+                      }
+                    }}
+                  >
+                    <div className="cover-wrapper">
+                      {movie.caratula && (
+                        <>
+                          <img
+                            src={movie.caratula}
+                            alt={`Carátula de ${movie.nombre}`}
+                            className="game-cover"
+                            onError={e => {
+                              e.target.src = "/static/resources/default_cover.png";
+                            }}
+                          />
+                          <div className="cover-gradient"></div>
+                        </>
+                      )}
+                    </div>
+                    <div className="distance-overlay" style={{ opacity: distanceOpacity }}></div>
+                    <strong>{movie.nombre}</strong>
+                  </li>
+                );
+              })}
+            </ul>
+            <button
+              onClick={handleNext}
+              className="arrow-button"
+              aria-label="Siguiente"
+              style={{ position: "relative", zIndex: 2 }}
+            >
+              ▶︎
+            </button>
+          </div>
+        </section>
+      </div>
       <div className="pelis-wrapper">
         <div className="div-section">
           <div className="filtros-section">
@@ -1410,6 +1855,7 @@ function Pelis() {
                           <option value="Planeo Ver">Planeo Ver</option>
                           <option value="Recomendado">Recomendado</option>
                           <option value="Visto">Visto</option>
+                          <option value="Proximamente">Próximamente</option>
                         </select>
                       </div>
 
@@ -1603,6 +2049,101 @@ function Pelis() {
                   }}
                 >
                   Guardar Cambios
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup Recomendar */}
+      {showRecommendPopup && (
+        <div className="add-movie-popup-overlay" onClick={() => setShowRecommendPopup(false)}>
+          <div className="add-movie-popup" onClick={e => e.stopPropagation()}>
+            <div className="add-movie-popup-header">
+              <h2>Recomendar Peli o Serie</h2>
+              <button className="close-popup-button" onClick={() => setShowRecommendPopup(false)}>×</button>
+            </div>
+            <div className="add-movie-popup-content">
+              <div className="search-section">
+                <input
+                  type="text"
+                  value={recommendSearch}
+                  onChange={e => {
+                    setRecommendSearch(e.target.value);
+                    setSelectedRecommend(null);
+                  }}
+                  placeholder="Buscar peli o serie en TMDB..."
+                />
+                {isSearching && (
+                  <div style={{ fontSize: 14, color: "var(--text-2)", marginTop: 4, minHeight: 20 }}>
+                    Cargando{'.'.repeat(loadingDots)}
+                  </div>
+                )}
+              </div>
+              {recommendResults.length > 0 && (
+                <div className="search-results">
+                  <h3>Selecciona una peli o serie:</h3>
+                  <div className="results-list">
+                    {recommendResults.slice(0, 10).map((content) => (
+                      <div
+                        key={content.id}
+                        className={`result-item${selectedRecommend && selectedRecommend.id === content.id ? " selected" : ""}`}
+                        onClick={() => setSelectedRecommend(content)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <img
+                          src={content.poster_path || "/static/resources/default_cover.png"}
+                          alt={content.title || content.name}
+                          onError={e => { e.target.src = "/static/resources/default_cover.png"; }}
+                        />
+                        <div className="result-info">
+                          <h4>{content.title || content.name}</h4>
+                          <p className="content-type">
+                            {content.media_type === "movie" ? "Película" : "Serie"}
+                            {content.release_date &&
+                              ` (${new Date(content.release_date).getFullYear()})`}
+                          </p>
+                          <p className="overview">
+                            {content.overview
+                              ? content.overview.substring(0, 150) + "..."
+                              : "Sin descripción"}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {selectedRecommend && (
+                <div className="form-section" style={{ marginTop: 16 }}>
+                  <textarea
+                    className="popup-comment-textarea"
+                    value={recommendComment}
+                    onChange={e => setRecommendComment(e.target.value)}
+                    rows={4}
+                    placeholder="Algo que me quieras decir sobre esta peli o serie..."
+                    disabled={!selectedRecommend}
+                  />
+                </div>
+              )}
+              <div className="popup-actions">
+                <button
+                  className={`add-recommendation-confirm${recommendStatus === "adding" ? " loading" : ""}${recommendStatus === "success" ? " success" : ""}${recommendStatus === "error" ? " error" : ""}`}
+                  onClick={handleRecommend}
+                                   disabled={
+                    recommendStatus === "adding" ||
+                    !recommendComment.trim() ||
+                    !selectedRecommend ||
+                    !isUserValid
+                  }
+                  title={!isUserValid ? "Debes iniciar sesión para recomendar" : undefined}
+                >
+                  {recommendStatus === "adding"
+                    ? "Recomendando..."
+                    : recommendStatus === "success"
+                    ? "¡Recomendado!"
+                    : "Recomendar"}
                 </button>
               </div>
             </div>
