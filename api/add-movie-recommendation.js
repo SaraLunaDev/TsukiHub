@@ -183,7 +183,7 @@ export default async function handler(req, res) {
     cleanTextForCSVMovies(generos), // Generos (M)
     cleanTextForCSVMovies(movie.overview || movie.sinopsis || movie.resumen || ""), // Sinopsis (N)
     movie.nota || "", // Nota (O)
-    userName || userId, // Usuario (P) (guardar nombre si está disponible)
+    userId, // Usuario (P)
     cleanTextForCSVMovies(comentario), // Comentario (Q)
     movie.nota_chat || "", // Nota_Chat (R)
   ];

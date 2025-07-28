@@ -1114,6 +1114,19 @@ function Pelis() {
           <ul>
             {proximamenteMovies.map((movie, index) => (
               <li key={index}>
+                {/* Botón de edición en modo desarrollador, igual que en category-pasado */}
+                {isDeveloperMode && (
+                  <button
+                    className="edit-game-button"
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleEditMovie(movie);
+                    }}
+                    title="Editar película/serie"
+                  >
+                    <span className="material-icons">✏️</span>
+                  </button>
+                )}
                 <div className="cover-wrapper">
                   {movie.caratula && (
                     <>
@@ -1173,7 +1186,11 @@ function Pelis() {
           </div>
           <div className="planeo-ver-carrusel-container">
             <button
-              onClick={handlePrevious}
+              onClick={() => {
+                const activeList = planeoView === "planeo ver" ? planeoVerMovies : recomendadoMovies;
+                if (!activeList.length) return;
+                setPlaneoStartIndex((prev) => (prev - 1 + activeList.length) % activeList.length);
+              }}
               className="arrow-button"
               aria-label="Anterior"
               style={{ position: "relative", zIndex: 2 }}
@@ -1226,7 +1243,20 @@ function Pelis() {
                       transition: "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
                       "--scale": scale,
                     }}
-                    onClick={() => handleMovieClick(movie)}
+                    onClick={() => {
+                      if (i !== CENTER_INDEX) {
+                        // Centrar el item clicado usando la lista activa
+                        setPlaneoStartIndex((prev) => {
+                          const activeList = planeoView === "planeo ver" ? planeoVerMovies : recomendadoMovies;
+                          const listLength = activeList.length;
+                          const diff = i - CENTER_INDEX;
+                          let newIndex = (prev + diff + listLength) % listLength;
+                          return newIndex;
+                        });
+                      } else {
+                        handleMovieClick(movie);
+                      }
+                    }}
                     onMouseEnter={e => {
                       const el = e.currentTarget;
                       if (el) {
@@ -1242,6 +1272,18 @@ function Pelis() {
                       }
                     }}
                   >
+                    {isDeveloperMode && (
+                      <button
+                        className="edit-game-button"
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleEditMovie(movie);
+                        }}
+                        title="Editar película/serie"
+                      >
+                        <span className="material-icons">✏️</span>
+                      </button>
+                    )}
                     <div className="cover-wrapper">
                       {movie.caratula && (
                         <>
@@ -1264,7 +1306,11 @@ function Pelis() {
               })}
             </ul>
             <button
-              onClick={handleNext}
+              onClick={() => {
+                const activeList = planeoView === "planeo ver" ? planeoVerMovies : recomendadoMovies;
+                if (!activeList.length) return;
+                setPlaneoStartIndex((prev) => (prev + 1) % activeList.length);
+              }}
               className="arrow-button"
               aria-label="Siguiente"
               style={{ position: "relative", zIndex: 2 }}
