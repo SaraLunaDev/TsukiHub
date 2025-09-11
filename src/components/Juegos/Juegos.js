@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import "./Juegos.css";
 
@@ -413,14 +412,15 @@ function Juegos() {
 
   useEffect(() => {
     if (!games || games.length === 0) return;
-    setJugando(sortByName(games.filter((game) => game.estado === "jugando"), true));
-    const planeoJugarGames = games.filter((game) => game.estado === "planeo jugar");
-    const sortedPlaneoJugar = sortByRecentlyAdded(planeoJugarGames);
-    setPlaneoJugar(sortedPlaneoJugar);
-    setOriginalPlaneoJugar(planeoJugarGames);
-    const pasadoGames = games.filter((game) => game.estado === "pasado" || game.estado === "dropeado");
-    const sortedPasadoGames = sortByDate(pasadoGames, false);
-    setPasado(sortedPasadoGames);
+  setJugando(sortByName(games.filter((game) => game.estado === "jugando"), true));
+  const planeoJugarGames = games.filter((game) => game.estado === "planeo jugar");
+  const sortedPlaneoJugar = sortByRecentlyAdded(planeoJugarGames);
+  setPlaneoJugar(sortedPlaneoJugar);
+  setOriginalPlaneoJugar(planeoJugarGames);
+  // Incluir "pausado" en la lista de jugados
+  const pasadoGames = games.filter((game) => game.estado === "pasado" || game.estado === "dropeado" || game.estado === "pausado");
+  const sortedPasadoGames = sortByDate(pasadoGames, false);
+  setPasado(sortedPasadoGames);
   }, [games]);
 
 
@@ -1862,6 +1862,9 @@ function Juegos() {
                     {game.estado === "dropeado" && (
                       <div className="dropeado-badge">DROPEADO</div>
                     )}
+                    {game.estado === "pausado" && (
+                      <div className="pausado-badge">PAUSADO</div>
+                    )}
                     {game.fecha && (
                       <div className="game-date-hover">{game.fecha}</div>
                     )}
@@ -2322,6 +2325,7 @@ function Juegos() {
                     <option value="jugando">Jugando</option>
                     <option value="planeo jugar">Planeo Jugar</option>
                     <option value="pasado">Pasado</option>
+                    <option value="pausado">Pausado</option>
                     <option value="dropeado">Dropeado</option>
                     <option value="recomendado">Recomendado</option>
                   </select>
@@ -2713,6 +2717,7 @@ function Juegos() {
                         <option value="Jugando">Jugando</option>
                         <option value="Planeo Jugar">Planeo Jugar</option>
                         <option value="Pasado">Pasado</option>
+                        <option value="Pausado">Pausado</option>
                         <option value="Dropeado">Dropeado</option>
                       </select>
                     </div>

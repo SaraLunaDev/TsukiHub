@@ -1,4 +1,26 @@
-﻿.popup-play-button {
+﻿.pausado-badge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0px;
+  background: linear-gradient(90deg, #d39e54 0%, #d39e54 100%);
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.9em;
+  padding: 6px 0;
+  border-radius: 0 0 6px 6px;
+  z-index: 5;
+  box-shadow: var(--box-shadow);
+  pointer-events: none;
+  text-align: center;
+}
+
+.juegos-container li:hover .pausado-badge,
+.planeo-jugar-list li:hover .pausado-badge {
+  opacity: 0;
+}
+
+.popup-play-button {
   position: absolute;
   top: 50%;
   left: 50%;
