@@ -213,30 +213,18 @@ function Pelis() {
 
   const uniqueGenres = getUniqueGenres(movies);
 
-  // Cargar datos al montar el componente con sistema de cache
-  useEffect(() => {
-    if (!sheetUrl) {
-      console.error(
-        "La URL del Google Sheet de películas no está configurada en .env"
-      );
-      return;
-    }
-
-
+  // --- MOVED: fetchMovies, loadFromCacheOrCreate, checkForUpdatesInBackground ---
   // Función simple para cargar datos desde el sheet
   const fetchMovies = async () => {
     try {
       console.log("[fetchMovies] Fetching data from sheet");
-
       const response = await fetch(sheetUrl);
       const data = await response.text();
       const rows = data.split("\n");
-
       const parsedData = rows
         .slice(1)
         .map((row) => {
           if (!row.trim()) return null; // Skip empty rows
-
           const [
             titulo,
             titulo_original,
@@ -257,7 +245,6 @@ function Pelis() {
             comentario,
             nota_chat,
           ] = row.split(",");
-
           return {
             nombre: titulo?.trim(),
             titulo_original: titulo_original?.trim(),
@@ -280,22 +267,17 @@ function Pelis() {
           };
         })
         .filter((movie) => movie !== null);
-
       // Crear hash simple para comparar cambios
       const currentHash = createSimpleHash(parsedData);
-
       // Guardar en cache
       const cacheData = {
         movies: parsedData,
         hash: currentHash,
         lastUpdate: Date.now(),
       };
-
       localStorage.setItem("pelisData", JSON.stringify(cacheData));
-
       // Actualizar estado
       setMovies(parsedData);
-
       console.log(
         `[fetchMovies] Data loaded and cached - ${parsedData.length} movies/series`
       );
@@ -304,10 +286,9 @@ function Pelis() {
     }
   };
 
-  // Función para cargar desde cache o crear nueva cache (debe estar en el scope principal)
+  // Función para cargar desde cache o crear nueva cache
   const loadFromCacheOrCreate = async () => {
     const cachedData = localStorage.getItem("pelisData");
-
     if (cachedData) {
       try {
         const cache = JSON.parse(cachedData);
@@ -315,7 +296,7 @@ function Pelis() {
           console.log("[loadFromCacheOrCreate] Loading from cache");
           setMovies(cache.movies);
           // Verificar cambios en segundo plano
-        await checkForUpdatesInBackground();
+          await checkForUpdatesInBackground();
         } else {
           throw new Error("Invalid cache format");
         }
@@ -330,94 +311,96 @@ function Pelis() {
     }
   };
 
-    // Verificar cambios en segundo plano
-    const checkForUpdatesInBackground = async () => {
-      try {
-        console.log("[checkForUpdatesInBackground] Checking for updates");
-
-        const response = await fetch(sheetUrl);
-        const data = await response.text();
-        const rows = data.split("\n");
-        const currentData = rows
-          .slice(1)
-          .map((row) => {
-            if (!row.trim()) return null;
-
-            const [
-              titulo,
-              titulo_original,
-              tipo,
-              estado,
-              fecha_vista,
-              trailer,
-              url,
-              caratula,
-              imagen,
-              duracion,
-              fecha_salida,
-              director,
-              generos, // Nueva columna M en handleAddMovie
-              sinopsis,
-              nota,
-              usuario,
-              comentario,
-              nota_chat,
-            ] = row.split(",");
-
-            return {
-              nombre: titulo?.trim(),
-              titulo_original: titulo_original?.trim(),
-              tipo: tipo?.trim(),
-              estado: estado?.trim().toLowerCase(),
-              fecha: fecha_vista?.trim(),
-              trailer: trailer?.trim(),
-              url: url?.trim(),
-              caratula: caratula?.trim(),
-              imagen: imagen?.trim(),
-              duracion: duracion?.trim(),
-              fecha_lanzamiento: fecha_salida?.trim(),
-              director: director?.trim(),
-              generos: generos?.trim(), // Nueva propiedad
-              resumen: sinopsis?.trim(),
-              nota: nota?.trim(),
-              usuario: usuario?.trim(),
-              comentario: comentario?.trim(),
-              nota_chat: nota_chat?.trim(),
-            };
-          })
-          .filter((movie) => movie !== null);
-
-        const newHash = createSimpleHash(currentData);
-        const cachedData = JSON.parse(localStorage.getItem("pelisData"));
-        if (cachedData.hash !== newHash) {
-          console.log(
-            "[checkForUpdatesInBackground] Changes detected, updating cache and data"
-          );
-
-          const updatedCache = {
-            movies: currentData.map((movie) => ({
-              ...movie,
-              generos: movie.generos || "", // Asegurar que generos existe
-            })),
-            hash: newHash,
-            lastUpdate: Date.now(),
+  // Verificar cambios en segundo plano
+  const checkForUpdatesInBackground = async () => {
+    try {
+      console.log("[checkForUpdatesInBackground] Checking for updates");
+      const response = await fetch(sheetUrl);
+      const data = await response.text();
+      const rows = data.split("\n");
+      const currentData = rows
+        .slice(1)
+        .map((row) => {
+          if (!row.trim()) return null;
+          const [
+            titulo,
+            titulo_original,
+            tipo,
+            estado,
+            fecha_vista,
+            trailer,
+            url,
+            caratula,
+            imagen,
+            duracion,
+            fecha_salida,
+            director,
+            generos, // Nueva columna M en handleAddMovie
+            sinopsis,
+            nota,
+            usuario,
+            comentario,
+            nota_chat,
+          ] = row.split(",");
+          return {
+            nombre: titulo?.trim(),
+            titulo_original: titulo_original?.trim(),
+            tipo: tipo?.trim(),
+            estado: estado?.trim().toLowerCase(),
+            fecha: fecha_vista?.trim(),
+            trailer: trailer?.trim(),
+            url: url?.trim(),
+            caratula: caratula?.trim(),
+            imagen: imagen?.trim(),
+            duracion: duracion?.trim(),
+            fecha_lanzamiento: fecha_salida?.trim(),
+            director: director?.trim(),
+            generos: generos?.trim(), // Nueva propiedad
+            resumen: sinopsis?.trim(),
+            nota: nota?.trim(),
+            usuario: usuario?.trim(),
+            comentario: comentario?.trim(),
+            nota_chat: nota_chat?.trim(),
           };
-
-          localStorage.setItem("pelisData", JSON.stringify(updatedCache));
-          setMovies(currentData);
-        } else {
-          console.log("[checkForUpdatesInBackground] No changes detected");
-        }
-      } catch (error) {
-        console.error(
-          "[checkForUpdatesInBackground] Error checking for updates:",
-          error
+        })
+        .filter((movie) => movie !== null);
+      const newHash = createSimpleHash(currentData);
+      const cachedData = JSON.parse(localStorage.getItem("pelisData"));
+      if (cachedData.hash !== newHash) {
+        console.log(
+          "[checkForUpdatesInBackground] Changes detected, updating cache and data"
         );
+        const updatedCache = {
+          movies: currentData.map((movie) => ({
+            ...movie,
+            generos: movie.generos || "", // Asegurar que generos existe
+          })),
+          hash: newHash,
+          lastUpdate: Date.now(),
+        };
+        localStorage.setItem("pelisData", JSON.stringify(updatedCache));
+        setMovies(currentData);
+      } else {
+        console.log("[checkForUpdatesInBackground] No changes detected");
       }
-    };
+    } catch (error) {
+      console.error(
+        "[checkForUpdatesInBackground] Error checking for updates:",
+        error
+      );
+    }
+  };
 
+  // Cargar datos al montar el componente con sistema de cache
+  useEffect(() => {
+    if (!sheetUrl) {
+      console.error(
+        "La URL del Google Sheet de películas no está configurada en .env"
+      );
+      return;
+    }
     loadFromCacheOrCreate();
-  }, [sheetUrl]); // Filtrar películas/series vistas cuando cambien los datos
+  }, [sheetUrl]);
   useEffect(() => {
     console.log("[Movies Debug] Total movies:", movies.length);
     console.log("[Movies Debug] Movies data:", movies);
