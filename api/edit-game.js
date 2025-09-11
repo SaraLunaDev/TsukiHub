@@ -156,20 +156,26 @@ export default async function handler(req, res) {
     const rows = getResponse.data.values || [];
     console.log(`[edit-game] Found ${rows.length} total rows`);
 
-    // Buscar la fila que contiene el juego original usando múltiples criterios
+    // Buscar la fila que contiene el juego original usando criterios flexibles
     let targetRowIndex = -1;
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       const rowName = row[0]?.trim() || "";
       const rowEstado = row[1]?.trim() || "";
-      const rowFecha = row[6]?.trim() || "";
-      const rowUsuario = row[15]?.trim() || "";
+      const rowFecha = row[7]?.trim() || ""; // Columna H (índice 7) = Fecha
+      const rowUsuario = row[16]?.trim() || ""; // Columna Q (índice 16) = Usuario
 
-      // Verificar si coinciden los criterios identificadores, ignorando los vacíos
       const nameMatch = rowName === (originalIdentifiers.nombre?.trim() || "");
       const estadoMatch = rowEstado.toLowerCase() === (originalIdentifiers.estado?.toLowerCase() || "");
-      const fechaMatch = !originalIdentifiers.fecha || rowFecha === originalIdentifiers.fecha?.trim();
-      const usuarioMatch = !originalIdentifiers.usuario || rowUsuario === originalIdentifiers.usuario?.trim();
+
+      // Solo compara fecha si originalIdentifiers.fecha está presente
+      const fechaMatch = originalIdentifiers.fecha
+        ? rowFecha === originalIdentifiers.fecha?.trim()
+        : true;
+      // Solo compara usuario si originalIdentifiers.usuario está presente
+      const usuarioMatch = originalIdentifiers.usuario
+        ? rowUsuario === originalIdentifiers.usuario?.trim()
+        : true;
 
       console.log(`[edit-game] Row ${i + 1} comparison:`, {
         rowName,
@@ -193,7 +199,7 @@ export default async function handler(req, res) {
     if (targetRowIndex === -1) {
       console.log(`[edit-game] Game not found with provided identifiers`);
       return res.status(404).json({ error: "Game not found in sheet" });
-    } // Preparar los datos actualizados
+    }
     // Estructura de columnas correcta:
     // [Nombre, Estado, Youtube, Nota, Horas, Plataforma, Fecha, Carátula, Fecha de Lanzamiento, Géneros, Plataformas, Resumen, Desarrolladores, Publicadores, IGDBID, Usuario, Comentario]
 

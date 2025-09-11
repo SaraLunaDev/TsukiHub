@@ -1,204 +1,156 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import "./Juegos.css";
 
 function Juegos() {
-  // Estado para el juego seleccionado (debe ir antes de cualquier uso)
   const [selectedGame, setSelectedGame] = useState(null);
-  // Estado para mostrar el trailer en el popup
   const [showTrailer, setShowTrailer] = useState(false);
-
-  // Devuelve la URL embebida para el trailer (YouTube o directo)
   function getTrailerEmbedUrl(trailerUrl) {
     if (!trailerUrl) return "";
-    // Si es un enlace de YouTube
     const ytMatch = trailerUrl.match(/(?:youtu.be\/|youtube.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/);
-    if (ytMatch) {
-      return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
-    }
-    // Si es un enlace directo a video mp4/webm
-    if (trailerUrl.match(/\.(mp4|webm)$/)) {
-      return trailerUrl;
-    }
-    // Si es otro tipo de video, intentar usar como src
+    if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+    if (trailerUrl.match(/\.(mp4|webm)$/)) return trailerUrl;
     return trailerUrl;
   }
-
-  // Cierra el trailer al cerrar el popup
-  useEffect(() => {
-    if (!selectedGame) setShowTrailer(false);
-  }, [selectedGame]);
-  // Estado principal: lista de todos los juegos
+  useEffect(() => { if (!selectedGame) setShowTrailer(false); }, [selectedGame]);
   const [games, setGames] = useState([]);
-  // Listas separadas por estado del juego
   const [jugando, setJugando] = useState([]);
   const [planeoJugar, setPlaneoJugar] = useState([]);
   const [pasado, setPasado] = useState([]);
-  // Controla la visibilidad de los filtros
   const [filterVisible, setFilterVisible] = useState(null);
-  // Lista de juegos filtrados por búsqueda
   const [filteredGames, setFilteredGames] = useState([]);
-  // Consulta de búsqueda
   const [searchQuery, setSearchQuery] = useState("");
-  // Copia original de "planeo jugar" para restaurar si es necesario
   const [originalPlaneoJugar, setOriginalPlaneoJugar] = useState([]);
-  // Filtros activos para cada categoría
-  const [activeFilters, setActiveFilters] = useState({
-    jugando: "name-asc",
-    planeoJugar: "recently-added",
-    pasado: "date-desc",
-  });
-  // Juegos visibles en el carrusel de "planeo jugar"
+  const [activeFilters, setActiveFilters] = useState({ jugando: "name-asc", planeoJugar: "recently-added", pasado: "date-desc" });
   const [visibleGames, setVisibleGames] = useState([]);
-  // Índice de inicio para el carrusel
   const [startIndex, setStartIndex] = useState(0);
-  // Referencia al contenedor del carrusel
   const containerRef = useRef(null);
-  // Página actual de la paginación de "pasado"
   const [currentPage, setCurrentPage] = useState(1);
-  // Número máximo de juegos por página
   const gamesPerPage = 18;
-  // Estado para alternar entre Planeo Jugar y Recomendaciones
-  const [planeoView, setPlaneoView] = useState("planeo jugar"); // "planeo jugar" o "recomendado"  // Estado para mapeo de usuarios (ID -> nombre)
+  const [planeoView, setPlaneoView] = useState("planeo jugar");
   const [users, setUsers] = useState([]);
-  // Estado para datos completos de usuarios desde UserData
   const [userDataComplete, setUserDataComplete] = useState([]);
-  // Estado para el modo desarrollador
-  const [isDeveloperMode, setIsDeveloperMode] = useState(() => {
-    const saved = localStorage.getItem("developerMode");
-    return saved === "true";
-  }); // Estados para el popup de edición de juegos
+  const [isDeveloperMode, setIsDeveloperMode] = useState(() => { const saved = localStorage.getItem("developerMode"); return saved === "true"; });
   const [showEditPopup, setShowEditPopup] = useState(false);
   const [editingGame, setEditingGame] = useState(null);
-  const [editFormData, setEditFormData] = useState({}); // Estado para plataformas disponibles para el spinner de plataforma
+  const [editFormData, setEditFormData] = useState({});
   const [availablePlatforms, setAvailablePlatforms] = useState([]);
-  // Estado para todas las plataformas jugadas (extraídas de la columna F)
   const [playedPlatforms, setPlayedPlatforms] = useState([]);
 
-  // DEBUG: Agregar log para verificar el estado del modo desarrollador
-  useEffect(() => {
-    console.log("isDeveloperMode:", isDeveloperMode);
-  }, [isDeveloperMode]);
+  const refreshGameData = async (source = "manual") => {
+    try {
+      localStorage.removeItem("juegosData");
+      const response = await fetch(process.env.REACT_APP_JUEGOS_SHEET_URL);
+      const data = await response.text();
+      const rows = data.split("\n");
+      const userMap = new Map();
+      const parsedData = rows.slice(1).map((row) => {
+        const [nombre, estado, youtube, trailer, nota, horas, plataforma, fecha, caratula, fechaLanzamiento, géneros, plataformas, resumen, desarrolladores, publicadores, igdbId, usuario, comentario] = row.split(",");
+        const trimmedUsuario = usuario?.trim();
+        if (trimmedUsuario && trimmedUsuario !== "" && !userMap.has(trimmedUsuario)) {
+          userMap.set(trimmedUsuario, trimmedUsuario);
+        }
+        return {
+          nombre: nombre?.trim(),
+          estado: estado?.trim().toLowerCase(),
+          youtube: youtube?.trim(),
+          trailer: trailer?.trim(),
+          nota: nota?.trim(),
+          horas: horas?.trim(),
+          plataforma: plataforma?.trim(),
+          fecha: fecha?.trim(),
+          caratula: caratula?.trim(),
+          "Fecha de Lanzamiento": fechaLanzamiento?.trim(),
+          géneros: géneros?.trim(),
+          plataformas: plataformas?.trim(),
+          resumen: resumen?.trim(),
+          desarrolladores: desarrolladores?.trim(),
+          publicadores: publicadores?.trim(),
+          igdbId: igdbId?.trim(),
+          usuario: trimmedUsuario,
+          comentario: comentario?.trim(),
+        };
+      });
+      const uniqueUsers = Array.from(userMap.entries());
+      const currentHash = createSimpleHash(parsedData);
+      const cacheData = {
+        games: parsedData,
+        users: uniqueUsers,
+        hash: currentHash,
+        lastUpdate: Date.now(),
+      };
+      localStorage.setItem("juegosData", JSON.stringify(cacheData));
+      setGames(parsedData);
+      setUsers(uniqueUsers);
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
 
-  // Obtiene los juegos a mostrar en la página actual de "pasado"
-  const paginatedGames = filteredGames.slice(
-    (currentPage - 1) * gamesPerPage,
-    currentPage * gamesPerPage
-  );
 
-  // Calcula el número total de páginas para la paginación
+
+
+  const paginatedGames = filteredGames.slice((currentPage - 1) * gamesPerPage, currentPage * gamesPerPage);
   const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
-
-  // Avanza a la siguiente página en la paginación
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prevPage) => prevPage + 1);
-    }
-  };
-
-  // Retrocede a la página anterior en la paginación
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prevPage) => prevPage - 1);
-    }
-  };
-
-  // Reinicia la página al cambiar los juegos filtrados
+  const handleNextPage = () => { if (currentPage < totalPages) setCurrentPage((prevPage) => prevPage + 1); };
+  const handlePreviousPage = () => { if (currentPage > 1) setCurrentPage((prevPage) => prevPage - 1); };
   useEffect(() => {
-    setCurrentPage(1);
-  }, [filteredGames]);
+    const totalPages = Math.max(1, Math.ceil(filteredGames.length / gamesPerPage));
+    setCurrentPage((prevPage) => {
+      if (prevPage > totalPages) return totalPages;
+      if (prevPage < 1) return 1;
+      return prevPage;
+    });
+  }, [filteredGames, gamesPerPage]);
 
-  // Filtra los juegos de "pasado" según la búsqueda
-  useEffect(() => {
-    const normalizedQuery = normalizeString(searchQuery);
-    const filtered = pasado.filter((game) =>
-      normalizeString(game.nombre).includes(normalizedQuery)
-    );
-    setFilteredGames(filtered);
-    setCurrentPage(1);
-  }, [searchQuery, pasado]); // Carrusel infinito y escalado para Planeo Jugar
+  // Filtra los juegos de "pasado" según la búsqueda (ELIMINADO - duplicado)
 
-  // --- FUNCIONES FALTANTES ---
-  // Normaliza una cadena para búsquedas insensibles a mayúsculas, tildes, etc.
+
   function normalizeString(str) {
     if (!str) return "";
-    return str
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/\p{Diacritic}/gu, "")
-      .replace(/[^\w\s]/gi, "")
-      .trim();
+    return str.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").replace(/[^\w\s]/gi, "").trim();
   }
-
-  // Devuelve el nombre de usuario a partir del ID o string
   function getUserName(userId) {
     if (!userId) return "";
-    // Buscar en userDataComplete si existe
-    const user = userDataComplete.find(
-      (u) => u.id === userId || u.nombre === userId
-    );
+    const user = userDataComplete.find((u) => u.id === userId || u.nombre === userId);
     return user ? user.nombre : userId;
   }
-
-  // Devuelve el avatar del usuario a partir del ID o string
   function getUserAvatar(userId) {
     if (!userId) return "";
-    const user = userDataComplete.find(
-      (u) => u.id === userId || u.nombre === userId
-    );
+    const user = userDataComplete.find((u) => u.id === userId || u.nombre === userId);
     return user && user.avatar ? user.avatar : null;
   }
 
-  // Maneja el click en un juego para mostrar el popup
+
   function handleGameClick(game) {
     setSelectedGame(game);
     setShowEditPopup(false);
   }
-
-  // Cierra el popup de detalles o edición
   function closePopup() {
     setSelectedGame(null);
     setShowEditPopup(false);
     setEditingGame(null);
   }
+
   const CARRUSEL_SIZE = 9;
   const CENTER_INDEX = Math.floor(CARRUSEL_SIZE / 2);
-  // Hook para detectar el tamaño de la pantalla
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
   useEffect(() => {
     const handleResize = () => setScreenWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  // Configuración responsive del carrusel
   const getCarruselConfig = () => {
-    if (screenWidth <= 800) {
-      return { containerWidth: 660, gameWidth: 100, edgeMargin: 0 }; // +140px total (520 + 140) CSS centering only
-    } else if (screenWidth <= 1100) {
-      return { containerWidth: 780, gameWidth: 120, edgeMargin: 0 }; // +140px total (640 + 140) CSS centering only
-    } else {
-      return { containerWidth: 900, gameWidth: 140, edgeMargin: 0 }; // +140px total (760 + 140) CSS centering only
-    }
-  }; // Calcula los índices de los 7 juegos a mostrar, centrando el carrusel
+    if (screenWidth <= 800) return { containerWidth: 660, gameWidth: 100, edgeMargin: 0 };
+    else if (screenWidth <= 1100) return { containerWidth: 780, gameWidth: 120, edgeMargin: 0 };
+    else return { containerWidth: 900, gameWidth: 140, edgeMargin: 0 };
+  };
   const getCarruselIndices = () => {
-    // Usar la lista de juegos apropiada según el estado actual
-    const gamesList =
-      planeoView === "planeo jugar"
-        ? planeoJugar
-        : games.filter((g) => g.estado === "recomendado");
-
+    const gamesList = planeoView === "planeo jugar" ? planeoJugar : games.filter((g) => g.estado === "recomendado");
     if (gamesList.length === 0) return [];
     let indices = [];
     let base = startIndex;
-    console.log(
-      "getCarruselIndices - planeoView:",
-      planeoView,
-      "startIndex:",
-      startIndex,
-      "gamesList.length:",
-      gamesList.length
-    );
-    // Si hay menos de 9 juegos, repite para llenar pero respeta el startIndex
     if (gamesList.length < CARRUSEL_SIZE) {
       for (let i = 0; i < CARRUSEL_SIZE; i++) {
         let idx = (base + i) % gamesList.length;
@@ -212,63 +164,36 @@ function Juegos() {
         indices.push(idx);
       }
     }
-    console.log("getCarruselIndices - calculated indices:", indices);
     return indices;
   };
-  const carruselIndices = getCarruselIndices(); // Función para calcular la posición de un juego en el carrusel
-  const calculateGamePosition = (
-    index,
-    containerWidth,
-    gameWidth,
-    edgeMargin
-  ) => {
-    if (CARRUSEL_SIZE === 1) {
-      return (containerWidth - gameWidth) / 2;
-    }
-
+  const carruselIndices = getCarruselIndices();
+  const calculateGamePosition = (index, containerWidth, gameWidth, edgeMargin) => {
+    if (CARRUSEL_SIZE === 1) return (containerWidth - gameWidth) / 2;
     const totalAvailableWidth = containerWidth - 2 * edgeMargin - gameWidth;
     const baseSpacing = totalAvailableWidth / (CARRUSEL_SIZE - 1);
-
-    if (index === 0) {
-      return edgeMargin;
-    } else if (index === CARRUSEL_SIZE - 1) {
-      return containerWidth - edgeMargin - gameWidth;
-    } else {
+    if (index === 0) return edgeMargin;
+    else if (index === CARRUSEL_SIZE - 1) return containerWidth - edgeMargin - gameWidth;
+    else {
       const centerDistance = Math.abs(index - CENTER_INDEX);
       const maxCenterDistance = Math.floor(CARRUSEL_SIZE / 2);
       const normalizedDistance = centerDistance / maxCenterDistance;
       const spacingFactor = 1.8 - normalizedDistance * 0.8;
-
       const uniformPosition = edgeMargin + index * baseSpacing;
       let adjustment = 0;
-
       for (let k = 1; k <= Math.abs(index - CENTER_INDEX); k++) {
         const stepDistance = k / maxCenterDistance;
         const stepFactor = 1.8 - stepDistance * 0.8;
         const extraSpace = (stepFactor - 1.0) * baseSpacing * 0.2;
-
-        if (index < CENTER_INDEX) {
-          adjustment -= extraSpace;
-        } else {
-          adjustment += extraSpace;
-        }
+        if (index < CENTER_INDEX) adjustment -= extraSpace;
+        else adjustment += extraSpace;
       }
-
       let position = uniformPosition + adjustment;
-
-      // Aplicar superposición para carruseles grandes
       if (CARRUSEL_SIZE > 7) {
         const overlapFactor = Math.min((CARRUSEL_SIZE - 7) * 0.08, 0.4);
-        const overlapAmount =
-          (centerDistance / maxCenterDistance) * gameWidth * overlapFactor;
-
-        if (index < CENTER_INDEX) {
-          position += overlapAmount;
-        } else if (index > CENTER_INDEX) {
-          position -= overlapAmount;
-        }
+        const overlapAmount = (centerDistance / maxCenterDistance) * gameWidth * overlapFactor;
+        if (index < CENTER_INDEX) position += overlapAmount;
+        else if (index > CENTER_INDEX) position -= overlapAmount;
       }
-
       return position;
     }
   };
@@ -326,13 +251,9 @@ function Juegos() {
   const sheetUrl = process.env.REACT_APP_JUEGOS_SHEET_URL;
   const userDataSheetUrl = process.env.REACT_APP_USERDATA_SHEET_URL;
 
-  // Carga y cachea los datos del UserData Sheet
-  useEffect(() => {
-    if (!userDataSheetUrl) {
-      console.error("La URL del UserData Sheet no está configurada en .env");
-      return;
-    }
 
+  useEffect(() => {
+    if (!userDataSheetUrl) return;
     const fetchUserData = async () => {
       try {
         const response = await fetch(userDataSheetUrl);
@@ -340,93 +261,47 @@ function Juegos() {
         const rows = data.split("\n");
         const headerRow = rows[0].split(",");
         const bodyRows = rows.slice(1);
-
         const parsedUserData = bodyRows.map((row) => {
           const columns = row.split(",");
           const obj = {};
-          headerRow.forEach((header, index) => {
-            obj[header] = columns[index] || "";
-          });
+          headerRow.forEach((header, index) => { obj[header] = columns[index] || ""; });
           return obj;
         });
-
-        console.log(
-          `[fetchUserData] Loaded ${parsedUserData.length} users from UserData`
-        );
         setUserDataComplete(parsedUserData);
-
-        // Actualizar cache en localStorage para otros componentes
         localStorage.setItem("userData", JSON.stringify(parsedUserData));
-      } catch (error) {
-        console.error("Error al cargar datos del UserData:", error);
-      }
+      } catch (error) {}
     };
-
     fetchUserData();
-    // Actualizar cada 5 minutos
     const intervalId = setInterval(fetchUserData, 300000);
     return () => clearInterval(intervalId);
-  }, [userDataSheetUrl]); // Carga y cachea los datos de Google Sheet con sistema de cache simplificado  // Función de hash simple compatible con Unicode
+  }, [userDataSheetUrl]);
   const createSimpleHash = (data) => {
     const str = JSON.stringify(data);
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
       hash = (hash << 5) - hash + char;
-      hash = hash & hash; // Convert to 32bit integer
+      hash = hash & hash;
     }
     return hash.toString();
   };
 
+
   useEffect(() => {
     const sheetUrl = process.env.REACT_APP_JUEGOS_SHEET_URL;
-    if (!sheetUrl) {
-      console.error("La URL del Google Sheet no está configurada en .env");
-      return;
-    }
-
-    // Función simple para cargar datos desde el sheet
+    if (!sheetUrl) return;
     const fetchGames = async () => {
       try {
-        console.log("[fetchGames] Fetching data from sheet");
-
         const response = await fetch(sheetUrl);
         const data = await response.text();
         const rows = data.split("\n");
         const userMap = new Map();
-
         const parsedData = rows.slice(1).map((row) => {
-          const [
-            nombre,         // 0
-            estado,         // 1
-            youtube,        // 2
-            trailer,        // 3
-            nota,           // 4
-            horas,          // 5
-            plataforma,     // 6
-            fecha,          // 7
-            caratula,       // 8
-            fechaLanzamiento, // 9
-            géneros,        // 10
-            plataformas,    // 11
-            resumen,        // 12
-            desarrolladores,// 13
-            publicadores,   // 14
-            igdbId,         // 15
-            usuario,        // 16
-            comentario      // 17
-          ] = row.split(",");
-
-          // Construir mapeo de usuarios
+          const [nombre, estado, youtube, trailer, nota, horas, plataforma, fecha, caratula, fechaLanzamiento, géneros, plataformas, resumen, desarrolladores, publicadores, igdbId, usuario, comentario] = row.split(",");
           const trimmedUsuario = usuario?.trim();
-          if (
-            trimmedUsuario &&
-            trimmedUsuario !== "" &&
-            !userMap.has(trimmedUsuario)
-          ) {
+          if (trimmedUsuario && trimmedUsuario !== "" && !userMap.has(trimmedUsuario)) {
             userMap.set(trimmedUsuario, trimmedUsuario);
           }
-
           return {
             nombre: nombre?.trim(),
             estado: estado?.trim().toLowerCase(),
@@ -449,91 +324,45 @@ function Juegos() {
           };
         });
         const uniqueUsers = Array.from(userMap.entries());
-
-        // Crear hash simple para comparar cambios (compatible con Unicode)
         const currentHash = createSimpleHash(parsedData);
-
-        // Guardar en cache
         const cacheData = {
           games: parsedData,
           users: uniqueUsers,
           hash: currentHash,
           lastUpdate: Date.now(),
         };
-
         localStorage.setItem("juegosData", JSON.stringify(cacheData));
-
-        // Actualizar estado
         setGames(parsedData);
         setUsers(uniqueUsers);
-
-        console.log(
-          `[fetchGames] Data loaded and cached - ${parsedData.length} games`
-        );
-      } catch (error) {
-        console.error("Error al cargar los datos:", error);
-      }
+      } catch (error) {}
     };
-
-    // Cargar desde cache si existe, sino crear cache
     const loadFromCacheOrCreate = () => {
       const cachedData = localStorage.getItem("juegosData");
-
       if (cachedData) {
         try {
           const cache = JSON.parse(cachedData);
           if (cache.games && cache.users) {
-            console.log("[loadFromCacheOrCreate] Loading from cache");
             setGames(cache.games);
             setUsers(cache.users);
-
-            // Verificar cambios en segundo plano
             checkForUpdatesInBackground();
           } else {
             throw new Error("Invalid cache format");
           }
         } catch (error) {
-          console.log("[loadFromCacheOrCreate] Cache invalid, creating new");
           localStorage.removeItem("juegosData");
           fetchGames();
         }
       } else {
-        console.log("[loadFromCacheOrCreate] No cache exists, creating new");
         fetchGames();
       }
     };
-
-    // Verificar cambios en segundo plano
     const checkForUpdatesInBackground = async () => {
       try {
-        console.log("[checkForUpdatesInBackground] Checking for updates");
-
         const response = await fetch(sheetUrl);
         const data = await response.text();
         const rows = data.split("\n");
-
         const currentData = rows.slice(1).map((row) => {
-          const [
-            nombre,         // 0
-            estado,         // 1
-            youtube,        // 2
-            trailer,        // 3
-            nota,           // 4
-            horas,          // 5
-            plataforma,     // 6
-            fecha,          // 7
-            caratula,       // 8
-            fechaLanzamiento, // 9
-            géneros,        // 10
-            plataformas,    // 11
-            resumen,        // 12
-            desarrolladores,// 13
-            publicadores,   // 14
-            igdbId,         // 15
-            usuario,        // 16
-            comentario      // 17
-          ] = row.split(",");
-
+          const [nombre, estado, youtube, trailer, nota, horas, plataforma, fecha, caratula, fechaLanzamiento, géneros, plataformas, resumen, desarrolladores, publicadores, igdbId, usuario, comentario] = row.split(",");
           return {
             nombre: nombre?.trim(),
             estado: estado?.trim().toLowerCase(),
@@ -557,139 +386,63 @@ function Juegos() {
         });
         const newHash = createSimpleHash(currentData);
         const cachedData = JSON.parse(localStorage.getItem("juegosData"));
-
         if (cachedData.hash !== newHash) {
-          console.log(
-            "[checkForUpdatesInBackground] Changes detected, updating cache and data"
-          );
-
           const userMap = new Map();
           currentData.forEach((game) => {
             if (game.usuario && !userMap.has(game.usuario)) {
               userMap.set(game.usuario, game.usuario);
             }
           });
-
           const uniqueUsers = Array.from(userMap.entries());
-
           const updatedCache = {
             games: currentData,
             users: uniqueUsers,
             hash: newHash,
             lastUpdate: Date.now(),
           };
-
           localStorage.setItem("juegosData", JSON.stringify(updatedCache));
           setGames(currentData);
           setUsers(uniqueUsers);
-        } else {
-          console.log("[checkForUpdatesInBackground] No changes detected");
         }
-      } catch (error) {
-        console.error(
-          "[checkForUpdatesInBackground] Error checking for updates:",
-          error
-        );
-      }
+      } catch (error) {}
     };
-
     loadFromCacheOrCreate();
   }, []);
 
-  // Separa los juegos en "planeo jugar" al cargar datos
+  // Separa y ordena los juegos en todas las categorías al cargar datos
+
   useEffect(() => {
-    const planeoJugarGames = games.filter(
-      (game) => game.estado === "planeo jugar"
-    );
-    setPlaneoJugar(planeoJugarGames);
+    if (!games || games.length === 0) return;
+    setJugando(sortByName(games.filter((game) => game.estado === "jugando"), true));
+    const planeoJugarGames = games.filter((game) => game.estado === "planeo jugar");
+    const sortedPlaneoJugar = sortByRecentlyAdded(planeoJugarGames);
+    setPlaneoJugar(sortedPlaneoJugar);
     setOriginalPlaneoJugar(planeoJugarGames);
-  }, [games]);
-  // Separa y ordena los juegos en "jugando", "planeo jugar" y "pasado/dropeado"
-  useEffect(() => {
-    setJugando(
-      sortByName(
-        games.filter((game) => game.estado === "jugando"),
-        true
-      )
-    );
-    setPlaneoJugar(
-      sortByRecentlyAdded(
-        games.filter((game) => game.estado === "planeo jugar")
-      )
-    );
-    setPasado(
-      sortByDate(
-        games.filter(
-          (game) => game.estado === "pasado" || game.estado === "dropeado"
-        ),
-        false
-      )
-    ); // Debug: Log recommended games
-    const recomendados = games.filter((g) => g.estado === "recomendado");
-    console.log("Total games:", games.length);
-    console.log("Recommended games found:", recomendados.length);
-    console.log(
-      "Recommended games:",
-      recomendados.map((g) => g.nombre)
-    );
-    console.log(
-      "Recommended games with users:",
-      recomendados.map((g) => ({
-        nombre: g.nombre,
-        usuario: g.usuario,
-        igdbId: g.igdbId,
-      }))
-    );
+    const pasadoGames = games.filter((game) => game.estado === "pasado" || game.estado === "dropeado");
+    const sortedPasadoGames = sortByDate(pasadoGames, false);
+    setPasado(sortedPasadoGames);
   }, [games]);
 
-  // Ordena una lista de juegos por nombre
-  const sortByName = (list, ascending = true) => {
-    return [...list].sort((a, b) =>
-      ascending
-        ? a.nombre.localeCompare(b.nombre)
-        : b.nombre.localeCompare(a.nombre)
-    );
-  };
 
-  // Devuelve la lista tal cual (para "recientemente añadidos")
-  const sortByRecentlyAdded = (list) => {
-    return [...list];
-  };
-
-  // Ordena una lista de juegos por fecha
+  const sortByName = (list, ascending = true) => [...list].sort((a, b) => ascending ? a.nombre.localeCompare(b.nombre) : b.nombre.localeCompare(a.nombre));
+  const sortByRecentlyAdded = (list) => [...list];
   const sortByDate = (list, ascending = true) => {
     const parseDate = (dateStr) => {
-      const [day, month, year] = dateStr
-        .split("/")
-        .map((num) => parseInt(num, 10));
-      return new Date(year, month - 1, day);
+      if (!dateStr || dateStr.trim() === "") return new Date(0);
+      try {
+        const parts = dateStr.split("/");
+        if (parts.length !== 3) return new Date(0);
+        const [day, month, year] = parts.map((num) => parseInt(num, 10));
+        if (isNaN(day) || isNaN(month) || isNaN(year)) return new Date(0);
+        return new Date(year, month - 1, day);
+      } catch (error) { return new Date(0); }
     };
-    return [...list].sort((a, b) =>
-      ascending
-        ? parseDate(a.fecha) - parseDate(b.fecha)
-        : parseDate(b.fecha) - parseDate(a.fecha)
-    );
+    return [...list].sort((a, b) => ascending ? parseDate(a.fecha) - parseDate(b.fecha) : parseDate(b.fecha) - parseDate(a.fecha));
   };
+  const sortByDuration = (list, ascending = true) => [...list].sort((a, b) => { const durationA = parseFloat(a.horas) || 0; const durationB = parseFloat(b.horas) || 0; return ascending ? durationA - durationB : durationB - durationA; });
+  const sortByRating = (list, ascending = true) => [...list].sort((a, b) => { const ratingA = parseFloat(a.nota) || 0; const ratingB = parseFloat(b.nota) || 0; return ascending ? ratingA - ratingB : ratingB - ratingA; });
 
-  // Ordena una lista de juegos por duración
-  const sortByDuration = (list, ascending = true) => {
-    return [...list].sort((a, b) => {
-      const durationA = parseFloat(a.horas) || 0;
-      const durationB = parseFloat(b.horas) || 0;
-      return ascending ? durationA - durationB : durationB - durationA;
-    });
-  };
 
-  // Ordena una lista de juegos por nota
-  const sortByRating = (list, ascending = true) => {
-    return [...list].sort((a, b) => {
-      const ratingA = parseFloat(a.nota) || 0;
-      const ratingB = parseFloat(b.nota) || 0;
-      return ascending ? ratingA - ratingB : ratingB - ratingA;
-    });
-  };
-
-  // Aplica el filtro seleccionado a la lista de "pasado"
   const handleFilter = (filterType, category) => {
     let sortedList;
     switch (filterType) {
@@ -712,75 +465,36 @@ function Juegos() {
       default:
         return;
     }
-    if (category === "pasado") {
-      setPasado(sortedList);
-    }
+    if (category === "pasado") setPasado(sortedList);
     setActiveFilters((prev) => ({ ...prev, [category]: filterType }));
     setCurrentPage(1);
   };
-  // Alterna el filtro activo para la lista de "pasado"
   const handleFilterToggle = (type) => {
     let filterType;
-
-    // Obtener la dirección actual (asc/desc)
-    const currentDirection = activeFilters.pasado.includes("-asc")
-      ? "asc"
-      : "desc";
-
+    const currentDirection = activeFilters.pasado.includes("-asc") ? "asc" : "desc";
     switch (type) {
       case "name":
-        // Si ya está activo el filtro de nombre, alternar dirección
-        if (activeFilters.pasado.includes("name")) {
-          filterType =
-            activeFilters.pasado === "name-asc" ? "name-desc" : "name-asc";
-        } else {
-          // Si no está activo, usar la dirección actual
-          filterType = `name-${currentDirection}`;
-        }
+        if (activeFilters.pasado.includes("name")) filterType = activeFilters.pasado === "name-asc" ? "name-desc" : "name-asc";
+        else filterType = `name-${currentDirection}`;
         break;
       case "date":
-        // Si ya está activo el filtro de fecha, alternar dirección
-        if (activeFilters.pasado.includes("date")) {
-          filterType =
-            activeFilters.pasado === "date-asc" ? "date-desc" : "date-asc";
-        } else {
-          // Si no está activo, usar la dirección actual
-          filterType = `date-${currentDirection}`;
-        }
+        if (activeFilters.pasado.includes("date")) filterType = activeFilters.pasado === "date-asc" ? "date-desc" : "date-asc";
+        else filterType = `date-${currentDirection}`;
         break;
       case "rating":
-        // Si ya está activo el filtro de nota, alternar dirección
-        if (activeFilters.pasado.includes("rating")) {
-          filterType =
-            activeFilters.pasado === "rating-asc"
-              ? "rating-desc"
-              : "rating-asc";
-        } else {
-          // Si no está activo, usar la dirección actual
-          filterType = `rating-${currentDirection}`;
-        }
+        if (activeFilters.pasado.includes("rating")) filterType = activeFilters.pasado === "rating-asc" ? "rating-desc" : "rating-asc";
+        else filterType = `rating-${currentDirection}`;
         break;
       case "duration":
-        // Si ya está activo el filtro de duración, alternar dirección
-        if (activeFilters.pasado.includes("duration")) {
-          filterType =
-            activeFilters.pasado === "duration-asc"
-              ? "duration-desc"
-              : "duration-asc";
-        } else {
-          // Si no está activo, usar la dirección actual
-          filterType = `duration-${currentDirection}`;
-        }
+        if (activeFilters.pasado.includes("duration")) filterType = activeFilters.pasado === "duration-asc" ? "duration-desc" : "duration-asc";
+        else filterType = `duration-${currentDirection}`;
         break;
       default:
         return;
     }
     handleFilter(filterType, "pasado");
   };
-
-  // Pre-carga las imágenes de carátula de la siguiente y anterior página en Juegos Jugados
   useEffect(() => {
-    // Solo ejecuta si estamos en la sección de Juegos Jugados
     if (!filteredGames || filteredGames.length === 0) return;
     const preloadImages = (games) => {
       games.forEach((game) => {
@@ -790,30 +504,17 @@ function Juegos() {
         }
       });
     };
-    // Calcula los índices de la página siguiente y anterior
     const startNext = currentPage * gamesPerPage;
     const endNext = startNext + gamesPerPage;
     const startPrev = (currentPage - 2) * gamesPerPage;
     const endPrev = startPrev + gamesPerPage;
-    // Pre-carga siguiente página
-    if (startNext < filteredGames.length) {
-      preloadImages(filteredGames.slice(startNext, endNext));
-    }
-    // Pre-carga anterior página
-    if (startPrev >= 0) {
-      preloadImages(filteredGames.slice(startPrev, endPrev));
-    }
+    if (startNext < filteredGames.length) preloadImages(filteredGames.slice(startNext, endNext));
+    if (startPrev >= 0) preloadImages(filteredGames.slice(startPrev, endPrev));
   }, [currentPage, filteredGames]);
-
-  // Estado para el filtro avanzado de género
   const [selectedGenre, setSelectedGenre] = useState("");
-  // Estado para el filtro avanzado de plataforma
   const [selectedPlatform, setSelectedPlatform] = useState("");
-  // Estado para el filtro de rango de fechas
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-
-  // Diccionario de traducción de géneros inglés -> español
   const GENRE_TRANSLATIONS = {
     "Role-playing (RPG)": "Rol",
     "Turn-based strategy (TBS)": "Estrategia por turnos",
@@ -838,14 +539,10 @@ function Juegos() {
     Arcade: "Arcade",
     "Real Time Strategy": "Estrategia en tiempo real",
   };
-
-  // Función para traducir un género (devuelve el original si no hay traducción)
   function translateGenre(genre) {
     const trimmed = genre.trim();
     return GENRE_TRANSLATIONS[trimmed] || trimmed;
   }
-
-  // Calcula la lista única de géneros presentes en los juegos cargados
   const getUniqueGenres = (gamesList) => {
     const genreSet = new Set();
     gamesList.forEach((game) => {
@@ -856,11 +553,9 @@ function Juegos() {
         });
       }
     });
-    return Array.from(genreSet).sort((a, b) =>
-      a.localeCompare(b, "es", { sensitivity: "base" })
-    );
+    return Array.from(genreSet).sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
   };
-  const uniqueGenres = getUniqueGenres(games); // Calcula la lista única de plataformas presentes en los juegos cargados
+  const uniqueGenres = getUniqueGenres(games);
   const getUniquePlatforms = (gamesList) => {
     const platformSet = new Set();
     gamesList.forEach((game) => {
@@ -871,70 +566,55 @@ function Juegos() {
         });
       }
     });
-    return Array.from(platformSet).sort((a, b) =>
-      a.localeCompare(b, "es", { sensitivity: "base" })
-    );
+    return Array.from(platformSet).sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
   };
   const uniquePlatforms = getUniquePlatforms(games);
 
-  // Filtra los juegos de "pasado" según la búsqueda y el género/plataforma seleccionados y el rango de fechas
+
   useEffect(() => {
     const normalizedQuery = normalizeString(searchQuery);
     let filtered = pasado.filter((game) => {
-      // Filtros de texto igual que Filtros Generales
-      const nombreMatch = normalizeString(game.nombre).includes(
-        normalizedQuery
-      );
-      const notaMatch =
-        game.nota && game.nota.toLowerCase().includes(normalizedQuery);
-      const horasMatch =
-        game.horas && game.horas.toLowerCase().includes(normalizedQuery);
-      const fechaMatch =
-        game.fecha && game.fecha.toLowerCase().includes(normalizedQuery);
-      const resumenMatch =
-        game.resumen && normalizeString(game.resumen).includes(normalizedQuery);
-      // Coincide si alguno de los campos coincide
-      return (
-        nombreMatch || notaMatch || horasMatch || fechaMatch || resumenMatch
-      );
+      if (!searchQuery || searchQuery.trim() === "") return true;
+      const nombreMatch = normalizeString(game.nombre).includes(normalizedQuery);
+      const notaMatch = game.nota && normalizeString(game.nota).includes(normalizedQuery);
+      const horasMatch = game.horas && normalizeString(game.horas).includes(normalizedQuery);
+      const fechaMatch = game.fecha && normalizeString(game.fecha).includes(normalizedQuery);
+      const resumenMatch = game.resumen && normalizeString(game.resumen).includes(normalizedQuery);
+      return nombreMatch || notaMatch || horasMatch || fechaMatch || resumenMatch;
     });
     if (selectedGenre) {
       filtered = filtered.filter((game) => {
         if (!game.géneros) return false;
-        return game.géneros
-          .split("-%-")
-          .map((g) => g.trim().toLowerCase())
-          .includes(selectedGenre.trim().toLowerCase());
+        return game.géneros.split("-%-").map((g) => g.trim().toLowerCase()).includes(selectedGenre.trim().toLowerCase());
       });
     }
     if (selectedPlatform) {
       filtered = filtered.filter((game) => {
         if (!game.plataforma) return false;
-        return game.plataforma
-          .split("-%-")
-          .map((p) => p.trim().toLowerCase())
-          .includes(selectedPlatform.trim().toLowerCase());
+        return game.plataforma.split("-%-").map((p) => p.trim().toLowerCase()).includes(selectedPlatform.trim().toLowerCase());
       });
     }
-    // Filtro por rango de fechas
     if (dateFrom && dateTo) {
       const from = new Date(dateFrom);
       const to = new Date(dateTo);
+      to.setHours(23, 59, 59, 999);
       filtered = filtered.filter((game) => {
-        if (!game.fecha) return false;
-        const [d, m, y] = game.fecha.split("/").map(Number);
-        const gameDate = new Date(y, m - 1, d);
-        return gameDate >= from && gameDate <= to;
+        if (!game.fecha) return true;
+        try {
+          const [d, m, y] = game.fecha.split("/").map(Number);
+          if (!d || !m || !y || isNaN(d) || isNaN(m) || isNaN(y)) return true;
+          const gameDate = new Date(y, m - 1, d);
+          return gameDate >= from && gameDate <= to;
+        } catch (error) {
+          return true;
+        }
       });
     }
     setFilteredGames(filtered);
     setCurrentPage(1);
   }, [searchQuery, pasado, selectedGenre, selectedPlatform, dateFrom, dateTo]);
-
-  // Calcular fechas mínima y máxima de los juegos jugados
   useEffect(() => {
     if (pasado.length === 0) return;
-    // Solo fechas válidas DD/MM/YYYY
     const fechas = pasado
       .map((g) => g.fecha)
       .filter((fecha) => fecha && /^\d{2}\/\d{2}\/\d{4}$/.test(fecha))
@@ -948,9 +628,11 @@ function Juegos() {
       const min = fechas[0];
       const max = fechas[fechas.length - 1];
       setDateFrom(min.toISOString().slice(0, 10));
-      setDateTo(max.toISOString().slice(0, 10));
+      const maxIncluido = new Date(max);
+      maxIncluido.setDate(maxIncluido.getDate() + 1);
+      setDateTo(maxIncluido.toISOString().slice(0, 10));
     }
-  }, [pasado]); // Estado para el popup de añadir recomendación
+  }, [pasado]);
   const [showAddPopup, setShowAddPopup] = useState(false);
   const [searchIGDB, setSearchIGDB] = useState("");
   const [igdbResults, setIgdbResults] = useState([]);
@@ -1546,86 +1228,9 @@ function Juegos() {
 
         // Ejecutar fetchGames para obtener datos frescos
         setTimeout(async () => {
-          try {
-            const response = await fetch(sheetUrl);
-            const data = await response.text();
-            const rows = data.split("\n");
-            const userMap = new Map();
-
-            const parsedData = rows
-              .slice(1)
-              .map((row) => {
-                if (!row.trim()) return null; // Skip empty rows
-
-                const [
-                  nombre,
-                  estado,
-                  youtube,
-                  nota,
-                  horas,
-                  plataforma,
-                  fecha,
-                  caratula,
-                  fechaLanzamiento,
-                  géneros,
-                  plataformas,
-                  resumen,
-                  desarrolladores,
-                  publicadores,
-                  igdbId,
-                  usuario,
-                  comentario,
-                ] = row.split(",");
-
-                const trimmedUsuario = usuario?.trim();
-                if (
-                  trimmedUsuario &&
-                  trimmedUsuario !== "" &&
-                  !userMap.has(trimmedUsuario)
-                ) {
-                  userMap.set(trimmedUsuario, trimmedUsuario);
-                }
-
-                return {
-                  nombre: nombre?.trim(),
-                  estado: estado?.trim().toLowerCase(),
-                  youtube: youtube?.trim(),
-                  nota: nota?.trim(),
-                  horas: horas?.trim(),
-                  plataforma: plataforma?.trim(),
-                  fecha: fecha?.trim(),
-                  caratula: caratula?.trim(),
-                  "Fecha de Lanzamiento": fechaLanzamiento?.trim(),
-                  géneros: géneros?.trim(),
-                  plataformas: plataformas?.trim(),
-                  resumen: resumen?.trim(),
-                  desarrolladores: desarrolladores?.trim(),
-                  publicadores: publicadores?.trim(),
-                  igdbId: igdbId?.trim(),
-                  usuario: trimmedUsuario,
-                  comentario: comentario?.trim(),
-                };
-              })
-              .filter((game) => game !== null);
-            const uniqueUsers = Array.from(userMap.entries());
-            const currentHash = createSimpleHash(parsedData);
-
-            const cacheData = {
-              games: parsedData,
-              users: uniqueUsers,
-              hash: currentHash,
-              lastUpdate: Date.now(),
-            };
-
-            localStorage.setItem("juegosData", JSON.stringify(cacheData));
-            setGames(parsedData);
-            setUsers(uniqueUsers);
-
-            console.log(
-              `[handleSaveEdit] Successfully refreshed data - ${parsedData.length} games loaded`
-            );
-          } catch (error) {
-            console.error("[handleSaveEdit] Error refreshing data:", error);
+          const success = await refreshGameData("EDIT_GAME");
+          if (!success) {
+            console.error("[handleSaveEdit] Failed to refresh data");
           }
         }, 500); // Small delay to ensure Google Sheets has processed the update
       } else {
@@ -1665,31 +1270,8 @@ function Juegos() {
         saveButton.disabled = false;
       }
     }
-  }; // Función para exponer gestión de cache (útil para debugging)
-  window.debugJuegosCache = {
-    clear: () => {
-      console.log("[DEBUG] Clearing games cache");
-      localStorage.removeItem("juegosData");
-      window.location.reload();
-    },
-    info: () => {
-      const cached = localStorage.getItem("juegosData");
-      console.log("[DEBUG] Cache info:", {
-        hasCachedData: !!cached,
-        lastUpdate: cached ? JSON.parse(cached).lastUpdate : "Never",
-        cacheSize: cached ? (cached.length / 1024).toFixed(2) + " KB" : "0 KB",
-        gamesCount: games.length,
-        usersCount: users.length,
-      });
-    },
-    forceRefresh: () => {
-      console.log("[DEBUG] Forcing cache refresh");
-      localStorage.removeItem("juegosData");
-      window.location.reload();
-    },
   };
 
-  // Extraer plataformas únicas de todos los juegos jugados
   useEffect(() => {
     if (games.length > 0) {
       const uniquePlatforms = [
@@ -1702,11 +1284,9 @@ function Juegos() {
       ].sort();
       setPlayedPlatforms(uniquePlatforms);
     }
-  }, [games]); // Actualizar availablePlatforms cuando playedPlatforms cambie
+  }, [games]);
   useEffect(() => {
-    if (playedPlatforms.length > 0) {
-      setAvailablePlatforms(playedPlatforms);
-    }
+    if (playedPlatforms.length > 0) setAvailablePlatforms(playedPlatforms);
   }, [playedPlatforms]);
 
   // Renderizado principal del componente
@@ -2233,7 +1813,10 @@ function Juegos() {
         <section className="category-pasado">
           <h2 className="header-juegos">Juegos Jugados</h2>
           <ul>
-            {paginatedGames.map((game, index) => {
+            {(() => {
+              console.log('[DEBUG] Juegos en página actual:', paginatedGames.map(g => g.nombre));
+              return paginatedGames;
+            })().map((game, index) => {
               const showBadges =
                 (game.horas && game.horas !== "") ||
                 (game.nota && game.nota !== "");
@@ -2420,7 +2003,7 @@ function Juegos() {
               <div className="popup-info">
                 <h2>{selectedGame.nombre}</h2>
                 <div className="popup-columns">
-                  {/* Columna de detalles principales */}
+                  
                   <div className="game-details-column">
                     {selectedGame.estado && (
                       <p>{selectedGame.estado.toUpperCase()}</p>
@@ -2459,7 +2042,7 @@ function Juegos() {
                         <strong>📅 </strong> {selectedGame.fecha}
                       </p>
                     )}
-                    {/* Mostrar comentario del recomendador si existe */}
+                    
                     {selectedGame.comentario &&
                       selectedGame.comentario.trim() !== "" &&
                       selectedGame.usuario && (
@@ -2475,7 +2058,7 @@ function Juegos() {
                         </div>
                       )}
                   </div>
-                  {/* Columna de metadatos */}
+                  
                   <div className="game-meta-column">
                     {" "}
                     {selectedGame.desarrolladores && (
@@ -2536,7 +2119,7 @@ function Juegos() {
                     </div>
                   </div>
                 </div>
-                {/* Resumen del juego */}
+                    
                 {selectedGame.resumen && (
                   <div className="game-summary">
                     <p>{selectedGame.resumen.replace(/-%-/g, ", ")}</p>
@@ -2547,7 +2130,7 @@ function Juegos() {
           </div>
         </div>
       )}
-      {/* Popup para añadir recomendación */}
+      
       {showAddPopup && (
         <div className="popup-overlay" onClick={handleCloseAddPopup}>
           <div
@@ -2603,7 +2186,7 @@ function Juegos() {
                 </div>
               ))}{" "}
             </div>
-            {/* Campo de comentario - solo visible si hay un juego seleccionado */}
+            
             {selectedIGDB && (
               <div className="popup-comment-section">
                 <textarea
@@ -2696,7 +2279,7 @@ function Juegos() {
         </div>
       )}
 
-      {/* Popup para editar juego */}
+      
       {showEditPopup && (
         <div className="popup-overlay" onClick={handleCloseEditPopup}>
           <div
@@ -2714,7 +2297,7 @@ function Juegos() {
             </button>
             <h2 className="popup-edit-title">Editar Juego</h2>
             <div className="edit-form-container">
-              {/* Primera fila: Nombre y Estado */}
+              
               <div className="edit-form-row">
                 <div className="edit-form-field">
                   <label>Nombre</label>
@@ -2744,7 +2327,7 @@ function Juegos() {
                   </select>
                 </div>
               </div>{" "}
-              {/* Segunda fila: Nota y Horas */}
+              
               <div className="edit-form-row">
                 <div className="edit-form-field">
                   <label>Nota ({editFormData.nota || "0"})</label>
@@ -2774,7 +2357,7 @@ function Juegos() {
                   />
                 </div>
               </div>
-              {/* Tercera fila: Fecha */}
+              
               <div className="edit-form-row">
                 <div className="edit-form-field">
                   <label>Fecha</label>
@@ -2802,7 +2385,7 @@ function Juegos() {
                   />
                 </div>
               </div>{" "}
-              {/* Cuarta fila: URL de YouTube */}
+              
               <div className="edit-form-field-full">
                 <label>YouTube</label>
                 <input
@@ -2814,7 +2397,7 @@ function Juegos() {
                   }
                 />
               </div>
-              {/* Quinta fila: Carátula */}
+              
               <div className="edit-form-field-full">
                 <label>Carátula (URL)</label>
                 <input
@@ -2826,7 +2409,7 @@ function Juegos() {
                   }
                 />
               </div>{" "}
-              {/* Spinner de Plataforma (selección única) */}
+              
               <div className="edit-form-field-full">
                 <label>Plataforma Jugada</label>
                 <select
@@ -2843,7 +2426,7 @@ function Juegos() {
                   ))}
                 </select>
               </div>
-              {/* Sexta fila: Géneros y Plataformas */}
+              
               <div className="edit-form-row">
                 {" "}
                 <div className="edit-form-field">
@@ -2937,7 +2520,7 @@ function Juegos() {
                   </div>
                 </div>
               </div>{" "}
-              {/* Séptima fila: Desarrolladores y Publicadores */}
+              
               <div className="edit-form-row">
                 <div className="edit-form-field">
                   <label>Desarrolladores</label>
@@ -2964,7 +2547,7 @@ function Juegos() {
                   />
                 </div>
               </div>{" "}
-              {/* Resumen */}
+              
               <div className="edit-form-field-full">
                 <label>Resumen</label>
                 <textarea
@@ -2976,7 +2559,7 @@ function Juegos() {
                   }
                 />
               </div>
-              {/* Botones */}
+              
               <div className="edit-form-buttons">
                 <button
                   type="button"
@@ -2998,7 +2581,7 @@ function Juegos() {
         </div>
       )}
 
-      {/* Popup de error de validación */}
+      
       {showErrorPopup && (
         <div className="popup-overlay" onClick={() => setShowErrorPopup(false)}>
           <div
@@ -3052,7 +2635,7 @@ function Juegos() {
         </div>
       )}
 
-      {/* Popup para añadir juego (desarrolladores) */}
+      
       {showAddGamePopup && (
         <div className="popup-overlay" onClick={handleCloseAddGamePopup}>
           <div
@@ -3063,7 +2646,7 @@ function Juegos() {
               ✖
             </button>
             <h2 className="popup-add-title">Añadir Juego</h2>
-            {/* Búsqueda IGDB */}
+            
             <div className="search-input-global popup-search-igdb">
               <img
                 src="/static/resources/lupa.png"
@@ -3079,7 +2662,7 @@ function Juegos() {
                 autoFocus
               />
             </div>
-            {/* Estados de carga y error */}
+            
             {gameIgdbLoading && (
               <p className="popup-igdb-loading">
                 {gameIgdbError || "Buscando..."}
@@ -3088,7 +2671,7 @@ function Juegos() {
             {gameIgdbError && !gameIgdbLoading && (
               <p className="popup-igdb-error">{gameIgdbError}</p>
             )}
-            {/* Resultados IGDB */}
+            
             <div className="popup-igdb-scroll">
               {gameIgdbResults.map((game) => (
                 <div
@@ -3112,11 +2695,11 @@ function Juegos() {
                 </div>
               ))}
             </div>
-            {/* Formulario de datos adicionales - solo visible si hay un juego seleccionado */}
+            
             {selectedGameIGDB && (
               <div className="add-game-form-section">
                 <div className="edit-form-container">
-                  {/* Primera fila: Estado y Nota */}
+                  
                   <div className="edit-form-row">
                     <div className="edit-form-field">
                       <label>Estado</label>
@@ -3149,7 +2732,7 @@ function Juegos() {
                     </div>
                   </div>
 
-                  {/* Segunda fila: Horas y Fecha */}
+                  
                   <div className="edit-form-row">
                     <div className="edit-form-field">
                       <label>Horas</label>
@@ -3178,7 +2761,7 @@ function Juegos() {
                     </div>
                   </div>
 
-                  {/* Tercera fila: YouTube, Trailer y Carátula */}
+                  
                   <div className="edit-form-row">
                     <div className="edit-form-field">
                       <label>YouTube</label>
@@ -3217,7 +2800,7 @@ function Juegos() {
                     </div>
                   </div>
 
-                  {/* Cuarta fila: Plataforma Principal */}
+                  
                   <div className="edit-form-row">
                     <div className="edit-form-field">
                       <label>Plataforma Principal</label>
@@ -3258,7 +2841,7 @@ function Juegos() {
                 </div>
               </div>
             )}{" "}
-            {/* Botón de confirmación */}
+            
             <button
               className={`add-recommendation-confirm ${
                 addGameStatus.includes("Error")
@@ -3292,10 +2875,19 @@ function Juegos() {
                     setTimeout(() => setAddGameStatus(""), 3000);
                   } else {
                     setAddGameStatus("¡Añadido!");
-                    // Recargar datos después de 2 segundos
-                    setTimeout(() => {
-                      handleCloseAddGamePopup();
-                      window.location.reload();
+                    console.log("[ADD GAME] Game added successfully, refreshing data...");
+                    
+                    // Esperar un momento y luego recargar datos
+                    setTimeout(async () => {
+                      const success = await refreshGameData("ADD GAME");
+                      if (success) {
+                        handleCloseAddGamePopup();
+                      } else {
+                        // Si falla la actualización, hacer reload como fallback
+                        console.log("[ADD GAME] Fallback: doing full page reload");
+                        handleCloseAddGamePopup();
+                        window.location.reload();
+                      }
                     }, 2000);
                   }
                 } catch (error) {

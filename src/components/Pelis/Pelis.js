@@ -222,113 +222,113 @@ function Pelis() {
       return;
     }
 
-    // Función simple para cargar datos desde el sheet
-    const fetchMovies = async () => {
+
+  // Función simple para cargar datos desde el sheet
+  const fetchMovies = async () => {
+    try {
+      console.log("[fetchMovies] Fetching data from sheet");
+
+      const response = await fetch(sheetUrl);
+      const data = await response.text();
+      const rows = data.split("\n");
+
+      const parsedData = rows
+        .slice(1)
+        .map((row) => {
+          if (!row.trim()) return null; // Skip empty rows
+
+          const [
+            titulo,
+            titulo_original,
+            tipo,
+            estado,
+            fecha_vista,
+            trailer,
+            url,
+            caratula,
+            imagen,
+            duracion,
+            fecha_salida,
+            director,
+            generos, // Nueva columna M
+            sinopsis,
+            nota,
+            usuario,
+            comentario,
+            nota_chat,
+          ] = row.split(",");
+
+          return {
+            nombre: titulo?.trim(),
+            titulo_original: titulo_original?.trim(),
+            tipo: tipo?.trim(),
+            estado: estado?.trim().toLowerCase(),
+            fecha: fecha_vista?.trim(),
+            trailer: trailer?.trim(),
+            url: url?.trim(),
+            caratula: caratula?.trim(),
+            imagen: imagen?.trim(),
+            duracion: duracion?.trim(),
+            fecha_lanzamiento: fecha_salida?.trim(),
+            director: director?.trim(),
+            generos: generos?.trim(), // Nueva propiedad
+            resumen: sinopsis?.trim(),
+            nota: nota?.trim(),
+            usuario: usuario?.trim(),
+            comentario: comentario?.trim(),
+            nota_chat: nota_chat?.trim(),
+          };
+        })
+        .filter((movie) => movie !== null);
+
+      // Crear hash simple para comparar cambios
+      const currentHash = createSimpleHash(parsedData);
+
+      // Guardar en cache
+      const cacheData = {
+        movies: parsedData,
+        hash: currentHash,
+        lastUpdate: Date.now(),
+      };
+
+      localStorage.setItem("pelisData", JSON.stringify(cacheData));
+
+      // Actualizar estado
+      setMovies(parsedData);
+
+      console.log(
+        `[fetchMovies] Data loaded and cached - ${parsedData.length} movies/series`
+      );
+    } catch (error) {
+      console.error("Error al cargar los datos de películas:", error);
+    }
+  };
+
+  // Función para cargar desde cache o crear nueva cache (debe estar en el scope principal)
+  const loadFromCacheOrCreate = async () => {
+    const cachedData = localStorage.getItem("pelisData");
+
+    if (cachedData) {
       try {
-        console.log("[fetchMovies] Fetching data from sheet");
-
-        const response = await fetch(sheetUrl);
-        const data = await response.text();
-        const rows = data.split("\n");
-
-        const parsedData = rows
-          .slice(1)
-          .map((row) => {
-            if (!row.trim()) return null; // Skip empty rows
-
-            const [
-              titulo,
-              titulo_original,
-              tipo,
-              estado,
-              fecha_vista,
-              trailer,
-              url,
-              caratula,
-              imagen,
-              duracion,
-              fecha_salida,
-              director,
-              generos, // Nueva columna M
-              sinopsis,
-              nota,
-              usuario,
-              comentario,
-              nota_chat,
-            ] = row.split(",");
-
-            return {
-              nombre: titulo?.trim(),
-              titulo_original: titulo_original?.trim(),
-              tipo: tipo?.trim(),
-              estado: estado?.trim().toLowerCase(),
-              fecha: fecha_vista?.trim(),
-              trailer: trailer?.trim(),
-              url: url?.trim(),
-              caratula: caratula?.trim(),
-              imagen: imagen?.trim(),
-              duracion: duracion?.trim(),
-              fecha_lanzamiento: fecha_salida?.trim(),
-              director: director?.trim(),
-              generos: generos?.trim(), // Nueva propiedad
-              resumen: sinopsis?.trim(),
-              nota: nota?.trim(),
-              usuario: usuario?.trim(),
-              comentario: comentario?.trim(),
-              nota_chat: nota_chat?.trim(),
-            };
-          })
-          .filter((movie) => movie !== null);
-
-        // Crear hash simple para comparar cambios
-        const currentHash = createSimpleHash(parsedData);
-
-        // Guardar en cache
-        const cacheData = {
-          movies: parsedData,
-          hash: currentHash,
-          lastUpdate: Date.now(),
-        };
-
-        localStorage.setItem("pelisData", JSON.stringify(cacheData));
-
-        // Actualizar estado
-        setMovies(parsedData);
-
-        console.log(
-          `[fetchMovies] Data loaded and cached - ${parsedData.length} movies/series`
-        );
-      } catch (error) {
-        console.error("Error al cargar los datos de películas:", error);
-      }
-    };
-
-    // Cargar desde cache si existe, sino crear cache
-    const loadFromCacheOrCreate = () => {
-      const cachedData = localStorage.getItem("pelisData");
-
-      if (cachedData) {
-        try {
-          const cache = JSON.parse(cachedData);
-          if (cache.movies) {
-            console.log("[loadFromCacheOrCreate] Loading from cache");
-            setMovies(cache.movies);
-
-            // Verificar cambios en segundo plano
-            checkForUpdatesInBackground();
-          } else {
-            throw new Error("Invalid cache format");
-          }
-        } catch (error) {
-          console.log("[loadFromCacheOrCreate] Cache invalid, creating new");
-          localStorage.removeItem("pelisData");
-          fetchMovies();
+        const cache = JSON.parse(cachedData);
+        if (cache.movies) {
+          console.log("[loadFromCacheOrCreate] Loading from cache");
+          setMovies(cache.movies);
+          // Verificar cambios en segundo plano
+        await checkForUpdatesInBackground();
+        } else {
+          throw new Error("Invalid cache format");
         }
-      } else {
-        console.log("[loadFromCacheOrCreate] No cache exists, creating new");
-        fetchMovies();
+      } catch (error) {
+        console.log("[loadFromCacheOrCreate] Cache invalid, creating new");
+        localStorage.removeItem("pelisData");
+        await fetchMovies();
       }
-    };
+    } else {
+      console.log("[loadFromCacheOrCreate] No cache exists, creating new");
+      await fetchMovies();
+    }
+  };
 
     // Verificar cambios en segundo plano
     const checkForUpdatesInBackground = async () => {
@@ -542,7 +542,6 @@ function Pelis() {
   // Función para manejar la edición de películas
   const handleEditMovie = (movie) => {
     setEditingMovie(movie);
-    
     setEditMovieFormData({
       nombre: movie.nombre || "",
       titulo_original: movie.titulo_original || "",
@@ -552,23 +551,35 @@ function Pelis() {
       trailer: movie.trailer || "",
       url: movie.url || "",
       caratula: movie.caratula || "",
-      imagen_fondo: movie.imagen_fondo || "",
+      imagen_fondo: movie.imagen_fondo || movie.imagen || "",
       duracion: movie.duracion || "",
       fecha_lanzamiento: convertDateToISO(movie.fecha_lanzamiento || ""),
       director: movie.director || "",
-      genero: cleanSeparators(movie.genero || ""),
+      genero: cleanSeparators(movie.genero || movie.generos || ""),
       resumen: cleanSeparators(movie.resumen || ""),
-      nota_tmdb: movie.nota_tmdb || "",
+      puntuacion_promedio: movie.nota || movie.nota_tmdb || "",
       usuario: movie.usuario || "",
       comentario: cleanSeparators(movie.comentario || ""),
       nota_chat: movie.nota_chat || "",
-      // Campos para identificación única de la fila
-      originalNombre: movie.nombre || "",
-      originalEstado: movie.estado || "",
-      originalFecha: movie.fecha || "",
-      originalUsuario: movie.usuario || "",
     });
-
+    // Asegurar formato DD/MM/YYYY para el identificador original
+    const originalFecha = (() => {
+      if (!movie.fecha) return "";
+      const parts = movie.fecha.split("/");
+      if (parts.length === 3) return movie.fecha; // ya está en DD/MM/YYYY
+      // Si está en ISO (YYYY-MM-DD), convertir
+      if (/^\d{4}-\d{2}-\d{2}$/.test(movie.fecha)) {
+        const [y, m, d] = movie.fecha.split("-");
+        return `${d}/${m}/${y}`;
+      }
+      return movie.fecha;
+    })();
+    setOriginalEditIdentifiers({
+      nombre: (movie.nombre || "").toLowerCase(),
+      tipo: (movie.tipo || "Película").toLowerCase(),
+      estado: (movie.estado || "").toLowerCase(),
+      fecha: originalFecha,
+    });
     setShowEditMoviePopup(true);
   };
   // Función para cerrar el popup de edición
@@ -584,6 +595,43 @@ function Pelis() {
       ...prev,
       [field]: value
     }));
+  };
+
+  // Estado para los identificadores originales de la película a editar
+  const [originalEditIdentifiers, setOriginalEditIdentifiers] = useState({});
+  const [editMovieStatus, setEditMovieStatus] = useState("");
+
+  // Función para guardar los cambios de edición
+  const handleSaveEditMovie = async () => {
+    setEditMovieStatus("saving");
+    try {
+      const userId = localStorage.getItem("userId") || "173916175";
+      const response = await fetch("/api/edit-movie", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          editData: editMovieFormData,
+          originalIdentifiers: originalEditIdentifiers,
+          userId,
+        }),
+      });
+      if (response.ok) {
+        setEditMovieStatus("success");
+        // Refrescar datos
+        localStorage.removeItem("pelisData");
+        await loadFromCacheOrCreate();
+        setTimeout(() => {
+          setShowEditMoviePopup(false);
+          setEditingMovie(null);
+          setEditMovieFormData({});
+          setEditMovieStatus("");
+        }, 1200);
+      } else {
+        setEditMovieStatus("error");
+      }
+    } catch (error) {
+      setEditMovieStatus("error");
+    }
   };
 
   // Calcular películas paginadas (usando filtros avanzados si están activos)
@@ -2088,13 +2136,10 @@ function Pelis() {
                 </button>
                 <button
                   className="edit-save-button"
-                  onClick={() => {
-                    // TODO: Implementar función de guardar
-                    console.log("Saving movie:", editMovieFormData);
-                    handleCloseEditMoviePopup();
-                  }}
+                  onClick={handleSaveEditMovie}
+                  disabled={editMovieStatus === "saving"}
                 >
-                  Guardar Cambios
+                  {editMovieStatus === "saving" ? "Guardando..." : editMovieStatus === "success" ? "¡Guardado!" : "Guardar Cambios"}
                 </button>
               </div>
             </div>
